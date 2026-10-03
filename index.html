@@ -733,42 +733,59 @@
             }
         }
 
-        async function fetchBcvApi() {
-            const status = document.getElementById('api-status-msg');
-            const btn = document.getElementById('btn-api-bcv');
-            btn.disabled = true;
-            status.innerText = "Consultando tasa del BCV en tiempo real...";
+       async function fetchBcvApi() {
+    const status = document.getElementById('api-status-msg');
+    const btn = document.getElementById('btn-api-bcv');
+    btn.disabled = true;
+    status.innerText = "Consultando tasa del BCV en tiempo real...";
 
-            try {
-                const response = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
-                if(!response.ok) throw new Error("Error en respuesta de la API");
-                const data = await response.json();
-                
-                if (data && data.promedio) {
-                    const newRate = parseFloat(data.promedio);
-                    state.building.bcv = newRate;
-                    state.bcvHistory.unshift({
-                        date: new Date().toISOString().split('T')[0],
+    try {
+        const response = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+        if(!response.ok) throw new Error("Error en respuesta de la API");
+        const data = await response.json();
+        
+        if (data && data.promedio) {
+            const newRate = parseFloat(data.promedio);
+            const todayDate = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+
+            // 1. Insertar directamente en la tabla 'bcv_history' de Supabase
+            const { error } = await supabase
+                .from('bcv_history')
+                .insert([
+                    {
+                        date: todayDate,
                         rate: newRate,
                         origin: 'API BCV'
-                    });
-                    saveData();
-                    updateBcvUI();
-                    if(currentUser && currentUser.role === 'admin') renderAdminData();
-                    status.innerText = `✅ Tasa obtenida: Bs. ${newRate}`;
-                    alert(`Tasa BCV actualizada desde API Oficial: Bs. ${newRate}`);
-                } else {
-                    throw new Error("Formato no válido");
-                }
-            } catch (err) {
-                console.error(err);
-                status.innerText = "❌ No se pudo obtener automáticamente. Ingrésala manualmente.";
-                alert("No se pudo conectar a la API del BCV en este momento.");
-            } finally {
-                btn.disabled = false;
-            }
-        }
+                    }
+                ]);
 
+            if (error) {
+                console.error("Error al guardar en Supabase:", error.message);
+                alert("Atención: Se obtuvo la tasa pero hubo un error al guardarla en Supabase: " + error.message);
+            } else {
+                console.log("Tasa guardada exitosamente en Supabase");
+            }
+
+            // 2. Actualizar el estado en memoria de la app
+            state.building.bcv = newRate;
+            
+            // 3. Refrescar la interfaz
+            updateBcvUI();
+            if(currentUser && currentUser.role === 'admin') renderAdminData();
+            
+            status.innerText = `✅ Tasa obtenida: Bs. ${newRate}`;
+            alert(`Tasa BCV actualizada y guardada en la nube: Bs. ${newRate}`);
+        } else {
+            throw new Error("Formato no válido");
+        }
+    } catch (err) {
+        console.error(err);
+        status.innerText = "❌ No se pudo obtener automáticamente. Ingrésala manualmente.";
+        alert("No se pudo conectar a la API del BCV en este momento.");
+    } finally {
+        btn.disabled = false;
+    }
+}
         function renderBcvHistory() {
             const body = document.getElementById('bcv-history-body');
             if(!body) return;
