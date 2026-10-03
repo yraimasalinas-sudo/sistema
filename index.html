@@ -1487,6 +1487,14 @@ async function deleteExpense(id) {
             showDashboard();
             alert('Datos del condominio actualizados');
         }
+        // FORZAR VINCULACIÓN DEL FORMULARIO DE GASTOS
+        document.addEventListener('DOMContentLoaded', () => {
+            const expenseForm = document.getElementById('expense-form');
+            if (expenseForm) {
+                expenseForm.addEventListener('submit', addExpense);
+                console.log('Formulario de gastos vinculado correctamente.');
+            }
+        });
     </script>
 </body>
 </html>
