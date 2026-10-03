@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -605,6 +604,41 @@
             payments: [],
             providers: []
         };
+
+        // 2. Funciones para cargar/pintar datos en pantalla
+async function cargarGastos() {
+  const { data, error } = await supabase.from('gastos').select('*');
+  if (!error) {
+    // Código para renderizar/actualizar los gastos en el DOM
+    console.log('Gastos actualizados:', data);
+  }
+}
+
+async function cargarPropietarios() {
+  const { data, error } = await supabase.from('propietarios').select('*');
+  if (!error) {
+    // Código para renderizar/actualizar los propietarios en el DOM
+    console.log('Propietarios actualizados:', data);
+  }
+}
+
+// 3. SUSCRIPCIÓN REALTIME (Aquí va el código)
+// Se coloca al inicio del flujo de la app para que escuche cambios todo el tiempo
+supabase
+  .channel('cambios-residencia')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'gastos' }, payload => {
+    cargarGastos();
+  })
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'propietarios' }, payload => {
+    cargarPropietarios();
+  })
+  .subscribe();
+
+// 4. Carga inicial de datos al abrir la página
+document.addEventListener('DOMContentLoaded', () => {
+  cargarGastos();
+  cargarPropietarios();
+});
 
         async function loadStorage() {
             let loadedFromCloud = false;
