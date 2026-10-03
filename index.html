@@ -45,8 +45,7 @@
                         <input type="password" id="password" placeholder="••••••••" required
                             class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-400 text-sm">
                     </div>
-                    <button type="submit" 
-                        class="w-full py-3 bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-semibold rounded-xl shadow-lg hover:from-teal-600 hover:to-emerald-600 transition duration-200">
+                   <button type="button" onclick="addExpense(event)" class="w-full py-3 bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-semibold rounded-xl shadow-lg hover:from-teal-600 hover:to-emerald-600 transition duration-200">
                         Ingresar al Sistema
                     </button>
                 </form>
@@ -927,19 +926,14 @@
 
   async function addExpense(e) {
     if (e) e.preventDefault();
-    
-    // Alerta de prueba
-    alert("¡ENTRÓ A LA FUNCIÓN!");
+    alert("¡Botón presionado correctamente!"); // Para confirmación inmediata
 
     try {
         const period = document.getElementById('exp-period')?.value || '';
         const desc = document.getElementById('exp-desc')?.value || '';
         const amount = parseFloat(document.getElementById('exp-amount')?.value) || 0;
-        const type = document.getElementById('exp-type')?.value || '';
-        const providerElem = document.getElementById('exp-provider');
-        const provider = providerElem ? providerElem.value : null;
-
-        alert(`Datos capturados: Periodo=${period}, Desc=${desc}, Monto=${amount}`);
+        const typeVal = document.getElementById('exp-type')?.value || '';
+        const providerVal = document.getElementById('exp-provider')?.value || null;
 
         const idVal = Date.now();
         const todayStr = new Date().toISOString().split('T')[0];
@@ -949,10 +943,8 @@
             description: desc,
             amount: amount,
             usd_equiv: amount,
-            type: type,
-            period: period,
-            apto: 'TODOS',
-            provider: provider || null,
+            category: typeVal,
+            provider: providerVal || null,
             date: todayStr
         };
 
@@ -963,7 +955,7 @@
                 return;
             }
         } else {
-            alert('Error: "db" no está definido.');
+            alert('Error: La variable "db" no está disponible.');
             return;
         }
 
@@ -973,20 +965,22 @@
             desc: desc,
             description: desc,
             amount: amount,
-            type: type,
+            type: typeVal,
+            category: typeVal,
             period: period,
-            apto: 'TODOS',
-            provider: provider,
+            provider: providerVal,
             date: todayStr
         });
 
+        document.getElementById('expense-form')?.reset();
         if (typeof saveData === 'function') saveData();
         renderExpenses();
         if (typeof renderAdminData === 'function') renderAdminData();
 
-        alert('¡Guardado exitoso!');
+        alert('¡Gasto registrado con éxito!');
+
     } catch (err) {
-        alert('Error inesperado: ' + err.message);
+        alert('Error en JS: ' + err.message);
     }
 }
         
