@@ -596,60 +596,115 @@
         };
 
         // --- NUBE Y PERSISTENCIA ---
-        async function loadStorage() {
-            let loadedFromCloud = false;
+     async function loadStorage() {
+     let loadedFromCloud = false;
 
-            if (typeof db !== 'undefined' && db) {
-                try {
-                    const { data: cloudPayments, error: errPayments } = await db.from('payments').select('*');
-                    const { data: cloudBcv, error: errBcv } = await db.from('bcv_history').select('*').order('date', { ascending: true });
+     if (typeof db !== 'undefined' && db) {
+        try {
+            // Consulta en paralelo a Supabase
+            const [
+                { data: cloudPayments, error: errPayments },
+                { data: cloudBcv, error: errBcv },
+                { data: cloudExpenses, error: errExpenses },
+                { data: cloudOwners, error: errOwners },
+                { data: cloudProviders, error: errProviders }
+            ] = await Promise.all([
+                db.from('payments').select('*'),
+                db.from('bcv_history').select('*').order('date', { ascending: true }),
+                db.from('expenses').select('*'),
+                db.from('owners').select('*'),
+                db.from('providers').select('*')
+            ]);
 
-                    if (!errPayments && cloudPayments) {
-                        state.payments = cloudPayments.map(p => ({
-                            id: Number(p.id),
-                            apto: p.apto,
-                            concept: p.concept || 'Cuota Ordinaria Mensual',
-                            method: p.method || 'Transferencia',
-                            amount: parseFloat(p.amount || 0),
-                            usdEquiv: parseFloat(p.usd_equiv || 0),
-                            ref: p.ref || '',
-                            status: p.status || 'Pendiente',
-                            date: p.date
-                        }));
-                        loadedFromCloud = true;
-                    }
-
-                    if (!errBcv && cloudBcv) {
-                        state.bcvHistory = cloudBcv.map(b => ({
-                            id: b.id,
-                            date: b.date,
-                            rate: parseFloat(b.rate),
-                            origin: b.origin || 'BCV'
-                        }));
-                        loadedFromCloud = true;
-                    }
-
-                    if (loadedFromCloud) {
-                        localStorage.setItem('condo_app_data', JSON.stringify(state));
-                    }
-                } catch(e) { 
-                    console.log('Error o sin conexión a Supabase, usando copia local:', e); 
-                }
+            // 1. Pagos
+            if (!errPayments && cloudPayments) {
+                state.payments = cloudPayments.map(p => ({
+                    id: Number(p.id),
+                    apto: p.apto,
+                    concept: p.concept || 'Cuota Ordinaria Mensual',
+                    method: p.method || 'Transferencia',
+                    amount: parseFloat(p.amount || 0),
+                    usdEquiv: parseFloat(p.usd_equiv || 0),
+                    ref: p.ref || '',
+                    status: p.status || 'Pendiente',
+                    date: p.date
+                }));
+                loadedFromCloud = true;
             }
 
-            if (!loadedFromCloud) {
-                const localData = localStorage.getItem('condo_app_data');
-                if (localData) state = JSON.parse(localData);
+            // 2. Histórico BCV
+            if (!errBcv && cloudBcv) {
+                state.bcvHistory = cloudBcv.map(b => ({
+                    id: b.id,
+                    date: b.date,
+                    rate: parseFloat(b.rate),
+                    origin: b.origin || 'BCV'
+                }));
+                loadedFromCloud = true;
             }
 
-            if (!state.bcvHistory) state.bcvHistory = [];
-            if (!state.payments) state.payments = [];
-            if (!state.expenses) state.expenses = [];
-            
-            updateBcvUI();
-            if (currentUser && currentUser.role === 'admin') renderAdminData();
+            // 3. Gastos
+            if (!errExpenses && cloudExpenses) {
+                state.expenses = cloudExpenses.map(e => ({
+                    id: Number(e.id),
+                    period: e.period,
+                    description: e.description,
+                    amount: parseFloat(e.amount || 0),
+                    type: e.type || 'ordinaria',
+                    apto: e.apto || null,
+                    provider: e.provider || null,
+                    date: e.created_at
+                }));
+                loadedFromCloud = true;
+            }
+
+            // 4. Propietarios / Apartamentos
+            if (!errOwners && cloudOwners) {
+                state.owners = cloudOwners.map(o => ({
+                    apto: o.apto,
+                    ownerName: o.owner_name,
+                    email: o.email || '',
+                    phone: o.phone || '',
+                    balance: parseFloat(o.balance || 0)
+                }));
+                loadedFromCloud = true;
+            }
+
+            // 5. Proveedores
+            if (!errProviders && cloudProviders) {
+                state.providers = cloudProviders.map(pr => ({
+                    id: Number(pr.id),
+                    name: pr.name,
+                    rifCedula: pr.rif_cedula || '',
+                    phone: pr.phone || '',
+                    serviceType: pr.service_type || ''
+                }));
+                loadedFromCloud = true;
+            }
+
+            if (loadedFromCloud) {
+                localStorage.setItem('condo_app_data', JSON.stringify(state));
+            }
+        } catch(e) { 
+            console.log('Error o sin conexión a Supabase, usando copia local:', e); 
         }
+    }
 
+     if (!loadedFromCloud) {
+        const localData = localStorage.getItem('condo_app_data');
+        if (localData) state = JSON.parse(localData);
+    }
+
+    // Inicializaciones de respaldo
+    if (!state.bcvHistory) state.bcvHistory = [];
+    if (!state.payments) state.payments = [];
+    if (!state.expenses) state.expenses = [];
+    if (!state.owners) state.owners = [];
+    if (!state.providers) state.providers = [];
+    
+    updateBcvUI();
+    if (currentUser && currentUser.role === 'admin') renderAdminData();
+} 
         async function saveData() {
             localStorage.setItem('condo_app_data', JSON.stringify(state));
             if (typeof db !== 'undefined' && db) {
@@ -870,7 +925,7 @@
             generateReports();
         }
 
-        function addExpense(e) {
+        async function addExpense(e) {
             e.preventDefault();
             const desc = document.getElementById('exp-desc').value;
             const amount = parseFloat(document.getElementById('exp-amount').value);
@@ -879,53 +934,84 @@
             const provider = document.getElementById('exp-provider').value;
             const period = document.getElementById('exp-period').value;
 
-            state.expenses.push({
+            const newExpense = {
                 id: Date.now(),
-                desc,
-                amount,
-                type,
-                period,
+                description: desc,
+                amount: amount,
+                type: type,
+                period: period,
                 apto: type === 'no_comun' ? apto : 'TODOS',
-                provider,
-                date: new Date().toISOString()
-            });
+                provider: provider || null
+        };
 
-            saveData();
-            document.getElementById('expense-form').reset();
-            document.getElementById('exp-period').value = period;
-            renderExpenses();
-            renderAdminData();
+        if (typeof db !== 'undefined' && db) {
+            const { error } = await db.from('expenses').insert([newExpense]);
+            if (error) {
+                console.error('Error al guardar gasto en Supabase:', error.message);
+                alert('Error al guardar en la nube: ' + error.message);
+                return;
+            }
         }
+
+        state.expenses.push({
+            id: newExpense.id,
+            desc: desc,
+            amount: amount,
+            type: type,
+            period: period,
+            apto: newExpense.apto,
+            provider: provider,
+            date: new Date().toISOString()
+        });
+
+        if (typeof saveData === 'function') saveData();
+    
+        document.getElementById('expense-form').reset();
+        document.getElementById('exp-period').value = period;
+        renderExpenses();
+        if (typeof renderAdminData === 'function') renderAdminData();
+  }
 
         function renderExpenses() {
             const body = document.getElementById('expenses-table-body');
             body.innerHTML = '';
             let totalUsd = 0;
 
-            state.expenses.forEach(exp => {
-                totalUsd += exp.amount;
-                body.innerHTML += `
-                    <tr class="border-b">
-                        <td class="p-1 font-semibold text-slate-500">${exp.type.toUpperCase()}</td>
-                        <td class="p-1">${exp.desc} ${exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
-                        <td class="p-1 font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
-                        <td class="p-1"><button onclick="deleteExpense(${exp.id})" class="text-red-500 font-bold">✕</button></td>
-                    </tr>
-                `;
-            });
+        state.expenses.forEach(exp => {
+            totalUsd += exp.amount;
+            body.innerHTML += `
+                <tr class="border-b">
+                    <td class="p-1 font-semibold text-slate-500">${exp.type.toUpperCase()}</td>
+                    <td class="p-1">${exp.desc} ${exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
+                    <td class="p-1 font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
+                    <td class="p-1"><button onclick="deleteExpense(${exp.id})" class="text-red-500 font-bold">✕</button></td>
+                </tr>
+            `;
+        });
 
-            const totalBs = totalUsd * state.building.bcv;
-            document.getElementById('total-expenses-amount').innerText = `$${totalUsd.toFixed(2)}`;
-            document.getElementById('total-expenses-bs').innerText = `(Bs. ${totalBs.toFixed(2)})`;
-            generateWhatsappGroupMsg();
+        const totalBs = totalUsd * state.building.bcv;
+        document.getElementById('total-expenses-amount').innerText = `$${totalUsd.toFixed(2)}`;
+        document.getElementById('total-expenses-bs').innerText = `(Bs. ${totalBs.toFixed(2)})`;
+        generateWhatsappGroupMsg();
+    }
+
+    async function deleteExpense(id) {
+        if (!confirm('¿Seguro que deseas eliminar este gasto?')) return;
+
+        if (typeof db !== 'undefined' && db) {
+        const { error } = await db.from('expenses').delete().eq('id', id);
+            if (error) {
+                console.error('Error al eliminar de Supabase:', error.message);
+                alert('Error al borrar en la nube: ' + error.message);
+                return;
+            }
         }
 
-        function deleteExpense(id) {
-            state.expenses = state.expenses.filter(e => e.id !== id);
-            saveData();
-            renderExpenses();
-            renderAdminData();
-        }
+        state.expenses = state.expenses.filter(e => e.id !== id);
+        if (typeof saveData === 'function') saveData();
+        renderExpenses();
+        if (typeof renderAdminData === 'function') renderAdminData();
+}
 
         function generateWhatsappGroupMsg() {
             const filterType = document.getElementById('wa-fee-type')?.value || 'all';
