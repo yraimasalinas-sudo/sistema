@@ -927,56 +927,87 @@
 
 async function addExpense(e) {
     e.preventDefault();
-    const desc = document.getElementById('exp-desc').value;
-    const amount = parseFloat(document.getElementById('exp-amount').value);
-    const type = document.getElementById('exp-type').value;
-    const apto = document.getElementById('exp-apto').value;
-    const provider = document.getElementById('exp-provider').value;
-    const period = document.getElementById('exp-period').value;
 
-    const idVal = Date.now();
-    const aptoVal = type === 'no_comun' ? apto : 'TODOS';
+    try {
+        const descElem = document.getElementById('exp-desc');
+        const amountElem = document.getElementById('exp-amount');
+        const typeElem = document.getElementById('exp-type');
+        const periodElem = document.getElementById('exp-period');
 
-    // Objeto enviando el campo 'date' para que Supabase no dé error
-    const newExpense = {
-        id: idVal,
-        description: desc,
-        amount: amount,
-        type: type,
-        period: period,
-        apto: aptoVal,
-        provider: provider || null,
-        date: new Date().toISOString().split('T')[0]
-    };
-
-    if (typeof db !== 'undefined' && db) {
-        const { error } = await db.from('expenses').insert([newExpense]);
-        if (error) {
-            console.error('Error al guardar gasto en Supabase:', error.message);
-            alert('Error al guardar en la nube: ' + error.message);
+        if (!descElem || !amountElem || !typeElem || !periodElem) {
+            alert('Faltan campos obligatorios en el formulario.');
             return;
         }
+
+        const desc = descElem.value;
+        const amount = parseFloat(amountElem.value) || 0;
+        const type = typeElem.value;
+        const period = periodElem.value;
+
+        const aptoElem = document.getElementById('exp-apto');
+        const apto = aptoElem ? aptoElem.value : 'TODOS';
+        
+        const providerElem = document.getElementById('exp-provider');
+        const provider = providerElem ? providerElem.value : '';
+
+        const idVal = Date.now();
+        const aptoVal = type === 'no_comun' ? apto : 'TODOS';
+
+        // Estructura adaptada a las columnas de tu tabla 'expenses' en Supabase
+        const payload = {
+            id: idVal,
+            description: desc,
+            amount: amount,
+            usd_equiv: amount,
+            type: type,
+            period: period,
+            apto: aptoVal,
+            provider: provider || null,
+            date: new Date().toISOString().split('T')[0]
+        };
+
+        // Guardar en Supabase
+        if (typeof db !== 'undefined' && db) {
+            const { data, error } = await db.from('expenses').insert([payload]);
+            if (error) {
+                console.error('Error Supabase:', error);
+                alert('Error al guardar en Supabase: ' + error.message);
+                return;
+            }
+        } else {
+            alert('Atención: La conexión con la base de datos (db) no está inicializada.');
+            return;
+        }
+
+        // Actualizar el estado local
+        if (!state.expenses) state.expenses = [];
+        state.expenses.push({
+            id: idVal,
+            desc: desc,
+            amount: amount,
+            type: type,
+            period: period,
+            apto: aptoVal,
+            provider: provider,
+            date: new Date().toISOString()
+        });
+
+        if (typeof saveData === 'function') saveData();
+        
+        document.getElementById('expense-form').reset();
+        if (document.getElementById('exp-period')) document.getElementById('exp-period').value = period;
+        
+        renderExpenses();
+        if (typeof renderAdminData === 'function') renderAdminData();
+        
+        alert('¡Gasto registrado con éxito!');
+
+    } catch (err) {
+        console.error('Error en JavaScript:', err);
+        alert('Ocurrió un error al procesar el formulario: ' + err.message);
     }
-
-    state.expenses.push({
-        id: idVal,
-        desc: desc,
-        amount: amount,
-        type: type,
-        period: period,
-        apto: aptoVal,
-        provider: provider,
-        date: new Date().toISOString()
-    });
-
-    if (typeof saveData === 'function') saveData();
-    
-    document.getElementById('expense-form').reset();
-    document.getElementById('exp-period').value = period;
-    renderExpenses();
-    if (typeof renderAdminData === 'function') renderAdminData();
 }
-
+        
 function renderExpenses() {
     const body = document.getElementById('expenses-table-body');
     body.innerHTML = '';
