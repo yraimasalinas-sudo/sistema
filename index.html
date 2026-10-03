@@ -925,53 +925,48 @@
             generateReports();
         }
 
-    async function addExpense(e) {
-    e.preventDefault();
+  async function addExpense(e) {
+    if (e) e.preventDefault();
+    
+    // Alerta de prueba
+    alert("¡ENTRÓ A LA FUNCIÓN!");
 
     try {
-        // Captura de valores exactamente de los inputs del formulario
-        const period = document.getElementById('exp-period').value;
-        const desc = document.getElementById('exp-desc').value;
-        const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
-        const type = document.getElementById('exp-type').value;
-        
-        // Elementos opcionales
+        const period = document.getElementById('exp-period')?.value || '';
+        const desc = document.getElementById('exp-desc')?.value || '';
+        const amount = parseFloat(document.getElementById('exp-amount')?.value) || 0;
+        const type = document.getElementById('exp-type')?.value || '';
         const providerElem = document.getElementById('exp-provider');
         const provider = providerElem ? providerElem.value : null;
 
-        const aptoElem = document.getElementById('exp-apto');
-        const aptoVal = (type === 'no_comun' && aptoElem) ? aptoElem.value : 'TODOS';
+        alert(`Datos capturados: Periodo=${period}, Desc=${desc}, Monto=${amount}`);
 
         const idVal = Date.now();
         const todayStr = new Date().toISOString().split('T')[0];
 
-        // 1. Objeto adaptado exactamente a las columnas de Supabase
         const payload = {
             id: idVal,
-            description: desc,      // Mapea al campo 'description' de la DB
+            description: desc,
             amount: amount,
-            usd_equiv: amount,       // Requerido por la tabla
+            usd_equiv: amount,
             type: type,
             period: period,
-            apto: aptoVal,
+            apto: 'TODOS',
             provider: provider || null,
             date: todayStr
         };
 
-        // 2. Inserción en Supabase
         if (typeof db !== 'undefined' && db) {
             const { error } = await db.from('expenses').insert([payload]);
             if (error) {
-                console.error('Error Supabase:', error);
-                alert('Error al guardar en Supabase: ' + error.message);
+                alert('Error Supabase: ' + error.message);
                 return;
             }
         } else {
-            alert('Error: La variable "db" no está disponible.');
+            alert('Error: "db" no está definido.');
             return;
         }
 
-        // 3. Sincronizar estado local (mantiene tanto desc como description para el render)
         if (!state.expenses) state.expenses = [];
         state.expenses.push({
             id: idVal,
@@ -980,28 +975,18 @@
             amount: amount,
             type: type,
             period: period,
-            apto: aptoVal,
+            apto: 'TODOS',
             provider: provider,
             date: todayStr
         });
 
-        // 4. Guardar localmente y limpiar
         if (typeof saveData === 'function') saveData();
-        
-        document.getElementById('expense-form').reset();
-        if (document.getElementById('exp-period')) {
-            document.getElementById('exp-period').value = period;
-        }
-
-        // 5. Renderizar vista en pantalla
         renderExpenses();
         if (typeof renderAdminData === 'function') renderAdminData();
 
-        alert('¡Gasto registrado con éxito!');
-
+        alert('¡Guardado exitoso!');
     } catch (err) {
-        console.error('Error en addExpense:', err);
-        alert('Error al procesar el gasto: ' + err.message);
+        alert('Error inesperado: ' + err.message);
     }
 }
         
