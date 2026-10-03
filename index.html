@@ -10,8 +10,7 @@
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -42,10 +41,8 @@
 
         <!-- ==================== PANTALLA DE LOGIN ==================== -->
         <div id="login-section" class="flex flex-col items-center justify-center min-h-[85vh]">
-            <div
-                class="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-teal-100 max-w-md w-full text-center">
-                <div
-                    class="w-20 h-20 bg-gradient-to-tr from-teal-400 to-amber-400 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-md mb-4">
+            <div class="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-teal-100 max-w-md w-full text-center">
+                <div class="w-20 h-20 bg-gradient-to-tr from-teal-400 to-amber-400 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-md mb-4">
                     🏢
                 </div>
                 <h1 class="text-2xl font-bold text-slate-800 mb-1" id="login-building-name">Mi Condominio</h1>
@@ -62,7 +59,7 @@
                         <input type="password" id="password" placeholder="••••••••" required
                             class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-400 text-sm">
                     </div>
-                    <button type="button" onclick="addExpense(event)"
+                    <button type="submit"
                         class="w-full py-3 bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-semibold rounded-xl shadow-lg hover:from-teal-600 hover:to-emerald-600 transition duration-200">
                         Ingresar al Sistema
                     </button>
@@ -74,17 +71,14 @@
         <!-- ==================== PANEL PRINCIPAL (DASHBOARD) ==================== -->
         <div id="dashboard-section" class="hidden">
             <!-- Barra Superior / Encabezado -->
-            <header
-                class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap justify-between items-center border border-slate-100 no-print">
+            <header class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap justify-between items-center border border-slate-100 no-print">
                 <div class="flex items-center gap-3">
-                    <div id="header-logo"
-                        class="w-12 h-12 bg-amber-400 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow">
+                    <div id="header-logo" class="w-12 h-12 bg-amber-400 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow">
                         🏢
                     </div>
                     <div>
                         <h2 class="font-bold text-lg text-slate-800" id="dash-bldg-name">Edificio Residencial</h2>
-                        <p class="text-xs text-slate-500">RIF: <span id="dash-bldg-rif">J-00000000-0</span> | <span
-                                id="dash-bldg-address">Dirección del Inmueble</span></p>
+                        <p class="text-xs text-slate-500">RIF: <span id="dash-bldg-rif">J-00000000-0</span> | <span id="dash-bldg-address">Dirección del Inmueble</span></p>
                     </div>
                 </div>
 
@@ -98,10 +92,8 @@
                         </div>
                     </div>
                     <div class="text-right">
-                        <span id="user-badge"
-                            class="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-bold uppercase"></span>
-                        <button onclick="logout()" class="block text-xs text-red-500 hover:underline mt-1">Cerrar
-                            Sesión</button>
+                        <span id="user-badge" class="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-bold uppercase"></span>
+                        <button onclick="logout()" class="block text-xs text-red-500 hover:underline mt-1">Cerrar Sesión</button>
                     </div>
                 </div>
             </header>
@@ -110,75 +102,47 @@
             <div id="admin-view" class="hidden space-y-6">
                 <!-- Navegación por pestañas -->
                 <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-2 no-print">
-                    <button onclick="switchTab('bcv')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-teal-500 text-white">💵 Tasa BCV
-                        (Manual / API)</button>
-                    <button onclick="switchTab('gastos')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Gastos
-                        y Cobro</button>
-                    <button onclick="switchTab('pagos')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Conciliación
-                        y Pagos</button>
-                    <button onclick="switchTab('propietarios')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Propietarios
-                        y Alícuotas</button>
-                    <button onclick="switchTab('proveedores')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Proveedores</button>
-                    <button onclick="switchTab('reportes')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Reportes
-                        de Gestión</button>
-                    <button onclick="switchTab('config')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Config.
-                        Edificio</button>
+                    <button onclick="switchTab(event, 'bcv')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-teal-500 text-white">💵 Tasa BCV (Manual / API)</button>
+                    <button onclick="switchTab(event, 'gastos')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Gastos y Cobro</button>
+                    <button onclick="switchTab(event, 'pagos')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Conciliación y Pagos</button>
+                    <button onclick="switchTab(event, 'propietarios')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Propietarios y Alícuotas</button>
+                    <button onclick="switchTab(event, 'proveedores')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Proveedores</button>
+                    <button onclick="switchTab(event, 'reportes')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Reportes de Gestión</button>
+                    <button onclick="switchTab(event, 'config')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Config. Edificio</button>
                 </div>
 
                 <!-- PESTAÑA 0: GESTIÓN DE TASA BCV -->
                 <div id="tab-bcv" class="tab-content space-y-6">
                     <div class="grid md:grid-cols-2 gap-6">
-                        <!-- Registro Manual y Actualización por API -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">⚙️ Configuración de la
-                                Tasa Oficial BCV</h3>
-                            <p class="text-xs text-slate-500">Ingresa la tasa diaria manualmente o consúltala
-                                automáticamente por la API del BCV. Todos los avisos de cobro y pagos en Bs se
-                                calcularán con esta tasa.</p>
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">⚙️ Configuración de la Tasa Oficial BCV</h3>
+                            <p class="text-xs text-slate-500">Ingresa la tasa diaria manualmente o consúltala automáticamente por la API del BCV.</p>
 
-                            <!-- Actualizar Manual con Fecha -->
                             <form onsubmit="saveBcvManual(event)" class="space-y-3 pt-2">
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label class="text-xs text-slate-600 font-bold block mb-1">Fecha de la
-                                            Tasa:</label>
-                                        <input type="date" id="manual-bcv-date" required
-                                            class="w-full p-2.5 rounded-lg border text-sm font-bold text-slate-800">
+                                        <label class="text-xs text-slate-600 font-bold block mb-1">Fecha de la Tasa:</label>
+                                        <input type="date" id="manual-bcv-date" required class="w-full p-2.5 rounded-lg border text-sm font-bold text-slate-800">
                                     </div>
                                     <div>
-                                        <label class="text-xs text-slate-600 font-bold block mb-1">Monto (Bs. /
-                                            USD):</label>
-                                        <input type="number" id="manual-bcv-input" step="0.0001" placeholder="Ej: 36.50"
-                                            required
-                                            class="w-full p-2.5 rounded-lg border text-sm font-bold text-slate-800">
+                                        <label class="text-xs text-slate-600 font-bold block mb-1">Monto (Bs. / USD):</label>
+                                        <input type="number" id="manual-bcv-input" step="0.0001" placeholder="Ej: 36.50" required class="w-full p-2.5 rounded-lg border text-sm font-bold text-slate-800">
                                     </div>
                                 </div>
-                                <button type="submit"
-                                    class="w-full py-2.5 bg-teal-500 text-white rounded-lg text-xs font-semibold hover:bg-teal-600">
+                                <button type="submit" class="w-full py-2.5 bg-teal-500 text-white rounded-lg text-xs font-semibold hover:bg-teal-600">
                                     Guardar Tasa para esta Fecha
                                 </button>
                             </form>
 
-                            <!-- Consultar por API -->
                             <div>
-                                <label class="text-xs text-slate-600 font-bold block mb-1">Obtener Tasa BCV
-                                    automáticamente desde API:</label>
-                                <button onclick="fetchBcvApi()" id="btn-api-bcv"
-                                    class="w-full py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-bold text-xs rounded-lg shadow hover:from-amber-500 hover:to-amber-600 flex items-center justify-center gap-2">
+                                <label class="text-xs text-slate-600 font-bold block mb-1">Obtener Tasa BCV automáticamente desde API:</label>
+                                <button onclick="fetchBcvApi()" id="btn-api-bcv" class="w-full py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-bold text-xs rounded-lg shadow hover:from-amber-500 hover:to-amber-600 flex items-center justify-center gap-2">
                                     <span>🔄</span> Actualizar Tasa con API Oficial BCV
                                 </button>
                                 <p id="api-status-msg" class="text-[11px] text-slate-400 mt-1 italic"></p>
                             </div>
                         </div>
 
-                        <!-- Histórico de Tasas BCV Registradas -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                             <h3 class="font-bold text-slate-800 mb-4 text-sm">📅 Histórico de Tasas BCV Guardadas</h3>
                             <div class="max-h-60 overflow-y-auto">
@@ -200,25 +164,20 @@
                 <!-- PESTAÑA 1: GASTOS Y GENERACIÓN DE AVISO -->
                 <div id="tab-gastos" class="tab-content hidden space-y-6">
                     <div class="grid md:grid-cols-3 gap-6">
-                        <!-- Formulario de carga de gastos -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 class="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2">📝 Registrar Nuevo
-                                Gasto</h3>
+                            <h3 class="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2">📝 Registrar Nuevo Gasto</h3>
                             <form id="expense-form" onsubmit="addExpense(event)" class="space-y-3">
                                 <div>
                                     <label class="text-xs text-slate-600">Mes a Cobrar / Período</label>
-                                    <input type="month" id="exp-period" required
-                                        class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="month" id="exp-period" required class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Concepto / Descripción</label>
-                                    <input type="text" id="exp-desc" required
-                                        class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="text" id="exp-desc" required class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Monto ($ USD)</label>
-                                    <input type="number" id="exp-amount" step="0.01" required
-                                        class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="number" id="exp-amount" step="0.01" required class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Tipo de Cuota</label>
@@ -236,13 +195,12 @@
                                     <label class="text-xs text-slate-600">Proveedor (Opcional)</label>
                                     <select id="exp-provider" class="w-full p-2.5 rounded-lg border text-sm"></select>
                                 </div>
-                                <button type="submit"
-                                    class="w-full py-2.5 bg-emerald-500 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600">Agregar
-                                    Gasto</button>
+                                <button type="submit" class="w-full py-2.5 bg-emerald-500 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600">
+                                    Agregar Gasto
+                                </button>
                             </form>
                         </div>
 
-                        <!-- Resumen y Módulo WhatsApp -->
                         <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
                             <h3 class="font-bold text-slate-800 text-sm">📋 Gastos Registrados del Periodo Actual</h3>
                             <div class="max-h-48 overflow-y-auto border rounded-xl p-2">
@@ -261,32 +219,24 @@
                             <div class="flex justify-between items-center pt-2 border-t">
                                 <span class="text-sm font-bold">Total Mensual a Repartir:</span>
                                 <div>
-                                    <span id="total-expenses-amount"
-                                        class="text-lg font-extrabold text-teal-600">$0.00</span>
-                                    <span id="total-expenses-bs" class="text-xs text-slate-500 block text-right">(Bs.
-                                        0.00)</span>
+                                    <span id="total-expenses-amount" class="text-lg font-extrabold text-teal-600">$0.00</span>
+                                    <span id="total-expenses-bs" class="text-xs text-slate-500 block text-right">(Bs. 0.00)</span>
                                 </div>
                             </div>
 
-                            <!-- Difusión de WhatsApp -->
                             <div class="bg-teal-50 p-4 rounded-xl border border-teal-200 space-y-3">
                                 <div class="flex justify-between items-center">
                                     <h4 class="font-bold text-xs text-teal-800">💬 Difusión de Avisos por WhatsApp</h4>
-                                    <select id="wa-fee-type" onchange="generateWhatsappGroupMsg()"
-                                        class="text-xs p-1 rounded border border-teal-300 bg-white">
+                                    <select id="wa-fee-type" onchange="generateWhatsappGroupMsg()" class="text-xs p-1 rounded border border-teal-300 bg-white">
                                         <option value="all">Todos los Gastos</option>
                                         <option value="ordinary">Solo Ordinarias</option>
                                         <option value="extraordinary">Solo Extraordinarias</option>
                                     </select>
                                 </div>
-                                <textarea id="whatsapp-preview" readonly
-                                    class="w-full h-28 text-xs p-2 rounded-lg border bg-white font-mono"></textarea>
+                                <textarea id="whatsapp-preview" readonly class="w-full h-28 text-xs p-2 rounded-lg border bg-white font-mono"></textarea>
                                 <div class="flex gap-2">
-                                    <button onclick="generateWhatsappGroupMsg()"
-                                        class="px-3 py-1.5 bg-teal-600 text-white text-xs rounded-lg font-semibold hover:bg-teal-700">Regenerar
-                                        Mensaje</button>
-                                    <a id="wa-group-btn" href="#" target="_blank"
-                                        class="px-3 py-1.5 bg-emerald-500 text-white text-xs rounded-lg font-semibold hover:bg-emerald-600 flex items-center gap-1">
+                                    <button onclick="generateWhatsappGroupMsg()" class="px-3 py-1.5 bg-teal-600 text-white text-xs rounded-lg font-semibold hover:bg-teal-700">Regenerar Mensaje</button>
+                                    <a id="wa-group-btn" href="#" target="_blank" class="px-3 py-1.5 bg-emerald-500 text-white text-xs rounded-lg font-semibold hover:bg-emerald-600 flex items-center gap-1">
                                         Abrir WhatsApp
                                     </a>
                                 </div>
@@ -298,58 +248,47 @@
                 <!-- PESTAÑA 2: CONCILIACIÓN Y PAGO MANUAL -->
                 <div id="tab-pagos" class="tab-content hidden space-y-6">
                     <div class="grid md:grid-cols-3 gap-6">
-                        <!-- Registrar pago por el administrador -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 class="font-bold text-slate-800 mb-4 text-sm">💵 Registrar Pago Manual de Propietario
-                            </h3>
+                            <h3 class="font-bold text-slate-800 mb-4 text-sm">💵 Registrar Pago Manual de Propietario</h3>
                             <form id="admin-pay-form" onsubmit="registerAdminPayment(event)" class="space-y-3">
                                 <div>
                                     <label class="text-xs text-slate-600">Apartamento</label>
-                                    <select id="pay-apto" required
-                                        class="w-full p-2.5 rounded-lg border text-sm"></select>
+                                    <select id="pay-apto" required class="w-full p-2.5 rounded-lg border text-sm"></select>
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Concepto de Pago</label>
                                     <select id="pay-concept" class="w-full p-2.5 rounded-lg border text-sm">
                                         <option value="Cuota Ordinaria Mensual">Cuota Ordinaria Mensual</option>
                                         <option value="Cuota Extraordinaria">Cuota Extraordinaria</option>
-                                        <option value="Pago Total (Ordinaria + Extraordinaria)">Pago Total (Ordinaria +
-                                            Extraordinaria)</option>
+                                        <option value="Pago Total (Ordinaria + Extraordinaria)">Pago Total (Ordinaria + Extraordinaria)</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Fecha Real de Pago</label>
-                                    <input type="date" id="pay-date" required
-                                        class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="date" id="pay-date" required class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Método / Moneda de Pago</label>
                                     <select id="pay-method" class="w-full p-2.5 rounded-lg border text-sm">
-                                        <option value="Bs - Transferencia/Pago Movil">Bs - Pago Móvil / Transferencia
-                                        </option>
+                                        <option value="Bs - Transferencia/Pago Movil">Bs - Pago Móvil / Transferencia</option>
                                         <option value="USD - Efectivo">USD - Efectivo</option>
                                         <option value="USD - Zelle">USD - Zelle / Otro</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="text-xs text-slate-600">Monto Ingresado (Bs o USD según el
-                                        método)</label>
-                                    <input type="number" id="pay-amount" step="0.01" required
-                                        class="w-full p-2.5 rounded-lg border text-sm"
-                                        placeholder="Ej: 1800.00 en Bs o 50 en USD">
+                                    <label class="text-xs text-slate-600">Monto Ingresado (Bs o USD)</label>
+                                    <input type="number" id="pay-amount" step="0.01" required class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 1800.00 en Bs o 50 en USD">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Referencia / Comprobante</label>
-                                    <input type="text" id="pay-ref" required
-                                        class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="text" id="pay-ref" required class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
-                                <button type="submit"
-                                    class="w-full py-2.5 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600">Registrar
-                                    y Aprobar Pago</button>
+                                <button type="submit" class="w-full py-2.5 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600">
+                                    Registrar y Aprobar Pago
+                                </button>
                             </form>
                         </div>
 
-                        <!-- Pagos Pendientes por Conciliar -->
                         <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                             <h3 class="font-bold text-slate-800 mb-4 text-sm">⏳ Reportes de Pago por Conciliar</h3>
                             <div class="overflow-x-auto">
@@ -371,7 +310,7 @@
                     </div>
                 </div>
 
-                <!-- PESTAÑA 3: PROPIETARIOS, ALÍCUOTAS Y CONTRASEÑAS -->
+                <!-- PESTAÑA 3: PROPIETARIOS -->
                 <div id="tab-propietarios" class="tab-content hidden">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                         <h3 class="font-bold text-slate-800 mb-4 text-sm">🏠 Censo, Alícuotas y Gestión de Claves</h3>
@@ -383,7 +322,7 @@
                                         <th class="p-2">Propietario</th>
                                         <th class="p-2">Alícuota (%)</th>
                                         <th class="p-2">Clave Actual</th>
-                                        <th class="p-2">Resetear Clave</th>
+                                        <th class="p-2">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="owners-table-body"></tbody>
@@ -400,27 +339,21 @@
                             <form onsubmit="addProvider(event)" class="space-y-3">
                                 <div>
                                     <label class="text-xs text-slate-600">Nombre / Razón Social</label>
-                                    <input type="text" id="prov-name" required
-                                        class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="text" id="prov-name" required class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Servicio / Ramo</label>
-                                    <input type="text" id="prov-service" required
-                                        class="w-full p-2.5 rounded-lg border text-sm"
-                                        placeholder="Ej: Plomería, Ascensores">
+                                    <input type="text" id="prov-service" required class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: Plomería, Ascensores">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Teléfono / Contacto</label>
                                     <input type="text" id="prov-phone" class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
-                                <button type="submit"
-                                    class="w-full py-2.5 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600">Guardar
-                                    Proveedor</button>
+                                <button type="submit" class="w-full py-2.5 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600">Guardar Proveedor</button>
                             </form>
                         </div>
                         <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 class="font-bold text-slate-800 mb-4 text-sm">📜 Directorio de Proveedores Registrados
-                            </h3>
+                            <h3 class="font-bold text-slate-800 mb-4 text-sm">📜 Directorio de Proveedores Registrados</h3>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-xs">
                                     <thead>
@@ -440,8 +373,7 @@
                 <!-- PESTAÑA 5: REPORTES DE GESTIÓN -->
                 <div id="tab-reportes" class="tab-content hidden space-y-6">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 no-print">
-                        <h3 class="font-bold text-slate-800 mb-4 text-sm">🔍 Filtro para Entregas de Gestión (Período)
-                        </h3>
+                        <h3 class="font-bold text-slate-800 mb-4 text-sm">🔍 Filtro para Entregas de Gestión (Período)</h3>
                         <div class="flex flex-wrap items-end gap-4">
                             <div>
                                 <label class="text-xs text-slate-600 block">Desde (MM/AAAA)</label>
@@ -451,26 +383,19 @@
                                 <label class="text-xs text-slate-600 block">Hasta (MM/AAAA)</label>
                                 <input type="month" id="rep-to" class="p-2 rounded-lg border text-sm">
                             </div>
-                            <button onclick="generateReports()"
-                                class="px-5 py-2.5 bg-teal-500 text-white font-semibold text-sm rounded-lg hover:bg-teal-600">Generar
-                                Reportes</button>
-                            <button onclick="window.print()"
-                                class="px-5 py-2.5 bg-slate-700 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 flex items-center gap-1">🖨️
-                                Imprimir / Guardar PDF</button>
+                            <button onclick="generateReports()" class="px-5 py-2.5 bg-teal-500 text-white font-semibold text-sm rounded-lg hover:bg-teal-600">Generar Reportes</button>
+                            <button onclick="window.print()" class="px-5 py-2.5 bg-slate-700 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 flex items-center gap-1">🖨️️ Imprimir / Guardar PDF</button>
                         </div>
                     </div>
 
-                    <!-- ENCABEZADO DE IMPRESIÓN -->
                     <div id="print-header" class="hidden print-only mb-6 border-b pb-4">
                         <h1 class="text-xl font-bold text-center uppercase" id="print-bldg-name">Edificio</h1>
                         <p class="text-center text-xs" id="print-bldg-info">RIF: | Dirección: </p>
                         <p class="text-right text-xs mt-2" id="print-date">Fecha de emisión: </p>
                     </div>
 
-                    <!-- REPORTE DE PROPIETARIOS -->
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <h3 class="font-bold text-slate-800 mb-2 text-sm">📊 Estado Financiero de Propietarios y
-                            Morosidad</h3>
+                        <h3 class="font-bold text-slate-800 mb-2 text-sm">📊 Estado Financiero de Propietarios y Morosidad</h3>
                         <div class="overflow-x-auto">
                             <table class="w-full text-xs">
                                 <thead>
@@ -481,7 +406,7 @@
                                         <th class="p-2 text-right">Cuota Ord. ($)</th>
                                         <th class="p-2 text-right">Cuota Ext. ($)</th>
                                         <th class="p-2 text-right">Total Pagado ($)</th>
-                                        <th class="p-2 text-center">Referencia / Comprobante</th>
+                                        <th class="p-2 text-center">Referencia</th>
                                         <th class="p-2 text-right">Saldo ($)</th>
                                     </tr>
                                 </thead>
@@ -490,7 +415,6 @@
                         </div>
                     </div>
 
-                    <!-- REPORTE DE PROVEEDORES -->
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                         <h3 class="font-bold text-slate-800 mb-2 text-sm">📑 Reporte Pagos a Proveedores</h3>
                         <div class="overflow-x-auto">
@@ -498,7 +422,7 @@
                                 <thead>
                                     <tr class="bg-slate-100 text-left">
                                         <th class="p-2">Proveedor</th>
-                                        <th class="p-2">Mes/Año</th>
+                                        <th class="p-2">Fecha</th>
                                         <th class="p-2 text-right">Monto Cancelado ($)</th>
                                         <th class="p-2 text-right">Monto Cancelado (Bs)</th>
                                         <th class="p-2">Observación / Concepto</th>
@@ -517,8 +441,7 @@
                         <form onsubmit="saveBuildingConfig(event)" class="space-y-3">
                             <div>
                                 <label class="text-xs text-slate-600">Nombre del Edificio</label>
-                                <input type="text" id="cfg-name" required
-                                    class="w-full p-2.5 rounded-lg border text-sm">
+                                <input type="text" id="cfg-name" required class="w-full p-2.5 rounded-lg border text-sm">
                             </div>
                             <div>
                                 <label class="text-xs text-slate-600">Registro Fiscal (RIF)</label>
@@ -526,12 +449,9 @@
                             </div>
                             <div>
                                 <label class="text-xs text-slate-600">Dirección</label>
-                                <textarea id="cfg-address" required
-                                    class="w-full p-2.5 rounded-lg border text-sm"></textarea>
+                                <textarea id="cfg-address" required class="w-full p-2.5 rounded-lg border text-sm"></textarea>
                             </div>
-                            <button type="submit"
-                                class="w-full py-2.5 bg-teal-500 text-white font-semibold rounded-lg text-sm hover:bg-teal-600">Guardar
-                                Configuración</button>
+                            <button type="submit" class="w-full py-2.5 bg-teal-500 text-white font-semibold rounded-lg text-sm hover:bg-teal-600">Guardar Configuración</button>
                         </form>
                     </div>
                 </div>
@@ -539,14 +459,12 @@
 
             <!-- ==================== CONTENIDO PROPIETARIOS ==================== -->
             <div id="owner-view" class="hidden space-y-6">
-                <!-- Panel de Resumen Individual -->
                 <div class="grid md:grid-cols-3 gap-6">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                         <span class="text-xs text-slate-500 font-bold block">APARTAMENTO</span>
                         <h3 class="text-2xl font-black text-slate-800" id="owner-dash-apto">--</h3>
                         <p class="text-xs text-slate-600 mt-1" id="owner-dash-name">--</p>
-                        <span
-                            class="inline-block mt-2 px-2 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded">
+                        <span class="inline-block mt-2 px-2 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded">
                             Alícuota: <span id="owner-dash-alicuota">0</span>%
                         </span>
                     </div>
@@ -554,30 +472,23 @@
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                         <span class="text-xs text-slate-500 font-bold block">SALDO PENDIENTE ACTUAL</span>
                         <h3 class="text-3xl font-black text-rose-500" id="owner-dash-balance">$0.00</h3>
-                        <p class="text-xs text-slate-500 mt-1">Monto a pagar en Bolívares: <span
-                                id="owner-dash-balance-bs" class="font-bold text-slate-800">Bs. 0.00</span></p>
-                        <p class="text-[10px] text-amber-600 mt-0.5">Calculado a Tasa BCV: <span
-                                id="owner-bcv-rate">0.00</span> Bs/$</p>
+                        <p class="text-xs text-slate-500 mt-1">Monto a pagar en Bolívares: <span id="owner-dash-balance-bs" class="font-bold text-slate-800">Bs. 0.00</span></p>
+                        <p class="text-[10px] text-amber-600 mt-0.5">Calculado a Tasa BCV: <span id="owner-bcv-rate">0.00</span> Bs/$</p>
                     </div>
 
                     <div class="bg-gradient-to-br from-teal-500 to-emerald-600 p-6 rounded-2xl shadow-md text-white">
                         <h4 class="font-bold text-sm mb-2">📲 Reportar Nuevo Pago</h4>
-                        <p class="text-xs text-teal-100 mb-4">Envía los datos de tu transferencia en Bs o divisa para su
-                            conciliación.</p>
-                        <button onclick="document.getElementById('owner-pay-modal').classList.remove('hidden')"
-                            class="w-full py-2 bg-white text-teal-700 font-bold text-xs rounded-lg shadow hover:bg-teal-50">
+                        <p class="text-xs text-teal-100 mb-4">Envía los datos de tu transferencia en Bs o divisa para su conciliación.</p>
+                        <button onclick="document.getElementById('owner-pay-modal').classList.remove('hidden')" class="w-full py-2 bg-white text-teal-700 font-bold text-xs rounded-lg shadow hover:bg-teal-50">
                             Reportar Pago Ahora
                         </button>
                     </div>
                 </div>
 
-                <!-- Recibo de Cobro y Gastos Comunes -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-slate-800 text-sm">🧾 Recibo de Cobro / Desglose de Gastos</h3>
-                        <button onclick="window.print()"
-                            class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-700 hover:bg-slate-200 no-print">🖨️
-                            Imprimir Recibo</button>
+                        <button onclick="window.print()" class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-700 hover:bg-slate-200 no-print">🖨️ Imprimir Recibo</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs">
@@ -595,7 +506,6 @@
                     </div>
                 </div>
 
-                <!-- Estado de Cuenta -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                     <h3 class="font-bold text-slate-800 mb-4 text-sm">📑 Historial y Estado de Cuenta</h3>
                     <div class="overflow-x-auto">
@@ -619,9 +529,8 @@
 
     </div>
 
-    <!-- MODAL DE REPORTAR PAGO (PROPIETARIO) -->
-    <div id="owner-pay-modal"
-        class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <!-- MODAL DE REPORTAR PAGO -->
+    <div id="owner-pay-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 class="font-bold text-slate-800 text-base mb-4">Reportar Pago de Condominio</h3>
             <form onsubmit="submitOwnerPayment(event)" class="space-y-3">
@@ -630,8 +539,7 @@
                     <select id="rep-concept" class="w-full p-2.5 rounded-lg border text-sm">
                         <option value="Cuota Ordinaria Mensual">Cuota Ordinaria Mensual</option>
                         <option value="Cuota Extraordinaria">Cuota Extraordinaria</option>
-                        <option value="Pago Total (Ordinaria + Extraordinaria)">Pago Total (Ordinaria + Extraordinaria)
-                        </option>
+                        <option value="Pago Total (Ordinaria + Extraordinaria)">Pago Total (Ordinaria + Extraordinaria)</option>
                     </select>
                 </div>
                 <div>
@@ -643,8 +551,7 @@
                 </div>
                 <div>
                     <label class="text-xs text-slate-600">Monto Cancelado</label>
-                    <input type="number" id="rep-amount" step="0.01" required
-                        class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 1800.00 en Bs o 50.00 en USD">
+                    <input type="number" id="rep-amount" step="0.01" required class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 1800.00 en Bs o 50.00 en USD">
                 </div>
                 <div>
                     <label class="text-xs text-slate-600">Número de Referencia / Comprobante</label>
@@ -655,19 +562,15 @@
                     <input type="date" id="rep-date" required class="w-full p-2.5 rounded-lg border text-sm">
                 </div>
                 <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="document.getElementById('owner-pay-modal').classList.add('hidden')"
-                        class="w-1/2 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold">Cancelar</button>
-                    <button type="submit"
-                        class="w-1/2 py-2 bg-teal-500 text-white rounded-lg text-xs font-semibold hover:bg-teal-600">Enviar
-                        Reporte</button>
+                    <button type="button" onclick="document.getElementById('owner-pay-modal').classList.add('hidden')" class="w-1/2 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold">Cancelar</button>
+                    <button type="submit" class="w-1/2 py-2 bg-teal-500 text-white rounded-lg text-xs font-semibold hover:bg-teal-600">Enviar Reporte</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- SCRIPT DE LÓGICA Y DATOS -->
+    <!-- SCRIPT DE LÓGICA -->
     <script>
-        // ==================== CONFIGURACIÓN DE SUPABASE ====================
         const SUPABASE_URL = "https://rzcmqxzzoyqjfryoymqw.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6Y21xeHp6b3lxamZyeW95bXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0Mzc4NzEsImV4cCI6MjEwNjAxMzg3MX0.3foqq3G7OlFPjwNAq-TqrasA2JfG4ZU7RWBCJISSO3s";
 
@@ -676,7 +579,6 @@
             db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         }
 
-        // ==================== BASE DE DATOS LOCAL / ESTADO ====================
         let currentUser = null;
 
         let defaultOwners = [
@@ -697,22 +599,18 @@
 
         let state = {
             building: { name: 'Residencias El Parque', rif: 'J-12345678-9', address: 'Av. Principal Nro 12', bcv: 36.50 },
-            bcvHistory: [
-                { date: new Date().toISOString().split('T')[0], rate: 36.50, origin: 'Manual' }
-            ],
+            bcvHistory: [{ date: new Date().toISOString().split('T')[0], rate: 36.50, origin: 'Manual' }],
             owners: defaultOwners,
             expenses: [],
             payments: [],
             providers: []
         };
 
-        // --- NUBE Y PERSISTENCIA ---
         async function loadStorage() {
             let loadedFromCloud = false;
 
-            if (typeof db !== 'undefined' && db) {
+            if (db) {
                 try {
-                    // Consulta en paralelo a Supabase
                     const [
                         { data: cloudPayments, error: errPayments },
                         { data: cloudBcv, error: errBcv },
@@ -721,14 +619,13 @@
                         { data: cloudProviders, error: errProviders }
                     ] = await Promise.all([
                         db.from('payments').select('*'),
-                        db.from('bcv_history').select('*').order('date', { ascending: true }),
+                        db.from('bcv_history').select('*').order('date', { ascending: false }),
                         db.from('expenses').select('*'),
                         db.from('owners').select('*'),
                         db.from('providers').select('*')
                     ]);
 
-                    // 1. Pagos
-                    if (!errPayments && cloudPayments) {
+                    if (!errPayments && cloudPayments && cloudPayments.length > 0) {
                         state.payments = cloudPayments.map(p => ({
                             id: Number(p.id),
                             apto: p.apto,
@@ -743,52 +640,47 @@
                         loadedFromCloud = true;
                     }
 
-                    // 2. Histórico BCV
-                    if (!errBcv && cloudBcv) {
+                    if (!errBcv && cloudBcv && cloudBcv.length > 0) {
                         state.bcvHistory = cloudBcv.map(b => ({
                             id: b.id,
                             date: b.date,
                             rate: parseFloat(b.rate),
                             origin: b.origin || 'BCV'
                         }));
+                        state.building.bcv = parseFloat(cloudBcv[0].rate);
                         loadedFromCloud = true;
                     }
 
-                    // 3. Gastos
-                    if (!errExpenses && cloudExpenses) {
+                    if (!errExpenses && cloudExpenses && cloudExpenses.length > 0) {
                         state.expenses = cloudExpenses.map(e => ({
                             id: Number(e.id),
-                            period: e.period,
-                            description: e.description,
+                            period: e.period || new Date().toISOString().slice(0,7),
+                            description: e.description || e.desc,
                             amount: parseFloat(e.amount || 0),
-                            type: e.type || 'ordinaria',
-                            apto: e.apto || null,
+                            type: e.type || e.category || 'ordinaria',
+                            apto: e.apto || 'TODOS',
                             provider: e.provider || null,
-                            date: e.created_at
+                            date: e.date || e.created_at
                         }));
                         loadedFromCloud = true;
                     }
 
-                    // 4. Propietarios / Apartamentos
-                    if (!errOwners && cloudOwners) {
+                    if (!errOwners && cloudOwners && cloudOwners.length > 0) {
                         state.owners = cloudOwners.map(o => ({
                             apto: o.apto,
-                            ownerName: o.owner_name,
-                            email: o.email || '',
-                            phone: o.phone || '',
-                            balance: parseFloat(o.balance || 0)
+                            owner: o.owner_name || o.owner,
+                            alicuota: parseFloat(o.alicuota || 0),
+                            pass: o.pass || '1234'
                         }));
                         loadedFromCloud = true;
                     }
 
-                    // 5. Proveedores
-                    if (!errProviders && cloudProviders) {
+                    if (!errProviders && cloudProviders && cloudProviders.length > 0) {
                         state.providers = cloudProviders.map(pr => ({
                             id: Number(pr.id),
                             name: pr.name,
-                            rifCedula: pr.rif_cedula || '',
-                            phone: pr.phone || '',
-                            serviceType: pr.service_type || ''
+                            service: pr.service_type || pr.service || '',
+                            phone: pr.phone || ''
                         }));
                         loadedFromCloud = true;
                     }
@@ -797,7 +689,7 @@
                         localStorage.setItem('condo_app_data', JSON.stringify(state));
                     }
                 } catch (e) {
-                    console.log('Error o sin conexión a Supabase, usando copia local:', e);
+                    console.log('Usando almacenamiento local por reconexión:', e);
                 }
             }
 
@@ -806,19 +698,19 @@
                 if (localData) state = JSON.parse(localData);
             }
 
-            // Inicializaciones de respaldo
             if (!state.bcvHistory) state.bcvHistory = [];
             if (!state.payments) state.payments = [];
             if (!state.expenses) state.expenses = [];
-            if (!state.owners) state.owners = [];
+            if (!state.owners || state.owners.length === 0) state.owners = defaultOwners;
             if (!state.providers) state.providers = [];
 
             updateBcvUI();
             if (currentUser && currentUser.role === 'admin') renderAdminData();
         }
+
         async function saveData() {
             localStorage.setItem('condo_app_data', JSON.stringify(state));
-            if (typeof db !== 'undefined' && db) {
+            if (db) {
                 await syncWithSupabase();
             }
         }
@@ -832,30 +724,15 @@
                         concept: String(p.concept || 'Pago de Condominio'),
                         method: String(p.method || 'Transferencia'),
                         amount: parseFloat(p.amount || 0),
-                        usd_equiv: parseFloat(p.usdEquiv || p.usd_equiv || 0),
+                        usd_equiv: parseFloat(p.usdEquiv || 0),
                         ref: String(p.ref || ''),
                         status: String(p.status || 'Pendiente'),
                         date: String(p.date || new Date().toISOString().split('T')[0])
                     }));
-
                     await db.from('payments').upsert(cleanPayments, { onConflict: 'id' });
                 }
-
-                if (state.bcvHistory && state.bcvHistory.length > 0) {
-                    const cleanBcv = state.bcvHistory
-                        .filter(item => item && (item.date || item.fecha) && (item.rate || item.tasa))
-                        .map(item => ({
-                            date: String(item.date || item.fecha),
-                            rate: parseFloat(item.rate || item.tasa),
-                            origin: String(item.origin || item.origen || 'BCV')
-                        }));
-
-                    if (cleanBcv.length > 0) {
-                        await db.from('bcv_history').upsert(cleanBcv, { onConflict: 'id' });
-                    }
-                }
             } catch (e) {
-                console.log('Error al sincronizar con Supabase:', e);
+                console.log('Error de sincronización:', e);
             }
         }
 
@@ -864,7 +741,6 @@
             populateSelects();
         };
 
-        // ==================== TASA BCV ====================
         function updateBcvUI() {
             const rate = parseFloat(state.building.bcv) || 1;
             document.getElementById('current-bcv-display').innerText = rate.toFixed(2);
@@ -885,13 +761,7 @@
 
             if (val && val > 0 && fechaInput) {
                 state.building.bcv = val;
-
-                state.bcvHistory.unshift({
-                    date: fechaInput,
-                    rate: val,
-                    origin: 'Manual'
-                });
-
+                state.bcvHistory.unshift({ date: fechaInput, rate: val, origin: 'Manual' });
                 saveData();
                 updateBcvUI();
                 if (currentUser && currentUser.role === 'admin') renderAdminData();
@@ -912,46 +782,30 @@
 
                 if (data && data.promedio) {
                     const newRate = parseFloat(data.promedio);
-                    const todayDate = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+                    const todayDate = new Date().toISOString().split('T')[0];
 
-                    // 1. Insertar directamente en la tabla 'bcv_history' de Supabase
-                    const { error } = await supabase
-                        .from('bcv_history')
-                        .insert([
-                            {
-                                date: todayDate,
-                                rate: newRate,
-                                origin: 'API BCV'
-                            }
-                        ]);
-
-                    if (error) {
-                        console.error("Error al guardar en Supabase:", error.message);
-                        alert("Atención: Se obtuvo la tasa pero hubo un error al guardarla en Supabase: " + error.message);
-                    } else {
-                        console.log("Tasa guardada exitosamente en Supabase");
+                    if (db) {
+                        await db.from('bcv_history').insert([{ date: todayDate, rate: newRate, origin: 'API BCV' }]);
                     }
 
-                    // 2. Actualizar el estado en memoria de la app
                     state.building.bcv = newRate;
-
-                    // 3. Refrescar la interfaz
+                    state.bcvHistory.unshift({ date: todayDate, rate: newRate, origin: 'API BCV' });
+                    
+                    saveData();
                     updateBcvUI();
                     if (currentUser && currentUser.role === 'admin') renderAdminData();
 
                     status.innerText = `✅ Tasa obtenida: Bs. ${newRate}`;
-                    alert(`Tasa BCV actualizada y guardada en la nube: Bs. ${newRate}`);
-                } else {
-                    throw new Error("Formato no válido");
+                    alert(`Tasa BCV actualizada: Bs. ${newRate}`);
                 }
             } catch (err) {
                 console.error(err);
                 status.innerText = "❌ No se pudo obtener automáticamente. Ingrésala manualmente.";
-                alert("No se pudo conectar a la API del BCV en este momento.");
             } finally {
                 btn.disabled = false;
             }
         }
+
         function renderBcvHistory() {
             const body = document.getElementById('bcv-history-body');
             if (!body) return;
@@ -967,7 +821,6 @@
             });
         }
 
-        // ==================== SESIÓN Y NAVEGACIÓN ====================
         function handleLogin(e) {
             e.preventDefault();
             const u = document.getElementById('username').value.trim();
@@ -1016,17 +869,18 @@
             }
         }
 
-        function switchTab(tab) {
+        function switchTab(evt, tab) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.getElementById(`tab-${tab}`).classList.remove('hidden');
             document.querySelectorAll('.tab-btn').forEach(b => {
                 b.classList.remove('bg-teal-500', 'text-white');
                 b.classList.add('bg-white', 'text-slate-600');
             });
-            event.target.classList.add('bg-teal-500', 'text-white');
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.classList.add('bg-teal-500', 'text-white');
+            }
         }
 
-        // ==================== RENDERIZADO ADMIN ====================
         function renderAdminData() {
             updateBcvUI();
             renderExpenses();
@@ -1034,18 +888,19 @@
             renderOwnersTable();
             renderProvidersTable();
             generateReports();
+            populateSelects();
         }
 
         async function addExpense(e) {
             if (e) e.preventDefault();
-            alert("¡Botón presionado correctamente!"); // Para confirmación inmediata
 
             try {
                 const period = document.getElementById('exp-period')?.value || '';
                 const desc = document.getElementById('exp-desc')?.value || '';
                 const amount = parseFloat(document.getElementById('exp-amount')?.value) || 0;
-                const typeVal = document.getElementById('exp-type')?.value || '';
+                const typeVal = document.getElementById('exp-type')?.value || 'ordinaria';
                 const providerVal = document.getElementById('exp-provider')?.value || null;
+                const aptoVal = document.getElementById('exp-apto')?.value || 'TODOS';
 
                 const idVal = Date.now();
                 const todayStr = new Date().toISOString().split('T')[0];
@@ -1054,63 +909,45 @@
                     id: idVal,
                     description: desc,
                     amount: amount,
-                    usd_equiv: amount,
-                    category: typeVal,
+                    type: typeVal,
                     provider: providerVal || null,
-                    date: todayStr
+                    date: todayStr,
+                    apto: typeVal === 'no_comun' ? aptoVal : 'TODOS',
+                    period: period
                 };
 
-                if (typeof db !== 'undefined' && db) {
+                if (db) {
                     const { error } = await db.from('expenses').insert([payload]);
-                    if (error) {
-                        alert('Error Supabase: ' + error.message);
-                        return;
-                    }
-                } else {
-                    alert('Error: La variable "db" no está disponible.');
-                    return;
+                    if (error) console.error('Error enviando a Supabase:', error.message);
                 }
 
-                if (!state.expenses) state.expenses = [];
-                state.expenses.push({
-                    id: idVal,
-                    desc: desc,
-                    description: desc,
-                    amount: amount,
-                    type: typeVal,
-                    category: typeVal,
-                    period: period,
-                    provider: providerVal,
-                    date: todayStr
-                });
-
+                state.expenses.push(payload);
                 document.getElementById('expense-form')?.reset();
-                if (typeof saveData === 'function') saveData();
+                saveData();
                 renderExpenses();
-                if (typeof renderAdminData === 'function') renderAdminData();
-
                 alert('¡Gasto registrado con éxito!');
 
             } catch (err) {
-                alert('Error en JS: ' + err.message);
+                alert('Error al agregar gasto: ' + err.message);
             }
         }
 
         function renderExpenses() {
             const body = document.getElementById('expenses-table-body');
+            if (!body) return;
             body.innerHTML = '';
             let totalUsd = 0;
 
             state.expenses.forEach(exp => {
                 totalUsd += exp.amount;
                 body.innerHTML += `
-            <tr class="border-b">
-                <td class="p-1 font-semibold text-slate-500">${exp.type.toUpperCase()}</td>
-                <td class="p-1">${exp.desc} ${exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
-                <td class="p-1 font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
-                <td class="p-1"><button onclick="deleteExpense(${exp.id})" class="text-red-500 font-bold">✕</button></td>
-            </tr>
-        `;
+                    <tr class="border-b">
+                        <td class="p-1 font-semibold text-slate-500">${(exp.type || '').toUpperCase()}</td>
+                        <td class="p-1">${exp.description || exp.desc} ${exp.apto && exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
+                        <td class="p-1 font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
+                        <td class="p-1"><button onclick="deleteExpense(${exp.id})" class="text-red-500 font-bold">✕</button></td>
+                    </tr>
+                `;
             });
 
             const totalBs = totalUsd * state.building.bcv;
@@ -1122,20 +959,15 @@
         async function deleteExpense(id) {
             if (!confirm('¿Seguro que deseas eliminar este gasto?')) return;
 
-            if (typeof db !== 'undefined' && db) {
-                const { error } = await db.from('expenses').delete().eq('id', id);
-                if (error) {
-                    console.error('Error al eliminar de Supabase:', error.message);
-                    alert('Error al borrar en la nube: ' + error.message);
-                    return;
-                }
+            if (db) {
+                await db.from('expenses').delete().eq('id', id);
             }
 
             state.expenses = state.expenses.filter(e => e.id !== id);
-            if (typeof saveData === 'function') saveData();
+            saveData();
             renderExpenses();
-            if (typeof renderAdminData === 'function') renderAdminData();
         }
+
         function generateWhatsappGroupMsg() {
             const filterType = document.getElementById('wa-fee-type')?.value || 'all';
             let expenses = state.expenses || [];
@@ -1159,7 +991,7 @@
             } else {
                 msg += `*DESGLOSE DE GASTOS:*\n`;
                 expenses.forEach(e => {
-                    msg += `- ${e.desc}: $${e.amount.toFixed(2)}\n`;
+                    msg += `- ${e.description || e.desc}: $${e.amount.toFixed(2)}\n`;
                 });
                 msg += `\n*TOTAL GASTOS:* *$${totalUSD.toFixed(2)}*\n\n`;
                 msg += `*CUOTAS POR APARTAMENTO:*\n`;
@@ -1182,14 +1014,7 @@
             const owner = (state.owners || []).find(o => o.apto === aptoTarget);
             if (!owner) return;
 
-            const filterType = document.getElementById('wa-fee-type')?.value || 'all';
             let expenses = state.expenses || [];
-            if (filterType === 'ordinary') {
-                expenses = expenses.filter(e => e.type === 'ordinaria');
-            } else if (filterType === 'extraordinary') {
-                expenses = expenses.filter(e => e.type === 'extraordinaria');
-            }
-
             const totalGastosUsd = expenses.reduce((acc, e) => acc + (e.amount || 0), 0);
             const montoCuotaUsd = totalGastosUsd * (owner.alicuota / 100);
 
@@ -1203,17 +1028,7 @@
             msg += `Propietario(a): ${owner.owner}\n`;
             msg += `Apartamento: ${owner.apto} (Alícuota: ${owner.alicuota}%)\n\n`;
 
-            if (expenses.length === 0) {
-                msg += `_No hay gastos registrados._\n`;
-            } else {
-                msg += `*DESGLOSE DE TU CUOTA:*\n`;
-                expenses.forEach(e => {
-                    const cuotaGastoUsd = (e.amount || 0) * (owner.alicuota / 100);
-                    msg += `- ${e.desc}: $${cuotaGastoUsd.toFixed(2)}\n`;
-                });
-            }
-
-            msg += `\n*TOTAL CUOTA:* $${montoCuotaUsd.toFixed(2)}\n`;
+            msg += `*TOTAL CUOTA:* $${montoCuotaUsd.toFixed(2)}\n`;
             msg += `*TOTAL PAGADO:* $${pagado.toFixed(2)}\n`;
             msg += `*SALDO PENDIENTE:* *$${saldoPendienteUsd.toFixed(2)}*\n\n`;
             msg += `_Por favor enviar el comprobante al realizar su pago._`;
@@ -1221,7 +1036,6 @@
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        // --- CONCILIACIÓN DE PAGOS ---
         function getBcvRateForDate(targetDate) {
             if (!state.bcvHistory || state.bcvHistory.length === 0) {
                 return Number(state.building?.bcv) || 1;
@@ -1229,9 +1043,7 @@
             const exact = state.bcvHistory.find(h => h.date === targetDate);
             if (exact && exact.rate) return Number(exact.rate);
 
-            const sorted = [...state.bcvHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
-            const closest = sorted.find(h => h.date <= targetDate);
-            return closest ? Number(closest.rate) : (Number(state.building?.bcv) || 1);
+            return Number(state.building?.bcv) || 1;
         }
 
         function registerAdminPayment(e) {
@@ -1241,9 +1053,7 @@
             const method = document.getElementById('pay-method').value;
             const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
             const ref = document.getElementById('pay-ref').value;
-
-            const dateInput = document.getElementById('pay-date');
-            const payDate = (dateInput && dateInput.value) ? dateInput.value : new Date().toISOString().split('T')[0];
+            const payDate = document.getElementById('pay-date').value || new Date().toISOString().split('T')[0];
 
             const bcvRateUsed = getBcvRateForDate(payDate);
             const isBs = method.includes('Bs');
@@ -1265,23 +1075,22 @@
             saveData();
             document.getElementById('admin-pay-form').reset();
             renderAdminData();
-            alert(`Pago registrado correctamente.`);
+            alert('Pago registrado correctamente.');
         }
 
         function approvePayment(id) {
             const p = state.payments.find(x => x.id === id);
             if (p) {
-                const isBs = p.method && p.method.includes('Bs');
-                if (isBs) {
-                    p.bcvRateUsed = getBcvRateForDate(p.date);
-                    p.usdEquiv = Number((p.amount / p.bcvRateUsed).toFixed(2));
-                } else {
-                    p.usdEquiv = p.amount;
-                }
                 p.status = 'Aprobado';
                 saveData();
                 renderAdminData();
             }
+        }
+
+        function deletePayment(id) {
+            state.payments = state.payments.filter(x => x.id !== id);
+            saveData();
+            renderAdminData();
         }
 
         function renderPendingPayments() {
@@ -1292,16 +1101,13 @@
             (state.payments || []).forEach(p => {
                 const isBs = p.method && p.method.includes('Bs');
                 const montoOriginalText = isBs ? `Bs. ${Number(p.amount).toFixed(2)}` : `$${Number(p.amount).toFixed(2)}`;
-                const tasaText = (isBs && p.bcvRateUsed)
-                    ? `<br><span class="text-[10px] text-slate-400">Tasa: ${Number(p.bcvRateUsed).toFixed(2)} Bs/$</span>`
-                    : '';
 
                 body.innerHTML += `
                     <tr class="border-b">
                         <td class="p-2 font-bold">${p.apto}</td>
                         <td class="p-2">${p.date}</td>
                         <td class="p-2">${p.method}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref}</span></td>
-                        <td class="p-2 text-right font-semibold">${montoOriginalText}${tasaText}</td>
+                        <td class="p-2 text-right font-semibold">${montoOriginalText}</td>
                         <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv).toFixed(2)}</td>
                         <td class="p-2 text-center space-x-1">
                             ${p.status === 'Pendiente' ? `
@@ -1314,13 +1120,6 @@
             });
         }
 
-        function deletePayment(id) {
-            state.payments = state.payments.filter(x => x.id !== id);
-            saveData();
-            renderAdminData();
-        }
-
-        // --- PROPIETARIOS ---
         function renderOwnersTable() {
             const body = document.getElementById('owners-table-body');
             if (!body) return;
@@ -1336,7 +1135,7 @@
                         <td class="p-2 font-semibold">${o.alicuota}%</td>
                         <td class="p-2 font-mono text-slate-500">${o.pass}</td>
                         <td class="p-2 space-x-1">
-                            <button onclick="resetPassword(${index})" class="px-2 py-1 bg-amber-500 text-white text-[10px] rounded hover:bg-amber-600">Resetear (1234)</button>
+                            <button onclick="resetPassword(${index})" class="px-2 py-1 bg-amber-500 text-white text-[10px] rounded hover:bg-amber-600">Resetear Clave</button>
                             <button onclick="generateWhatsappIndividualMsg('${o.apto}')" class="px-2 py-1 bg-emerald-500 text-white text-[10px] font-semibold rounded hover:bg-emerald-600">📲 WA</button>
                         </td>
                     </tr>
@@ -1346,8 +1145,7 @@
 
         function updateOwnerName(index, val) {
             state.owners[index].owner = val;
-            saveData()
-                ;
+            saveData();
         }
 
         function resetPassword(index) {
@@ -1357,7 +1155,6 @@
             alert(`Clave del apto ${state.owners[index].apto} reseteada a 1234`);
         }
 
-        // --- PROVEEDORES ---
         function addProvider(e) {
             e.preventDefault();
             const name = document.getElementById('prov-name').value;
@@ -1386,7 +1183,6 @@
             });
         }
 
-        // --- REPORTES ---
         function generateReports() {
             document.getElementById('print-bldg-name').innerText = state.building.name;
             document.getElementById('print-bldg-info').innerText = `RIF: ${state.building.rif} | Dirección: ${state.building.address}`;
@@ -1405,23 +1201,10 @@
 
                     const ownerPayments = state.payments.filter(p => p.apto === o.apto && p.status === 'Aprobado');
                     const pagado = ownerPayments.reduce((a, b) => a + b.usdEquiv, 0);
-
                     const referencias = ownerPayments.map(p => p.ref).filter(Boolean).join(', ') || 'N/A';
-
                     const dif = totalFacturado - pagado;
-                    let saldoTexto = '';
-                    let saldoClase = '';
 
-                    if (Math.abs(dif) < 0.01) {
-                        saldoTexto = '$0.00 (Solvente)';
-                        saldoClase = 'text-slate-600 font-normal';
-                    } else if (dif > 0) {
-                        saldoTexto = `$${dif.toFixed(2)} (Deuda)`;
-                        saldoClase = 'text-rose-600 font-bold';
-                    } else {
-                        saldoTexto = `$${Math.abs(dif).toFixed(2)} (A Favor)`;
-                        saldoClase = 'text-emerald-600 font-bold';
-                    }
+                    let saldoTexto = dif <= 0 ? `$0.00` : `$${dif.toFixed(2)}`;
 
                     oBody.innerHTML += `
                         <tr class="border-b">
@@ -1431,32 +1214,14 @@
                             <td class="p-2 text-right">$${factOrd.toFixed(2)}</td>
                             <td class="p-2 text-right">$${factExt.toFixed(2)}</td>
                             <td class="p-2 text-right font-semibold text-emerald-600">$${pagado.toFixed(2)}</td>
-                            <td class="p-2 text-center text-[11px] text-slate-500 max-w-[150px] truncate" title="${referencias}">${referencias}</td>
-                            <td class="p-2 text-right ${saldoClase}">${saldoTexto}</td>
-                        </tr>
-                    `;
-                });
-            }
-
-            const pBody = document.getElementById('report-providers-body');
-            if (pBody) {
-                pBody.innerHTML = '';
-                const bcv = state.building.bcv;
-                state.expenses.filter(e => e.provider).forEach(e => {
-                    pBody.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-2 font-bold">${e.provider}</td>
-                            <td class="p-2">${new Date(e.date).toLocaleDateString()}</td>
-                            <td class="p-2 text-right font-bold">$${e.amount.toFixed(2)}</td>
-                            <td class="p-2 text-right text-slate-600">Bs. ${(e.amount * bcv).toFixed(2)}</td>
-                            <td class="p-2">${e.desc}</td>
+                            <td class="p-2 text-center text-[11px] text-slate-500">${referencias}</td>
+                            <td class="p-2 text-right font-bold text-rose-600">${saldoTexto}</td>
                         </tr>
                     `;
                 });
             }
         }
 
-        // ==================== VISTA PROPIETARIO ====================
         function renderOwnerData() {
             const o = currentUser;
             const bcv = state.building.bcv;
@@ -1471,18 +1236,13 @@
             let totalAptoUsd = 0;
 
             state.expenses.forEach(exp => {
-                let cuotaUsd = 0;
-                if (exp.type === 'no_comun') {
-                    if (exp.apto === o.apto) cuotaUsd = exp.amount;
-                } else {
-                    cuotaUsd = exp.amount * (o.alicuota / 100);
-                }
+                let cuotaUsd = exp.type === 'no_comun' ? (exp.apto === o.apto ? exp.amount : 0) : exp.amount * (o.alicuota / 100);
                 totalAptoUsd += cuotaUsd;
                 const cuotaBs = cuotaUsd * bcv;
 
                 rBody.innerHTML += `
                     <tr class="border-b">
-                        <td class="p-2 font-semibold">${exp.desc}</td>
+                        <td class="p-2 font-semibold">${exp.description || exp.desc}</td>
                         <td class="p-2 text-slate-400 capitalize">${exp.type}</td>
                         <td class="p-2 text-right">$${exp.amount.toFixed(2)}</td>
                         <td class="p-2 text-right font-bold text-teal-600">$${cuotaUsd.toFixed(2)}</td>
@@ -1500,26 +1260,6 @@
 
             document.getElementById('owner-dash-balance').innerText = `$${saldoUsd.toFixed(2)}`;
             document.getElementById('owner-dash-balance-bs').innerText = `Bs. ${saldoBs.toFixed(2)}`;
-
-            const hBody = document.getElementById('owner-history-body');
-            hBody.innerHTML = '';
-            state.payments.filter(p => p.apto === o.apto).forEach(p => {
-                const isBs = p.method && p.method.includes('Bs');
-                const montoOriginalText = isBs ? `Bs. ${Number(p.amount).toFixed(2)}` : `$${Number(p.amount).toFixed(2)}`;
-                const tasaText = isBs && p.bcvRateUsed ? `<br><span class="text-[10px] text-slate-400">Tasa: ${Number(p.bcvRateUsed).toFixed(2)} Bs/$</span>` : '';
-
-                hBody.innerHTML += `
-                    <tr class="border-b">
-                        <td class="p-2">${p.date}</td>
-                        <td class="p-2">${p.method} (Ref: ${p.ref})</td>
-                        <td class="p-2 text-right font-semibold">${montoOriginalText}${tasaText}</td>
-                        <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv).toFixed(2)}</td>
-                        <td class="p-2 text-center">
-                            <span class="px-2 py-0.5 rounded text-[10px] ${p.status === 'Aprobado' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${p.status}</span>
-                        </td>
-                    </tr>
-                `;
-            });
         }
 
         function submitOwnerPayment(e) {
@@ -1557,7 +1297,6 @@
             alert(`Su pago fue reportado con éxito ($${usdEquiv.toFixed(2)} USD).`);
         }
 
-        // --- AUXILIARES ---
         function populateSelects() {
             const expApto = document.getElementById('exp-apto');
             const payApto = document.getElementById('pay-apto');
@@ -1594,14 +1333,6 @@
             showDashboard();
             alert('Datos del condominio actualizados');
         }
-        // FORZAR VINCULACIÓN DEL FORMULARIO DE GASTOS
-        document.addEventListener('DOMContentLoaded', () => {
-            const expenseForm = document.getElementById('expense-form');
-            if (expenseForm) {
-                expenseForm.addEventListener('submit', addExpense);
-                console.log('Formulario de gastos vinculado correctamente.');
-            }
-        });
     </script>
 </body>
 
