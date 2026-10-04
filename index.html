@@ -602,30 +602,26 @@
             providers: []
         };
 
-        // Cargar todos los datos desde Supabase con manejo estricto de errores
+        // Cargar todos los datos estrictamente desde Supabase al iniciar la página
         async function loadStorage() {
             try {
                 console.log("Cargando datos desde Supabase...");
 
                 const [
-                    { data: cloudPayments, error: errPay },
-                    { data: cloudBcv, error: errBcv },
-                    { data: cloudExpenses, error: errExp },
-                    { data: cloudOwners, error: errOwn },
-                    { data: cloudProviders, error: errProv },
-                    { data: cloudBuilding, error: errBldg }
+                    { data: cloudPayments },
+                    { data: cloudBcv },
+                    { data: cloudExpenses },
+                    { data: cloudOwners },
+                    { data: cloudProviders },
+                    { data: cloudBuilding }
                 ] = await Promise.all([
-                    db.from('payments').select('*'),
+                    db.from('payments').select('*').order('id', { ascending: false }),
                     db.from('bcv_history').select('*').order('date', { ascending: false }),
-                    db.from('expenses').select('*'),
+                    db.from('expenses').select('*').order('id', { ascending: false }),
                     db.from('owners').select('*'),
                     db.from('providers').select('*'),
                     db.from('building_config').select('*').limit(1)
                 ]);
-
-                if (errPay || errBcv || errExp || errOwn || errProv) {
-                    console.warn("Advertencia al leer de Supabase:", { errPay, errBcv, errExp, errOwn, errProv });
-                }
 
                 if (cloudBcv && cloudBcv.length > 0) {
                     state.bcvHistory = cloudBcv.map(b => ({
@@ -637,9 +633,9 @@
                     state.building.bcv = parseFloat(cloudBcv[0].rate || 36.50);
                 }
 
-                if (cloudPayments && cloudPayments.length > 0) {
+                if (cloudPayments) {
                     state.payments = cloudPayments.map(p => ({
-                        id: Number(p.id),
+                        id: p.id,
                         apto: p.apto,
                         concept: p.concept || 'Cuota Ordinaria Mensual',
                         method: p.method || 'Transferencia',
@@ -651,10 +647,10 @@
                     }));
                 }
 
-                if (cloudExpenses && cloudExpenses.length > 0) {
+                if (cloudExpenses) {
                     state.expenses = cloudExpenses.map(e => ({
-                        id: Number(e.id),
-                        period: e.period || new Date().toISOString().slice(0,7),
+                        id: e.id,
+                        period: e.period || new Date().toISOString().slice(0, 7),
                         description: e.description,
                         amount: parseFloat(e.amount || 0),
                         type: e.type || 'ordinaria',
@@ -667,15 +663,15 @@
                 if (cloudOwners && cloudOwners.length > 0) {
                     state.owners = cloudOwners.map(o => ({
                         apto: o.apto,
-                        owner: o.owner_name || o.owner,
+                        owner: o.owner_name || o.owner || `Propietario ${o.apto}`,
                         alicuota: parseFloat(o.alicuota || 0),
                         pass: o.pass || '1234'
                     }));
                 }
 
-                if (cloudProviders && cloudProviders.length > 0) {
+                if (cloudProviders) {
                     state.providers = cloudProviders.map(pr => ({
-                        id: Number(pr.id),
+                        id: pr.id,
                         name: pr.name,
                         service: pr.service_type || pr.service || '',
                         phone: pr.phone || ''
@@ -688,41 +684,19 @@
                     state.building.address = cloudBuilding[0].address || state.building.address;
                 }
 
-                console.log("Datos cargados correctamente:", state);
+                console.log("Datos sincronizados desde la nube:", state);
             } catch (e) {
-                console.error("Fallo en loadStorage:", e);
+                console.error("Error al cargar datos desde la nube:", e);
             }
 
             updateBcvUI();
-            if (currentUser && currentUser.role === 'admin') renderAdminData();
-            if (currentUser && currentUser.role === 'owner') renderOwnerData();
-        }
-
-        // Guardar respaldo local y sincronizar pagos
-        async function saveData() {
-            localStorage.setItem('condo_app_data', JSON.stringify(state));
-
-            try {
-                if (state.payments && state.payments.length > 0) {
-                    const cleanPayments = state.payments.map(p => ({
-                        id: Number(p.id),
-                        apto: String(p.apto),
-                        concept: String(p.concept),
-                        method: String(p.method),
-                        amount: parseFloat(p.amount),
-                        usd_equiv: parseFloat(p.usdEquiv),
-                        ref: String(p.ref),
-                        status: String(p.status),
-                        date: String(p.date)
-                    }));
-                    const { error } = await db.from('payments').upsert(cleanPayments, { onConflict: 'id' });
-                    if (error) console.error("Error guardando pagos en Supabase:", error);
-                }
-            } catch (e) {
-                console.error("Error en saveData:", e);
+            if (currentUser) {
+                if (currentUser.role === 'admin') renderAdminData();
+                else renderOwnerData();
             }
         }
 
+        // Suscripción en tiempo real (Sincroniza instantáneamente entre PC y Teléfono)
         function setupRealtimeSubscriptions() {
             db.channel('condo-changes')
               .on('postgres_changes', { event: '*', schema: 'public' }, () => {
@@ -734,8 +708,11 @@
         // ==================== TASA BCV ====================
         function updateBcvUI() {
             const rate = parseFloat(state.building.bcv) || 1;
-            document.getElementById('current-bcv-display').innerText = rate.toFixed(2);
-            document.getElementById('manual-bcv-input').value = rate;
+            const bcvDisplay = document.getElementById('current-bcv-display');
+            const manualInput = document.getElementById('manual-bcv-input');
+            
+            if (bcvDisplay) bcvDisplay.innerText = rate.toFixed(2);
+            if (manualInput) manualInput.value = rate;
 
             const dateInput = document.getElementById('manual-bcv-date');
             if (dateInput && !dateInput.value) {
@@ -750,19 +727,15 @@
             const fechaInput = document.getElementById('manual-bcv-date').value;
 
             if (val && val > 0 && fechaInput) {
-                state.building.bcv = val;
                 const bcvItem = { date: fechaInput, rate: val, origin: 'Manual' };
-                
-                state.bcvHistory.unshift(bcvItem);
 
-                if (db) {
-                    const { error } = await db.from('bcv_history').insert([bcvItem]);
-                    if (error) console.error("Error al guardar BCV en Supabase:", error);
+                const { error } = await db.from('bcv_history').insert([bcvItem]);
+                if (error) {
+                    alert("Error al guardar la tasa en Supabase: " + error.message);
+                    return;
                 }
 
-                saveData();
-                updateBcvUI();
-                if (currentUser && currentUser.role === 'admin') renderAdminData();
+                await loadStorage();
                 alert(`Tasa BCV de Bs. ${val} guardada correctamente.`);
             }
         }
@@ -771,7 +744,7 @@
             const status = document.getElementById('api-status-msg');
             const btn = document.getElementById('btn-api-bcv');
             btn.disabled = true;
-            status.innerText = "Consultando tasa del BCV en tiempo real...";
+            status.innerText = "Consultando tasa del BCV...";
 
             try {
                 const response = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
@@ -782,16 +755,15 @@
                     const newRate = parseFloat(data.promedio);
                     const todayDate = new Date().toISOString().split('T')[0];
 
-                    await db.from('building_config').update({ current_bcv: newRate }).eq('id', 1);
                     await db.from('bcv_history').insert([{ date: todayDate, rate: newRate, origin: 'API BCV' }]);
-
                     await loadStorage();
+
                     status.innerText = `✅ Tasa obtenida: Bs. ${newRate}`;
                     alert(`Tasa BCV actualizada: Bs. ${newRate}`);
                 }
             } catch (err) {
                 console.error(err);
-                status.innerText = "❌ No se pudo obtener automáticamente. Ingrésala manualmente.";
+                status.innerText = "❌ Error al obtener tasa automática. Ingrésala manualmente.";
             } finally {
                 btn.disabled = false;
             }
@@ -904,7 +876,7 @@
 
             const { error } = await db.from('expenses').insert([payload]);
             if (error) {
-                alert('Error al guardar gasto: ' + error.message);
+                alert('Error al guardar gasto en Supabase: ' + error.message);
                 return;
             }
 
@@ -1048,7 +1020,7 @@
 
             const { error } = await db.from('payments').insert([payload]);
             if (error) {
-                alert('Error al registrar pago: ' + error.message);
+                alert('Error al registrar pago en Supabase: ' + error.message);
                 return;
             }
 
@@ -1129,14 +1101,17 @@
 
         async function updateOwnerName(apto, newName) {
             const { error } = await db.from('owners').update({ owner_name: newName }).eq('apto', apto);
-            if (error) alert('Error actualizando propietario: ' + error.message);
+            if (error) alert('Error actualizando propietario en Supabase: ' + error.message);
+            else await loadStorage();
         }
 
         async function resetPassword(apto) {
             const { error } = await db.from('owners').update({ pass: '1234' }).eq('apto', apto);
             if (error) alert('Error reseteando clave: ' + error.message);
-            else alert(`Clave del apto ${apto} reseteada a 1234`);
-            await loadStorage();
+            else {
+                alert(`Clave del apto ${apto} reseteada a 1234`);
+                await loadStorage();
+            }
         }
 
         async function addProvider(e) {
@@ -1145,9 +1120,9 @@
             const service = document.getElementById('prov-service').value;
             const phone = document.getElementById('prov-phone').value;
 
-            const { error } = await db.from('providers').insert([{ name, service, phone }]);
+            const { error } = await db.from('providers').insert([{ name, service_type: service, phone }]);
             if (error) {
-                alert('Error guardando proveedor: ' + error.message);
+                alert('Error guardando proveedor en Supabase: ' + error.message);
                 return;
             }
             e.target.reset();
@@ -1171,9 +1146,14 @@
 
         // ==================== REPORTES DE GESTIÓN ====================
         function generateReports() {
-            document.getElementById('print-bldg-name').innerText = state.building.name;
-            document.getElementById('print-bldg-info').innerText = `RIF: ${state.building.rif} | Dirección: ${state.building.address}`;
-            document.getElementById('print-date').innerText = `Fecha de Emisión: ${new Date().toLocaleDateString()}`;
+            const printBldg = document.getElementById('print-bldg-name');
+            if (printBldg) printBldg.innerText = state.building.name;
+            
+            const printInfo = document.getElementById('print-bldg-info');
+            if (printInfo) printInfo.innerText = `RIF: ${state.building.rif} | Dirección: ${state.building.address}`;
+            
+            const printDate = document.getElementById('print-date');
+            if (printDate) printDate.innerText = `Fecha de Emisión: ${new Date().toLocaleDateString()}`;
 
             const oBody = document.getElementById('report-owners-body');
             if (oBody) {
@@ -1239,26 +1219,8 @@
                 `;
             });
 
-            const ownerPayments = state.payments.filter(p => p.apto === o.apto);
-            const hBody = document.getElementById('owner-history-body');
-            if (hBody) {
-                hBody.innerHTML = '';
-                ownerPayments.forEach(p => {
-                    const statusBg = p.status === 'Aprobado' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
-                    hBody.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-2">${p.date}</td>
-                            <td class="p-2">${p.concept} (Ref: ${p.ref})</td>
-                            <td class="p-2 text-right">${p.method.includes('Bs') ? 'Bs. ' : '$'}${p.amount.toFixed(2)}</td>
-                            <td class="p-2 text-right font-bold">$${p.usdEquiv.toFixed(2)}</td>
-                            <td class="p-2 text-center"><span class="px-2 py-0.5 text-[10px] font-bold rounded-full ${statusBg}">${p.status}</span></td>
-                        </tr>
-                    `;
-                });
-            }
-
-            const pagado = ownerPayments
-                .filter(p => p.status === 'Aprobado')
+            const pagado = state.payments
+                .filter(p => p.apto === o.apto && p.status === 'Aprobado')
                 .reduce((a, b) => a + (b.usdEquiv || 0), 0);
 
             const saldoUsd = totalAptoUsd - pagado;
@@ -1298,7 +1260,7 @@
 
             const { error } = await db.from('payments').insert([payload]);
             if (error) {
-                alert('Error enviando reporte de pago: ' + error.message);
+                alert('Error enviando reporte de pago a Supabase: ' + error.message);
                 return;
             }
 
@@ -1340,22 +1302,23 @@
             const rif = document.getElementById('cfg-rif').value;
             const address = document.getElementById('cfg-address').value;
 
-            const { error } = await db.from('building_config').update({ name, rif, address }).eq('id', 1);
+            const { error } = await db.from('building_config').upsert([{ id: 1, name, rif, address }]);
             if (error) {
-                alert('Error al actualizar edificio: ' + error.message);
+                alert('Error al actualizar edificio en Supabase: ' + error.message);
                 return;
             }
 
             await loadStorage();
             showDashboard();
-            alert('Datos del condominio actualizados con éxito.');
+            alert('Datos del condominio actualizados con éxito en la nube.');
         }
 
-        // Inicialización al cargar la página
+        // Inicialización al cargar la ventana
         window.addEventListener('DOMContentLoaded', () => {
             loadStorage();
             setupRealtimeSubscriptions();
         });
+    </script>
     </script>
 </body>
 </html>
