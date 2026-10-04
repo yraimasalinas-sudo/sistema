@@ -576,87 +576,151 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentUser = null;
+
+let defaultOwners = [
+    { apto: '1A', owner: 'Propietario 1A', alicuota: 6, pass: '1234' },
+    { apto: '1B', owner: 'Propietario 1B', alicuota: 6, pass: '1234' },
+    { apto: '2', owner: 'Propietario 2', alicuota: 12, pass: '1234' },
+    { apto: '3A', owner: 'Propietario 3A', alicuota: 6, pass: '1234' },
+    { apto: '3B', owner: 'Propietario 3B', alicuota: 6, pass: '1234' },
+    { apto: '4A', owner: 'Propietario 4A', alicuota: 6, pass: '1234' },
+    { apto: '4B', owner: 'Propietario 4B', alicuota: 6, pass: '1234' },
+    { apto: '5A', owner: 'Propietario 5A', alicuota: 6, pass: '1234' },
+    { apto: '5B', owner: 'Propietario 5B', alicuota: 6, pass: '1234' },
+    { apto: '6A', owner: 'Propietario 6A', alicuota: 6, pass: '1234' },
+    { apto: '6B', owner: 'Propietario 6B', alicuota: 6, pass: '1234' },
+    { apto: '7', owner: 'Propietario 7', alicuota: 12, pass: '1234' },
+    { apto: 'PH', owner: 'Propietario PH', alicuota: 16, pass: '1234' }
+];
+
 let state = {
     building: { name: 'Residencias El Parque', rif: 'J-12345678-9', address: 'Av. Principal Nro 12', bcv: 36.50 },
-    bcvHistory: [],
-    owners: [],
+    bcvHistory: [{ date: new Date().toISOString().split('T')[0], rate: 36.50, origin: 'Manual' }],
+    owners: defaultOwners,
     expenses: [],
     payments: [],
     providers: []
 };
 
-// ==================== CARGA GENERAL DE DATOS (SUPABASE) ====================
+// Cargar todos los datos desde Supabase con manejo estricto de errores
 async function loadStorage() {
     try {
-        const [resBldg, resBcv, resOwners, resExp, resPay, resProv] = await Promise.all([
-            db.from('building_config').select('*').single(),
-            db.from('bcv_history').select('*').order('created_at', { ascending: false }),
-            db.from('owners').select('*').order('apto', { ascending: true }),
-            db.from('expenses').select('*').order('created_at', { ascending: false }),
-            db.from('payments').select('*').order('created_at', { ascending: false }),
-            db.from('providers').select('*').order('name', { ascending: true })
+        console.log("Cargando datos desde Supabase...");
+
+        const [
+            { data: cloudPayments, error: errPay },
+            { data: cloudBcv, error: errBcv },
+            { data: cloudExpenses, error: errExp },
+            { data: cloudOwners, error: errOwn },
+            { data: cloudProviders, error: errProv },
+            { data: cloudBuilding, error: errBldg }
+        ] = await Promise.all([
+            db.from('payments').select('*'),
+            db.from('bcv_history').select('*').order('date', { ascending: false }),
+            db.from('expenses').select('*'),
+            db.from('owners').select('*'),
+            db.from('providers').select('*'),
+            db.from('building_config').select('*').limit(1)
         ]);
 
-        if (resBldg.data) {
-            state.building = {
-                name: resBldg.data.name,
-                rif: resBldg.data.rif,
-                address: resBldg.data.address,
-                bcv: parseFloat(resBldg.data.current_bcv || 36.50)
-            };
+        if (errPay || errBcv || errExp || errOwn || errProv) {
+            console.warn("Error leyendo de Supabase:", { errPay, errBcv, errExp, errOwn, errProv });
         }
 
-        if (resBcv.data) state.bcvHistory = resBcv.data;
-        if (resOwners.data) {
-            state.owners = resOwners.data.map(o => ({
-                apto: o.apto,
-                owner: o.owner_name,
-                alicuota: parseFloat(o.alicuota),
-                pass: o.pass
+        if (cloudBcv && cloudBcv.length > 0) {
+            state.bcvHistory = cloudBcv.map(b => ({
+                id: b.id,
+                date: b.date,
+                rate: parseFloat(b.rate || 0),
+                origin: b.origin || 'BCV'
             }));
+            state.building.bcv = parseFloat(cloudBcv[0].rate || 36.50);
         }
-        if (resExp.data) {
-            state.expenses = resExp.data.map(e => ({
-                id: e.id,
-                period: e.period,
-                description: e.description,
-                amount: parseFloat(e.amount),
-                type: e.type,
-                apto: e.apto,
-                provider: e.provider
-            }));
-        }
-        if (resPay.data) {
-            state.payments = resPay.data.map(p => ({
-                id: p.id,
+
+        if (cloudPayments && cloudPayments.length > 0) {
+            state.payments = cloudPayments.map(p => ({
+                id: Number(p.id),
                 apto: p.apto,
-                concept: p.concept,
-                method: p.method,
-                amount: parseFloat(p.amount),
-                usdEquiv: parseFloat(p.usd_equiv),
-                bcvRateUsed: p.bcv_rate_used,
-                ref: p.ref,
-                status: p.status,
+                concept: p.concept || 'Cuota Ordinaria Mensual',
+                method: p.method || 'Transferencia',
+                amount: parseFloat(p.amount || 0),
+                usdEquiv: parseFloat(p.usd_equiv || 0),
+                ref: p.ref || '',
+                status: p.status || 'Pendiente',
                 date: p.date
             }));
         }
-        if (resProv.data) state.providers = resProv.data;
 
-        updateBcvUI();
-        populateSelects();
-        if (currentUser && currentUser.role === 'admin') renderAdminData();
-        if (currentUser && currentUser.role === 'owner') renderOwnerData();
+        if (cloudExpenses && cloudExpenses.length > 0) {
+            state.expenses = cloudExpenses.map(e => ({
+                id: Number(e.id),
+                period: e.period || new Date().toISOString().slice(0,7),
+                description: e.description,
+                amount: parseFloat(e.amount || 0),
+                type: e.type || 'ordinaria',
+                apto: e.apto || 'TODOS',
+                provider: e.provider || null,
+                date: e.date
+            }));
+        }
 
-    } catch (error) {
-        console.error('Error al cargar datos desde Supabase:', error);
+        if (cloudOwners && cloudOwners.length > 0) {
+            state.owners = cloudOwners.map(o => ({
+                apto: o.apto,
+                owner: o.owner_name || o.owner,
+                alicuota: parseFloat(o.alicuota || 0),
+                pass: o.pass || '1234'
+            }));
+        }
+
+        if (cloudProviders && cloudProviders.length > 0) {
+            state.providers = cloudProviders.map(pr => ({
+                id: Number(pr.id),
+                name: pr.name,
+                service: pr.service_type || pr.service || '',
+                phone: pr.phone || ''
+            }));
+        }
+
+        if (cloudBuilding && cloudBuilding.length > 0) {
+            state.building.name = cloudBuilding[0].name || state.building.name;
+            state.building.rif = cloudBuilding[0].rif || state.building.rif;
+            state.building.address = cloudBuilding[0].address || state.building.address;
+        }
+
+        console.log("Datos cargados correctamente desde la nube:", state);
+    } catch (e) {
+        console.error("Fallo crítico en loadStorage:", e);
     }
+
+    updateBcvUI();
+    if (currentUser && currentUser.role === 'admin') renderAdminData();
 }
 
-window.onload = async function () {
-    await loadStorage();
-    setupRealtimeSubscriptions();
-};
+// Función centralizada para escribir cualquier cambio local en Supabase
+async function saveData() {
+    localStorage.setItem('condo_app_data', JSON.stringify(state));
 
+    try {
+        if (state.payments && state.payments.length > 0) {
+            const cleanPayments = state.payments.map(p => ({
+                id: Number(p.id),
+                apto: String(p.apto),
+                concept: String(p.concept),
+                method: String(p.method),
+                amount: parseFloat(p.amount),
+                usd_equiv: parseFloat(p.usdEquiv),
+                ref: String(p.ref),
+                status: String(p.status),
+                date: String(p.date)
+            }));
+            const { error } = await db.from('payments').upsert(cleanPayments, { onConflict: 'id' });
+            if (error) console.error("Error guardando pagos en Supabase:", error);
+        }
+    } catch (e) {
+        console.error("Error en saveData:", e);
+    }
+}
 function setupRealtimeSubscriptions() {
     db.channel('condo-changes')
       .on('postgres_changes', { event: '*', schema: 'public' }, () => {
