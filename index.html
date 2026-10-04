@@ -684,16 +684,22 @@ async function saveBcvManual(e) {
     const fechaInput = document.getElementById('manual-bcv-date').value;
 
     if (val && val > 0 && fechaInput) {
-        // Actualizar tasa global y guardar histórico en Supabase
-        const { error: err1 } = await db.from('building_config').update({ current_bcv: val }).eq('id', 1);
-        const { error: err2 } = await db.from('bcv_history').insert([{ date: fechaInput, rate: val, origin: 'Manual' }]);
+        state.building.bcv = val;
+        const bcvItem = { date: fechaInput, rate: val, origin: 'Manual' };
+        
+        state.bcvHistory.unshift(bcvItem);
 
-        if (err1 || err2) {
-            alert('Error guardando la tasa: ' + (err1?.message || err2?.message));
-            return;
+        if (db) {
+            // Usar insert simple para evitar conflictos de clave primaria con onConflict
+            const { error } = await db.from('bcv_history').insert([bcvItem]);
+            if (error) {
+                console.error("Error al guardar BCV en Supabase:", error);
+            }
         }
 
-        await loadStorage();
+        saveData();
+        updateBcvUI();
+        if (currentUser && currentUser.role === 'admin') renderAdminData();
         alert(`Tasa BCV de Bs. ${val} guardada correctamente.`);
     }
 }
