@@ -383,7 +383,7 @@
                                 <input type="month" id="rep-to" class="p-2 rounded-lg border text-sm">
                             </div>
                             <button onclick="generateReports()" class="px-5 py-2.5 bg-teal-500 text-white font-semibold text-sm rounded-lg hover:bg-teal-600">Generar Reportes</button>
-                            <button onclick="window.print()" class="px-5 py-2.5 bg-slate-700 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 flex items-center gap-1">🖨️️ Imprimir / Guardar PDF</button>
+                            <button onclick="window.print()" class="px-5 py-2.5 bg-slate-700 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 flex items-center gap-1">🖨 Imprimir / Guardar PDF</button>
                         </div>
                     </div>
 
@@ -571,769 +571,791 @@
     <!-- SCRIPT DE LÓGICA -->
     <script>
         const SUPABASE_URL = "https://rzcmqxzzoyqjfryoymqw.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6Y21xeHp6b3lxamZyeW95bXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0Mzc4NzEsImV4cCI6MjEwNjAxMzg3MX0.3foqq3G7OlFPjwNAq-TqrasA2JfG4ZU7RWBCJISSO3s";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6Y21xeHp6b3lxamZyeW95bXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0Mzc4NzEsImV4cCI6MjEwNjAxMzg3MX0.3foqq3G7OlFPjwNAq-TqrasA2JfG4ZU7RWBCJISSO3s";
 
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentUser = null;
+        let currentUser = null;
 
-let defaultOwners = [
-    { apto: '1A', owner: 'Propietario 1A', alicuota: 6, pass: '1234' },
-    { apto: '1B', owner: 'Propietario 1B', alicuota: 6, pass: '1234' },
-    { apto: '2', owner: 'Propietario 2', alicuota: 12, pass: '1234' },
-    { apto: '3A', owner: 'Propietario 3A', alicuota: 6, pass: '1234' },
-    { apto: '3B', owner: 'Propietario 3B', alicuota: 6, pass: '1234' },
-    { apto: '4A', owner: 'Propietario 4A', alicuota: 6, pass: '1234' },
-    { apto: '4B', owner: 'Propietario 4B', alicuota: 6, pass: '1234' },
-    { apto: '5A', owner: 'Propietario 5A', alicuota: 6, pass: '1234' },
-    { apto: '5B', owner: 'Propietario 5B', alicuota: 6, pass: '1234' },
-    { apto: '6A', owner: 'Propietario 6A', alicuota: 6, pass: '1234' },
-    { apto: '6B', owner: 'Propietario 6B', alicuota: 6, pass: '1234' },
-    { apto: '7', owner: 'Propietario 7', alicuota: 12, pass: '1234' },
-    { apto: 'PH', owner: 'Propietario PH', alicuota: 16, pass: '1234' }
-];
+        let defaultOwners = [
+            { apto: '1A', owner: 'Propietario 1A', alicuota: 6, pass: '1234' },
+            { apto: '1B', owner: 'Propietario 1B', alicuota: 6, pass: '1234' },
+            { apto: '2', owner: 'Propietario 2', alicuota: 12, pass: '1234' },
+            { apto: '3A', owner: 'Propietario 3A', alicuota: 6, pass: '1234' },
+            { apto: '3B', owner: 'Propietario 3B', alicuota: 6, pass: '1234' },
+            { apto: '4A', owner: 'Propietario 4A', alicuota: 6, pass: '1234' },
+            { apto: '4B', owner: 'Propietario 4B', alicuota: 6, pass: '1234' },
+            { apto: '5A', owner: 'Propietario 5A', alicuota: 6, pass: '1234' },
+            { apto: '5B', owner: 'Propietario 5B', alicuota: 6, pass: '1234' },
+            { apto: '6A', owner: 'Propietario 6A', alicuota: 6, pass: '1234' },
+            { apto: '6B', owner: 'Propietario 6B', alicuota: 6, pass: '1234' },
+            { apto: '7', owner: 'Propietario 7', alicuota: 12, pass: '1234' },
+            { apto: 'PH', owner: 'Propietario PH', alicuota: 16, pass: '1234' }
+        ];
 
-let state = {
-    building: { name: 'Residencias El Parque', rif: 'J-12345678-9', address: 'Av. Principal Nro 12', bcv: 36.50 },
-    bcvHistory: [{ date: new Date().toISOString().split('T')[0], rate: 36.50, origin: 'Manual' }],
-    owners: defaultOwners,
-    expenses: [],
-    payments: [],
-    providers: []
-};
+        let state = {
+            building: { name: 'Residencias El Parque', rif: 'J-12345678-9', address: 'Av. Principal Nro 12', bcv: 36.50 },
+            bcvHistory: [{ date: new Date().toISOString().split('T')[0], rate: 36.50, origin: 'Manual' }],
+            owners: defaultOwners,
+            expenses: [],
+            payments: [],
+            providers: []
+        };
 
-// Cargar todos los datos desde Supabase con manejo estricto de errores
-async function loadStorage() {
-    try {
-        console.log("Cargando datos desde Supabase...");
+        // Cargar todos los datos desde Supabase con manejo estricto de errores
+        async function loadStorage() {
+            try {
+                console.log("Cargando datos desde Supabase...");
 
-        const [
-            { data: cloudPayments, error: errPay },
-            { data: cloudBcv, error: errBcv },
-            { data: cloudExpenses, error: errExp },
-            { data: cloudOwners, error: errOwn },
-            { data: cloudProviders, error: errProv },
-            { data: cloudBuilding, error: errBldg }
-        ] = await Promise.all([
-            db.from('payments').select('*'),
-            db.from('bcv_history').select('*').order('date', { ascending: false }),
-            db.from('expenses').select('*'),
-            db.from('owners').select('*'),
-            db.from('providers').select('*'),
-            db.from('building_config').select('*').limit(1)
-        ]);
+                const [
+                    { data: cloudPayments, error: errPay },
+                    { data: cloudBcv, error: errBcv },
+                    { data: cloudExpenses, error: errExp },
+                    { data: cloudOwners, error: errOwn },
+                    { data: cloudProviders, error: errProv },
+                    { data: cloudBuilding, error: errBldg }
+                ] = await Promise.all([
+                    db.from('payments').select('*'),
+                    db.from('bcv_history').select('*').order('date', { ascending: false }),
+                    db.from('expenses').select('*'),
+                    db.from('owners').select('*'),
+                    db.from('providers').select('*'),
+                    db.from('building_config').select('*').limit(1)
+                ]);
 
-        if (errPay || errBcv || errExp || errOwn || errProv) {
-            console.warn("Error leyendo de Supabase:", { errPay, errBcv, errExp, errOwn, errProv });
+                if (errPay || errBcv || errExp || errOwn || errProv) {
+                    console.warn("Advertencia al leer de Supabase:", { errPay, errBcv, errExp, errOwn, errProv });
+                }
+
+                if (cloudBcv && cloudBcv.length > 0) {
+                    state.bcvHistory = cloudBcv.map(b => ({
+                        id: b.id,
+                        date: b.date,
+                        rate: parseFloat(b.rate || 0),
+                        origin: b.origin || 'BCV'
+                    }));
+                    state.building.bcv = parseFloat(cloudBcv[0].rate || 36.50);
+                }
+
+                if (cloudPayments && cloudPayments.length > 0) {
+                    state.payments = cloudPayments.map(p => ({
+                        id: Number(p.id),
+                        apto: p.apto,
+                        concept: p.concept || 'Cuota Ordinaria Mensual',
+                        method: p.method || 'Transferencia',
+                        amount: parseFloat(p.amount || 0),
+                        usdEquiv: parseFloat(p.usd_equiv || 0),
+                        ref: p.ref || '',
+                        status: p.status || 'Pendiente',
+                        date: p.date
+                    }));
+                }
+
+                if (cloudExpenses && cloudExpenses.length > 0) {
+                    state.expenses = cloudExpenses.map(e => ({
+                        id: Number(e.id),
+                        period: e.period || new Date().toISOString().slice(0,7),
+                        description: e.description,
+                        amount: parseFloat(e.amount || 0),
+                        type: e.type || 'ordinaria',
+                        apto: e.apto || 'TODOS',
+                        provider: e.provider || null,
+                        date: e.date
+                    }));
+                }
+
+                if (cloudOwners && cloudOwners.length > 0) {
+                    state.owners = cloudOwners.map(o => ({
+                        apto: o.apto,
+                        owner: o.owner_name || o.owner,
+                        alicuota: parseFloat(o.alicuota || 0),
+                        pass: o.pass || '1234'
+                    }));
+                }
+
+                if (cloudProviders && cloudProviders.length > 0) {
+                    state.providers = cloudProviders.map(pr => ({
+                        id: Number(pr.id),
+                        name: pr.name,
+                        service: pr.service_type || pr.service || '',
+                        phone: pr.phone || ''
+                    }));
+                }
+
+                if (cloudBuilding && cloudBuilding.length > 0) {
+                    state.building.name = cloudBuilding[0].name || state.building.name;
+                    state.building.rif = cloudBuilding[0].rif || state.building.rif;
+                    state.building.address = cloudBuilding[0].address || state.building.address;
+                }
+
+                console.log("Datos cargados correctamente:", state);
+            } catch (e) {
+                console.error("Fallo en loadStorage:", e);
+            }
+
+            updateBcvUI();
+            if (currentUser && currentUser.role === 'admin') renderAdminData();
+            if (currentUser && currentUser.role === 'owner') renderOwnerData();
         }
 
-        if (cloudBcv && cloudBcv.length > 0) {
-            state.bcvHistory = cloudBcv.map(b => ({
-                id: b.id,
-                date: b.date,
-                rate: parseFloat(b.rate || 0),
-                origin: b.origin || 'BCV'
-            }));
-            state.building.bcv = parseFloat(cloudBcv[0].rate || 36.50);
-        }
+        // Guardar respaldo local y sincronizar pagos
+        async function saveData() {
+            localStorage.setItem('condo_app_data', JSON.stringify(state));
 
-        if (cloudPayments && cloudPayments.length > 0) {
-            state.payments = cloudPayments.map(p => ({
-                id: Number(p.id),
-                apto: p.apto,
-                concept: p.concept || 'Cuota Ordinaria Mensual',
-                method: p.method || 'Transferencia',
-                amount: parseFloat(p.amount || 0),
-                usdEquiv: parseFloat(p.usd_equiv || 0),
-                ref: p.ref || '',
-                status: p.status || 'Pendiente',
-                date: p.date
-            }));
-        }
-
-        if (cloudExpenses && cloudExpenses.length > 0) {
-            state.expenses = cloudExpenses.map(e => ({
-                id: Number(e.id),
-                period: e.period || new Date().toISOString().slice(0,7),
-                description: e.description,
-                amount: parseFloat(e.amount || 0),
-                type: e.type || 'ordinaria',
-                apto: e.apto || 'TODOS',
-                provider: e.provider || null,
-                date: e.date
-            }));
-        }
-
-        if (cloudOwners && cloudOwners.length > 0) {
-            state.owners = cloudOwners.map(o => ({
-                apto: o.apto,
-                owner: o.owner_name || o.owner,
-                alicuota: parseFloat(o.alicuota || 0),
-                pass: o.pass || '1234'
-            }));
-        }
-
-        if (cloudProviders && cloudProviders.length > 0) {
-            state.providers = cloudProviders.map(pr => ({
-                id: Number(pr.id),
-                name: pr.name,
-                service: pr.service_type || pr.service || '',
-                phone: pr.phone || ''
-            }));
-        }
-
-        if (cloudBuilding && cloudBuilding.length > 0) {
-            state.building.name = cloudBuilding[0].name || state.building.name;
-            state.building.rif = cloudBuilding[0].rif || state.building.rif;
-            state.building.address = cloudBuilding[0].address || state.building.address;
-        }
-
-        console.log("Datos cargados correctamente desde la nube:", state);
-    } catch (e) {
-        console.error("Fallo crítico en loadStorage:", e);
-    }
-
-    updateBcvUI();
-    if (currentUser && currentUser.role === 'admin') renderAdminData();
-}
-
-// Función centralizada para escribir cualquier cambio local en Supabase
-async function saveData() {
-    localStorage.setItem('condo_app_data', JSON.stringify(state));
-
-    try {
-        if (state.payments && state.payments.length > 0) {
-            const cleanPayments = state.payments.map(p => ({
-                id: Number(p.id),
-                apto: String(p.apto),
-                concept: String(p.concept),
-                method: String(p.method),
-                amount: parseFloat(p.amount),
-                usd_equiv: parseFloat(p.usdEquiv),
-                ref: String(p.ref),
-                status: String(p.status),
-                date: String(p.date)
-            }));
-            const { error } = await db.from('payments').upsert(cleanPayments, { onConflict: 'id' });
-            if (error) console.error("Error guardando pagos en Supabase:", error);
-        }
-    } catch (e) {
-        console.error("Error en saveData:", e);
-    }
-}
-function setupRealtimeSubscriptions() {
-    db.channel('condo-changes')
-      .on('postgres_changes', { event: '*', schema: 'public' }, () => {
-          loadStorage();
-      })
-      .subscribe();
-}
-
-// ==================== TASA BCV ====================
-function updateBcvUI() {
-    const rate = parseFloat(state.building.bcv) || 1;
-    document.getElementById('current-bcv-display').innerText = rate.toFixed(2);
-    document.getElementById('manual-bcv-input').value = rate;
-
-    const dateInput = document.getElementById('manual-bcv-date');
-    if (dateInput && !dateInput.value) {
-        dateInput.value = new Date().toISOString().split('T')[0];
-    }
-    renderBcvHistory();
-}
-
-async function saveBcvManual(e) {
-    e.preventDefault();
-    const val = parseFloat(document.getElementById('manual-bcv-input').value);
-    const fechaInput = document.getElementById('manual-bcv-date').value;
-
-    if (val && val > 0 && fechaInput) {
-        state.building.bcv = val;
-        const bcvItem = { date: fechaInput, rate: val, origin: 'Manual' };
-        
-        state.bcvHistory.unshift(bcvItem);
-
-        if (db) {
-            // Usar insert simple para evitar conflictos de clave primaria con onConflict
-            const { error } = await db.from('bcv_history').insert([bcvItem]);
-            if (error) {
-                console.error("Error al guardar BCV en Supabase:", error);
+            try {
+                if (state.payments && state.payments.length > 0) {
+                    const cleanPayments = state.payments.map(p => ({
+                        id: Number(p.id),
+                        apto: String(p.apto),
+                        concept: String(p.concept),
+                        method: String(p.method),
+                        amount: parseFloat(p.amount),
+                        usd_equiv: parseFloat(p.usdEquiv),
+                        ref: String(p.ref),
+                        status: String(p.status),
+                        date: String(p.date)
+                    }));
+                    const { error } = await db.from('payments').upsert(cleanPayments, { onConflict: 'id' });
+                    if (error) console.error("Error guardando pagos en Supabase:", error);
+                }
+            } catch (e) {
+                console.error("Error en saveData:", e);
             }
         }
 
-        saveData();
-        updateBcvUI();
-        if (currentUser && currentUser.role === 'admin') renderAdminData();
-        alert(`Tasa BCV de Bs. ${val} guardada correctamente.`);
-    }
-}
+        function setupRealtimeSubscriptions() {
+            db.channel('condo-changes')
+              .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+                  loadStorage();
+              })
+              .subscribe();
+        }
 
-async function fetchBcvApi() {
-    const status = document.getElementById('api-status-msg');
-    const btn = document.getElementById('btn-api-bcv');
-    btn.disabled = true;
-    status.innerText = "Consultando tasa del BCV en tiempo real...";
+        // ==================== TASA BCV ====================
+        function updateBcvUI() {
+            const rate = parseFloat(state.building.bcv) || 1;
+            document.getElementById('current-bcv-display').innerText = rate.toFixed(2);
+            document.getElementById('manual-bcv-input').value = rate;
 
-    try {
-        const response = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
-        if (!response.ok) throw new Error("Error en respuesta de la API");
-        const data = await response.json();
+            const dateInput = document.getElementById('manual-bcv-date');
+            if (dateInput && !dateInput.value) {
+                dateInput.value = new Date().toISOString().split('T')[0];
+            }
+            renderBcvHistory();
+        }
 
-        if (data && data.promedio) {
-            const newRate = parseFloat(data.promedio);
-            const todayDate = new Date().toISOString().split('T')[0];
+        async function saveBcvManual(e) {
+            e.preventDefault();
+            const val = parseFloat(document.getElementById('manual-bcv-input').value);
+            const fechaInput = document.getElementById('manual-bcv-date').value;
 
-            await db.from('building_config').update({ current_bcv: newRate }).eq('id', 1);
-            await db.from('bcv_history').insert([{ date: todayDate, rate: newRate, origin: 'API BCV' }]);
+            if (val && val > 0 && fechaInput) {
+                state.building.bcv = val;
+                const bcvItem = { date: fechaInput, rate: val, origin: 'Manual' };
+                
+                state.bcvHistory.unshift(bcvItem);
+
+                if (db) {
+                    const { error } = await db.from('bcv_history').insert([bcvItem]);
+                    if (error) console.error("Error al guardar BCV en Supabase:", error);
+                }
+
+                saveData();
+                updateBcvUI();
+                if (currentUser && currentUser.role === 'admin') renderAdminData();
+                alert(`Tasa BCV de Bs. ${val} guardada correctamente.`);
+            }
+        }
+
+        async function fetchBcvApi() {
+            const status = document.getElementById('api-status-msg');
+            const btn = document.getElementById('btn-api-bcv');
+            btn.disabled = true;
+            status.innerText = "Consultando tasa del BCV en tiempo real...";
+
+            try {
+                const response = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+                if (!response.ok) throw new Error("Error en respuesta de la API");
+                const data = await response.json();
+
+                if (data && data.promedio) {
+                    const newRate = parseFloat(data.promedio);
+                    const todayDate = new Date().toISOString().split('T')[0];
+
+                    await db.from('building_config').update({ current_bcv: newRate }).eq('id', 1);
+                    await db.from('bcv_history').insert([{ date: todayDate, rate: newRate, origin: 'API BCV' }]);
+
+                    await loadStorage();
+                    status.innerText = `✅ Tasa obtenida: Bs. ${newRate}`;
+                    alert(`Tasa BCV actualizada: Bs. ${newRate}`);
+                }
+            } catch (err) {
+                console.error(err);
+                status.innerText = "❌ No se pudo obtener automáticamente. Ingrésala manualmente.";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function renderBcvHistory() {
+            const body = document.getElementById('bcv-history-body');
+            if (!body) return;
+            body.innerHTML = '';
+            state.bcvHistory.slice(0, 10).forEach(h => {
+                body.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-2">${h.date}</td>
+                        <td class="p-2 text-right font-bold">Bs. ${parseFloat(h.rate).toFixed(2)}</td>
+                        <td class="p-2 text-center text-[10px]"><span class="px-2 py-0.5 rounded bg-slate-100">${h.origin}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==================== AUTENTICACIÓN ====================
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
+            const err = document.getElementById('login-error');
+
+            if (u.toLowerCase() === 'admin' && p === 'admin123') {
+                currentUser = { role: 'admin', name: 'Administrador' };
+                showDashboard();
+            } else {
+                const owner = state.owners.find(o => o.apto.toLowerCase() === u.toLowerCase() && o.pass === p);
+                if (owner) {
+                    currentUser = { role: 'owner', ...owner };
+                    showDashboard();
+                } else {
+                    err.classList.remove('hidden');
+                }
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+
+            document.getElementById('dash-bldg-name').innerText = state.building.name;
+            document.getElementById('dash-bldg-rif').innerText = state.building.rif;
+            document.getElementById('dash-bldg-address').innerText = state.building.address;
+
+            const badge = document.getElementById('user-badge');
+            if (currentUser.role === 'admin') {
+                badge.innerText = "ADMINISTRADOR";
+                document.getElementById('admin-view').classList.remove('hidden');
+                document.getElementById('owner-view').classList.add('hidden');
+                renderAdminData();
+            } else {
+                badge.innerText = `APTO ${currentUser.apto}`;
+                document.getElementById('admin-view').classList.add('hidden');
+                document.getElementById('owner-view').classList.remove('hidden');
+                renderOwnerData();
+            }
+        }
+
+        function switchTab(evt, tab) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('bg-teal-500', 'text-white');
+                b.classList.add('bg-white', 'text-slate-600');
+            });
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.classList.add('bg-teal-500', 'text-white');
+            }
+        }
+
+        function renderAdminData() {
+            updateBcvUI();
+            renderExpenses();
+            renderPendingPayments();
+            renderOwnersTable();
+            renderProvidersTable();
+            generateReports();
+            populateSelects();
+        }
+
+        // ==================== GASTOS Y COBROS ====================
+        async function addExpense(e) {
+            if (e) e.preventDefault();
+            const period = document.getElementById('exp-period')?.value || '';
+            const desc = document.getElementById('exp-desc')?.value || '';
+            const amount = parseFloat(document.getElementById('exp-amount')?.value) || 0;
+            const typeVal = document.getElementById('exp-type')?.value || 'ordinaria';
+            const providerVal = document.getElementById('exp-provider')?.value || null;
+            const aptoVal = document.getElementById('exp-apto')?.value || 'TODOS';
+
+            const payload = {
+                period,
+                description: desc,
+                amount,
+                type: typeVal,
+                provider: providerVal || null,
+                apto: typeVal === 'no_comun' ? aptoVal : 'TODOS'
+            };
+
+            const { error } = await db.from('expenses').insert([payload]);
+            if (error) {
+                alert('Error al guardar gasto: ' + error.message);
+                return;
+            }
+
+            document.getElementById('expense-form')?.reset();
+            await loadStorage();
+            alert('¡Gasto registrado con éxito!');
+        }
+
+        function renderExpenses() {
+            const body = document.getElementById('expenses-table-body');
+            if (!body) return;
+            body.innerHTML = '';
+            let totalUsd = 0;
+
+            state.expenses.forEach(exp => {
+                totalUsd += exp.amount;
+                body.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-1 font-semibold text-slate-500">${(exp.type || '').toUpperCase()}</td>
+                        <td class="p-1">${exp.description} ${exp.apto && exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
+                        <td class="p-1 font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
+                        <td class="p-1"><button onclick="deleteExpense(${exp.id})" class="text-red-500 font-bold">✕</button></td>
+                    </tr>
+                `;
+            });
+
+            const totalBs = totalUsd * state.building.bcv;
+            document.getElementById('total-expenses-amount').innerText = `$${totalUsd.toFixed(2)}`;
+            document.getElementById('total-expenses-bs').innerText = `(Bs. ${totalBs.toFixed(2)})`;
+            generateWhatsappGroupMsg();
+        }
+
+        async function deleteExpense(id) {
+            if (!confirm('¿Seguro que deseas eliminar este gasto?')) return;
+            const { error } = await db.from('expenses').delete().eq('id', id);
+            if (error) {
+                alert('Error eliminando gasto: ' + error.message);
+                return;
+            }
+            await loadStorage();
+        }
+
+        // ==================== WHATSAPP Y COMUNICACIÓN ====================
+        function generateWhatsappGroupMsg() {
+            const filterType = document.getElementById('wa-fee-type')?.value || 'all';
+            let expenses = state.expenses || [];
+
+            if (filterType === 'ordinary') expenses = expenses.filter(e => e.type === 'ordinaria');
+            else if (filterType === 'extraordinary') expenses = expenses.filter(e => e.type === 'extraordinaria');
+
+            const totalUSD = expenses.reduce((acc, e) => acc + (e.amount || 0), 0);
+
+            let title = 'AVISO DE COBRO GENERAL';
+            if (filterType === 'ordinary') title = 'AVISO DE COBRO - CUOTA ORDINARIA';
+            if (filterType === 'extraordinary') title = 'AVISO DE COBRO - CUOTA EXTRAORDINARIA';
+
+            let msg = `*📢 ${title} - ${state.building.name}*\n\n`;
+
+            if (expenses.length === 0) {
+                msg += `_No hay gastos registrados en este concepto._\n`;
+            } else {
+                msg += `*DESGLOSE DE GASTOS:*\n`;
+                expenses.forEach(e => {
+                    msg += `- ${e.description}: $${e.amount.toFixed(2)}\n`;
+                });
+                msg += `\n*TOTAL GASTOS:* *$${totalUSD.toFixed(2)}*\n\n`;
+                msg += `*CUOTAS POR APARTAMENTO:*\n`;
+                state.owners.forEach(o => {
+                    const montoAptoUsd = totalUSD * (o.alicuota / 100);
+                    msg += `• Apto ${o.apto} (${o.alicuota}%): *$${montoAptoUsd.toFixed(2)}*\n`;
+                });
+            }
+
+            msg += `\n_Agradecemos realizar su pago oportunamente._`;
+
+            const previewElem = document.getElementById('whatsapp-preview');
+            if (previewElem) previewElem.value = msg;
+
+            const btnElem = document.getElementById('wa-group-btn');
+            if (btnElem) btnElem.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+        }
+
+        function generateWhatsappIndividualMsg(aptoTarget) {
+            const owner = state.owners.find(o => o.apto === aptoTarget);
+            if (!owner) return;
+
+            let expenses = state.expenses || [];
+            const totalGastosUsd = expenses.reduce((acc, e) => acc + (e.amount || 0), 0);
+            const montoCuotaUsd = totalGastosUsd * (owner.alicuota / 100);
+
+            const pagado = state.payments
+                .filter(p => p.apto === owner.apto && p.status === 'Aprobado')
+                .reduce((a, b) => a + (b.usdEquiv || 0), 0);
+
+            const saldoPendienteUsd = montoCuotaUsd - pagado;
+
+            let msg = `*ESTADO DE CUENTA INDIVIDUAL - ${state.building.name}*\n`;
+            msg += `Propietario(a): ${owner.owner}\n`;
+            msg += `Apartamento: ${owner.apto} (Alícuota: ${owner.alicuota}%)\n\n`;
+
+            msg += `*TOTAL CUOTA:* $${montoCuotaUsd.toFixed(2)}\n`;
+            msg += `*TOTAL PAGADO:* $${pagado.toFixed(2)}\n`;
+            msg += `*SALDO PENDIENTE:* *$${saldoPendienteUsd.toFixed(2)}*\n\n`;
+            msg += `_Por favor enviar el comprobante al realizar su pago._`;
+
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // ==================== PAGOS Y CONCILIACIÓN ====================
+        function getBcvRateForDate(targetDate) {
+            if (!state.bcvHistory || state.bcvHistory.length === 0) return Number(state.building.bcv) || 1;
+            const exact = state.bcvHistory.find(h => h.date === targetDate);
+            if (exact && exact.rate) return Number(exact.rate);
+            return Number(state.building.bcv) || 1;
+        }
+
+        async function registerAdminPayment(e) {
+            e.preventDefault();
+            const apto = document.getElementById('pay-apto').value;
+            const concept = document.getElementById('pay-concept').value;
+            const method = document.getElementById('pay-method').value;
+            const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
+            const ref = document.getElementById('pay-ref').value;
+            const payDate = document.getElementById('pay-date').value || new Date().toISOString().split('T')[0];
+
+            const bcvRateUsed = getBcvRateForDate(payDate);
+            const isBs = method.includes('Bs');
+            const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
+
+            const payload = {
+                apto,
+                concept,
+                method,
+                amount,
+                usd_equiv: Number(usdEquiv.toFixed(2)),
+                bcv_rate_used: isBs ? bcvRateUsed : null,
+                ref,
+                status: 'Aprobado',
+                date: payDate
+            };
+
+            const { error } = await db.from('payments').insert([payload]);
+            if (error) {
+                alert('Error al registrar pago: ' + error.message);
+                return;
+            }
+
+            document.getElementById('admin-pay-form').reset();
+            await loadStorage();
+            alert('Pago registrado y aprobado correctamente.');
+        }
+
+        async function approvePayment(id) {
+            const { error } = await db.from('payments').update({ status: 'Aprobado' }).eq('id', id);
+            if (error) {
+                alert('Error aprobando el pago: ' + error.message);
+                return;
+            }
+            await loadStorage();
+        }
+
+        async function deletePayment(id) {
+            if (!confirm('¿Seguro que deseas eliminar este pago?')) return;
+            const { error } = await db.from('payments').delete().eq('id', id);
+            if (error) {
+                alert('Error eliminando pago: ' + error.message);
+                return;
+            }
+            await loadStorage();
+        }
+
+        function renderPendingPayments() {
+            const body = document.getElementById('payments-pending-body');
+            if (!body) return;
+            body.innerHTML = '';
+
+            state.payments.forEach(p => {
+                const isBs = p.method && p.method.includes('Bs');
+                const montoOriginalText = isBs ? `Bs. ${Number(p.amount).toFixed(2)}` : `$${Number(p.amount).toFixed(2)}`;
+
+                body.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-2 font-bold">${p.apto}</td>
+                        <td class="p-2">${p.date}</td>
+                        <td class="p-2">${p.method}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref}</span></td>
+                        <td class="p-2 text-right font-semibold">${montoOriginalText}</td>
+                        <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv).toFixed(2)}</td>
+                        <td class="p-2 text-center space-x-1">
+                            ${p.status === 'Pendiente' ? `
+                                <button onclick="approvePayment(${p.id})" class="px-2 py-1 bg-emerald-500 text-white rounded text-[10px]">Aprobar</button>
+                            ` : `<span class="text-emerald-600 font-bold text-[10px]">✓ Aprobado</span>`}
+                            <button onclick="deletePayment(${p.id})" class="px-2 py-1 bg-rose-500 text-white rounded text-[10px]">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==================== PROPIETARIOS Y PROVEEDORES ====================
+        function renderOwnersTable() {
+            const body = document.getElementById('owners-table-body');
+            if (!body) return;
+            body.innerHTML = '';
+
+            state.owners.forEach((o) => {
+                body.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-2 font-bold">${o.apto}</td>
+                        <td class="p-2">
+                            <input type="text" value="${o.owner}" onchange="updateOwnerName('${o.apto}', this.value)" class="p-1 border rounded w-full">
+                        </td>
+                        <td class="p-2 font-semibold">${o.alicuota}%</td>
+                        <td class="p-2 font-mono text-slate-500">${o.pass}</td>
+                        <td class="p-2 space-x-1">
+                            <button onclick="resetPassword('${o.apto}')" class="px-2 py-1 bg-amber-500 text-white text-[10px] rounded hover:bg-amber-600">Resetear Clave</button>
+                            <button onclick="generateWhatsappIndividualMsg('${o.apto}')" class="px-2 py-1 bg-emerald-500 text-white text-[10px] font-semibold rounded hover:bg-emerald-600">📲 WA</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function updateOwnerName(apto, newName) {
+            const { error } = await db.from('owners').update({ owner_name: newName }).eq('apto', apto);
+            if (error) alert('Error actualizando propietario: ' + error.message);
+        }
+
+        async function resetPassword(apto) {
+            const { error } = await db.from('owners').update({ pass: '1234' }).eq('apto', apto);
+            if (error) alert('Error reseteando clave: ' + error.message);
+            else alert(`Clave del apto ${apto} reseteada a 1234`);
+            await loadStorage();
+        }
+
+        async function addProvider(e) {
+            e.preventDefault();
+            const name = document.getElementById('prov-name').value;
+            const service = document.getElementById('prov-service').value;
+            const phone = document.getElementById('prov-phone').value;
+
+            const { error } = await db.from('providers').insert([{ name, service, phone }]);
+            if (error) {
+                alert('Error guardando proveedor: ' + error.message);
+                return;
+            }
+            e.target.reset();
+            await loadStorage();
+        }
+
+        function renderProvidersTable() {
+            const body = document.getElementById('providers-table-body');
+            if (!body) return;
+            body.innerHTML = '';
+            state.providers.forEach(p => {
+                body.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-2 font-bold">${p.name}</td>
+                        <td class="p-2">${p.service}</td>
+                        <td class="p-2">${p.phone}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==================== REPORTES DE GESTIÓN ====================
+        function generateReports() {
+            document.getElementById('print-bldg-name').innerText = state.building.name;
+            document.getElementById('print-bldg-info').innerText = `RIF: ${state.building.rif} | Dirección: ${state.building.address}`;
+            document.getElementById('print-date').innerText = `Fecha de Emisión: ${new Date().toLocaleDateString()}`;
+
+            const oBody = document.getElementById('report-owners-body');
+            if (oBody) {
+                oBody.innerHTML = '';
+                const ordTotal = state.expenses.filter(e => e.type === 'ordinaria').reduce((a, b) => a + b.amount, 0);
+                const extTotal = state.expenses.filter(e => e.type === 'extraordinaria').reduce((a, b) => a + b.amount, 0);
+
+                state.owners.forEach(o => {
+                    const factOrd = ordTotal * (o.alicuota / 100);
+                    const factExt = extTotal * (o.alicuota / 100);
+                    const totalFacturado = factOrd + factExt;
+
+                    const ownerPayments = state.payments.filter(p => p.apto === o.apto && p.status === 'Aprobado');
+                    const pagado = ownerPayments.reduce((a, b) => a + b.usdEquiv, 0);
+                    const referencias = ownerPayments.map(p => p.ref).filter(Boolean).join(', ') || 'N/A';
+                    const dif = totalFacturado - pagado;
+
+                    let saldoTexto = dif <= 0 ? `$0.00` : `$${dif.toFixed(2)}`;
+
+                    oBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2 font-bold text-slate-800">${o.apto}</td>
+                            <td class="p-2">${o.owner}</td>
+                            <td class="p-2 text-right">${o.alicuota}% ($${totalFacturado.toFixed(2)})</td>
+                            <td class="p-2 text-right">$${factOrd.toFixed(2)}</td>
+                            <td class="p-2 text-right">$${factExt.toFixed(2)}</td>
+                            <td class="p-2 text-right font-semibold text-emerald-600">$${pagado.toFixed(2)}</td>
+                            <td class="p-2 text-center text-[11px] text-slate-500">${referencias}</td>
+                            <td class="p-2 text-right font-bold text-rose-600">${saldoTexto}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        // ==================== VISTA DEL PROPIETARIO Y REPORTAR PAGO ====================
+        function renderOwnerData() {
+            const o = currentUser;
+            const bcv = state.building.bcv;
+
+            document.getElementById('owner-dash-apto').innerText = o.apto;
+            document.getElementById('owner-dash-name').innerText = o.owner;
+            document.getElementById('owner-dash-alicuota').innerText = o.alicuota;
+            document.getElementById('owner-bcv-rate').innerText = bcv.toFixed(2);
+
+            const rBody = document.getElementById('owner-receipt-body');
+            rBody.innerHTML = '';
+            let totalAptoUsd = 0;
+
+            state.expenses.forEach(exp => {
+                let cuotaUsd = exp.type === 'no_comun' ? (exp.apto === o.apto ? exp.amount : 0) : exp.amount * (o.alicuota / 100);
+                totalAptoUsd += cuotaUsd;
+                const cuotaBs = cuotaUsd * bcv;
+
+                rBody.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-2 font-semibold">${exp.description}</td>
+                        <td class="p-2 text-slate-400 capitalize">${exp.type}</td>
+                        <td class="p-2 text-right">$${exp.amount.toFixed(2)}</td>
+                        <td class="p-2 text-right font-bold text-teal-600">$${cuotaUsd.toFixed(2)}</td>
+                        <td class="p-2 text-right font-bold text-slate-700">Bs. ${cuotaBs.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            const ownerPayments = state.payments.filter(p => p.apto === o.apto);
+            const hBody = document.getElementById('owner-history-body');
+            if (hBody) {
+                hBody.innerHTML = '';
+                ownerPayments.forEach(p => {
+                    const statusBg = p.status === 'Aprobado' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
+                    hBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2">${p.date}</td>
+                            <td class="p-2">${p.concept} (Ref: ${p.ref})</td>
+                            <td class="p-2 text-right">${p.method.includes('Bs') ? 'Bs. ' : '$'}${p.amount.toFixed(2)}</td>
+                            <td class="p-2 text-right font-bold">$${p.usdEquiv.toFixed(2)}</td>
+                            <td class="p-2 text-center"><span class="px-2 py-0.5 text-[10px] font-bold rounded-full ${statusBg}">${p.status}</span></td>
+                        </tr>
+                    `;
+                });
+            }
+
+            const pagado = ownerPayments
+                .filter(p => p.status === 'Aprobado')
+                .reduce((a, b) => a + (b.usdEquiv || 0), 0);
+
+            const saldoUsd = totalAptoUsd - pagado;
+            const saldoBs = saldoUsd * bcv;
+
+            document.getElementById('owner-dash-balance').innerText = `$${saldoUsd.toFixed(2)}`;
+            document.getElementById('owner-dash-balance-bs').innerText = `Bs. ${saldoBs.toFixed(2)}`;
+        }
+
+        async function submitOwnerPayment(e) {
+            e.preventDefault();
+            const concept = document.getElementById('rep-concept').value;
+            const curr = document.getElementById('rep-currency').value;
+            const amount = parseFloat(document.getElementById('rep-amount').value);
+            const ref = document.getElementById('rep-ref').value;
+            const date = document.getElementById('rep-date').value || new Date().toISOString().split('T')[0];
+
+            let usdEquiv = amount;
+            let bcvRateUsed = state.building.bcv || 1;
+
+            if (curr === 'BS') {
+                bcvRateUsed = getBcvRateForDate(date);
+                usdEquiv = amount / bcvRateUsed;
+            }
+
+            const payload = {
+                apto: currentUser.apto,
+                concept,
+                method: curr === 'BS' ? 'Bs - Transferencia/Pago Movil' : 'USD - Efectivo/Zelle',
+                amount,
+                usd_equiv: Number(usdEquiv.toFixed(2)),
+                bcv_rate_used: bcvRateUsed,
+                ref,
+                status: 'Pendiente',
+                date
+            };
+
+            const { error } = await db.from('payments').insert([payload]);
+            if (error) {
+                alert('Error enviando reporte de pago: ' + error.message);
+                return;
+            }
+
+            document.getElementById('owner-pay-modal').classList.add('hidden');
+            await loadStorage();
+            alert(`Su pago fue reportado con éxito ($${usdEquiv.toFixed(2)} USD). Queda pendiente por conciliación.`);
+        }
+
+        function populateSelects() {
+            const expApto = document.getElementById('exp-apto');
+            const payApto = document.getElementById('pay-apto');
+            const expProv = document.getElementById('exp-provider');
+
+            if (!expApto || !payApto || !expProv) return;
+
+            expApto.innerHTML = '';
+            payApto.innerHTML = '';
+            expProv.innerHTML = '<option value="">Sin Proveedor</option>';
+
+            state.owners.forEach(o => {
+                expApto.innerHTML += `<option value="${o.apto}">${o.apto}</option>`;
+                payApto.innerHTML += `<option value="${o.apto}">${o.apto} - ${o.owner}</option>`;
+            });
+
+            state.providers.forEach(p => {
+                expProv.innerHTML += `<option value="${p.name}">${p.name} (${p.service})</option>`;
+            });
+        }
+
+        document.getElementById('exp-type')?.addEventListener('change', function () {
+            const box = document.getElementById('specific-apto-box');
+            if (this.value === 'no_comun') box.classList.remove('hidden');
+            else box.classList.add('hidden');
+        });
+
+        async function saveBuildingConfig(e) {
+            e.preventDefault();
+            const name = document.getElementById('cfg-name').value;
+            const rif = document.getElementById('cfg-rif').value;
+            const address = document.getElementById('cfg-address').value;
+
+            const { error } = await db.from('building_config').update({ name, rif, address }).eq('id', 1);
+            if (error) {
+                alert('Error al actualizar edificio: ' + error.message);
+                return;
+            }
 
             await loadStorage();
-            status.innerText = `✅ Tasa obtenida: Bs. ${newRate}`;
-            alert(`Tasa BCV actualizada: Bs. ${newRate}`);
-        }
-    } catch (err) {
-        console.error(err);
-        status.innerText = "❌ No se pudo obtener automáticamente. Ingrésala manualmente.";
-    } finally {
-        btn.disabled = false;
-    }
-}
-
-function renderBcvHistory() {
-    const body = document.getElementById('bcv-history-body');
-    if (!body) return;
-    body.innerHTML = '';
-    state.bcvHistory.slice(0, 10).forEach(h => {
-        body.innerHTML += `
-            <tr class="border-b">
-                <td class="p-2">${h.date}</td>
-                <td class="p-2 text-right font-bold">Bs. ${parseFloat(h.rate).toFixed(2)}</td>
-                <td class="p-2 text-center text-[10px]"><span class="px-2 py-0.5 rounded bg-slate-100">${h.origin}</span></td>
-            </tr>
-        `;
-    });
-}
-
-// ==================== AUTENTICACIÓN ====================
-function handleLogin(e) {
-    e.preventDefault();
-    const u = document.getElementById('username').value.trim();
-    const p = document.getElementById('password').value.trim();
-    const err = document.getElementById('login-error');
-
-    if (u.toLowerCase() === 'admin' && p === 'admin123') {
-        currentUser = { role: 'admin', name: 'Administrador' };
-        showDashboard();
-    } else {
-        const owner = state.owners.find(o => o.apto.toLowerCase() === u.toLowerCase() && o.pass === p);
-        if (owner) {
-            currentUser = { role: 'owner', ...owner };
             showDashboard();
-        } else {
-            err.classList.remove('hidden');
+            alert('Datos del condominio actualizados con éxito.');
         }
-    }
-}
 
-function logout() {
-    currentUser = null;
-    document.getElementById('dashboard-section').classList.add('hidden');
-    document.getElementById('login-section').classList.remove('hidden');
-}
-
-function showDashboard() {
-    document.getElementById('login-section').classList.add('hidden');
-    document.getElementById('dashboard-section').classList.remove('hidden');
-
-    document.getElementById('dash-bldg-name').innerText = state.building.name;
-    document.getElementById('dash-bldg-rif').innerText = state.building.rif;
-    document.getElementById('dash-bldg-address').innerText = state.building.address;
-
-    const badge = document.getElementById('user-badge');
-    if (currentUser.role === 'admin') {
-        badge.innerText = "ADMINISTRADOR";
-        document.getElementById('admin-view').classList.remove('hidden');
-        document.getElementById('owner-view').classList.add('hidden');
-        renderAdminData();
-    } else {
-        badge.innerText = `APTO ${currentUser.apto}`;
-        document.getElementById('admin-view').classList.add('hidden');
-        document.getElementById('owner-view').classList.remove('hidden');
-        renderOwnerData();
-    }
-}
-
-function switchTab(evt, tab) {
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-    document.getElementById(`tab-${tab}`).classList.remove('hidden');
-    document.querySelectorAll('.tab-btn').forEach(b => {
-        b.classList.remove('bg-teal-500', 'text-white');
-        b.classList.add('bg-white', 'text-slate-600');
-    });
-    if (evt && evt.currentTarget) {
-        evt.currentTarget.classList.add('bg-teal-500', 'text-white');
-    }
-}
-
-function renderAdminData() {
-    updateBcvUI();
-    renderExpenses();
-    renderPendingPayments();
-    renderOwnersTable();
-    renderProvidersTable();
-    generateReports();
-    populateSelects();
-}
-
-// ==================== GASTOS Y COBROS ====================
-async function addExpense(e) {
-    if (e) e.preventDefault();
-    const period = document.getElementById('exp-period')?.value || '';
-    const desc = document.getElementById('exp-desc')?.value || '';
-    const amount = parseFloat(document.getElementById('exp-amount')?.value) || 0;
-    const typeVal = document.getElementById('exp-type')?.value || 'ordinaria';
-    const providerVal = document.getElementById('exp-provider')?.value || null;
-    const aptoVal = document.getElementById('exp-apto')?.value || 'TODOS';
-
-    const payload = {
-        period,
-        description: desc,
-        amount,
-        type: typeVal,
-        provider: providerVal || null,
-        apto: typeVal === 'no_comun' ? aptoVal : 'TODOS'
-    };
-
-    const { error } = await db.from('expenses').insert([payload]);
-    if (error) {
-        alert('Error al guardar gasto: ' + error.message);
-        return;
-    }
-
-    document.getElementById('expense-form')?.reset();
-    await loadStorage();
-    alert('¡Gasto registrado con éxito!');
-}
-
-function renderExpenses() {
-    const body = document.getElementById('expenses-table-body');
-    if (!body) return;
-    body.innerHTML = '';
-    let totalUsd = 0;
-
-    state.expenses.forEach(exp => {
-        totalUsd += exp.amount;
-        body.innerHTML += `
-            <tr class="border-b">
-                <td class="p-1 font-semibold text-slate-500">${(exp.type || '').toUpperCase()}</td>
-                <td class="p-1">${exp.description} ${exp.apto && exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
-                <td class="p-1 font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
-                <td class="p-1"><button onclick="deleteExpense(${exp.id})" class="text-red-500 font-bold">✕</button></td>
-            </tr>
-        `;
-    });
-
-    const totalBs = totalUsd * state.building.bcv;
-    document.getElementById('total-expenses-amount').innerText = `$${totalUsd.toFixed(2)}`;
-    document.getElementById('total-expenses-bs').innerText = `(Bs. ${totalBs.toFixed(2)})`;
-    generateWhatsappGroupMsg();
-}
-
-async function deleteExpense(id) {
-    if (!confirm('¿Seguro que deseas eliminar este gasto?')) return;
-    const { error } = await db.from('expenses').delete().eq('id', id);
-    if (error) {
-        alert('Error eliminando gasto: ' + error.message);
-        return;
-    }
-    await loadStorage();
-}
-
-// ==================== WHATSAPP Y COMUNICACIÓN ====================
-function generateWhatsappGroupMsg() {
-    const filterType = document.getElementById('wa-fee-type')?.value || 'all';
-    let expenses = state.expenses || [];
-
-    if (filterType === 'ordinary') expenses = expenses.filter(e => e.type === 'ordinaria');
-    else if (filterType === 'extraordinary') expenses = expenses.filter(e => e.type === 'extraordinaria');
-
-    const totalUSD = expenses.reduce((acc, e) => acc + (e.amount || 0), 0);
-
-    let title = 'AVISO DE COBRO GENERAL';
-    if (filterType === 'ordinary') title = 'AVISO DE COBRO - CUOTA ORDINARIA';
-    if (filterType === 'extraordinary') title = 'AVISO DE COBRO - CUOTA EXTRAORDINARIA';
-
-    let msg = `*📢 ${title} - ${state.building.name}*\n\n`;
-
-    if (expenses.length === 0) {
-        msg += `_No hay gastos registrados en este concepto._\n`;
-    } else {
-        msg += `*DESGLOSE DE GASTOS:*\n`;
-        expenses.forEach(e => {
-            msg += `- ${e.description}: $${e.amount.toFixed(2)}\n`;
+        // Inicialización al cargar la página
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStorage();
+            setupRealtimeSubscriptions();
         });
-        msg += `\n*TOTAL GASTOS:* *$${totalUSD.toFixed(2)}*\n\n`;
-        msg += `*CUOTAS POR APARTAMENTO:*\n`;
-        state.owners.forEach(o => {
-            const montoAptoUsd = totalUSD * (o.alicuota / 100);
-            msg += `• Apto ${o.apto} (${o.alicuota}%): *$${montoAptoUsd.toFixed(2)}*\n`;
-        });
-    }
-
-    msg += `\n_Agradecemos realizar su pago oportunamente._`;
-
-    const previewElem = document.getElementById('whatsapp-preview');
-    if (previewElem) previewElem.value = msg;
-
-    const btnElem = document.getElementById('wa-group-btn');
-    if (btnElem) btnElem.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
-}
-
-function generateWhatsappIndividualMsg(aptoTarget) {
-    const owner = state.owners.find(o => o.apto === aptoTarget);
-    if (!owner) return;
-
-    let expenses = state.expenses || [];
-    const totalGastosUsd = expenses.reduce((acc, e) => acc + (e.amount || 0), 0);
-    const montoCuotaUsd = totalGastosUsd * (owner.alicuota / 100);
-
-    const pagado = state.payments
-        .filter(p => p.apto === owner.apto && p.status === 'Aprobado')
-        .reduce((a, b) => a + (b.usdEquiv || 0), 0);
-
-    const saldoPendienteUsd = montoCuotaUsd - pagado;
-
-    let msg = `*ESTADO DE CUENTA INDIVIDUAL - ${state.building.name}*\n`;
-    msg += `Propietario(a): ${owner.owner}\n`;
-    msg += `Apartamento: ${owner.apto} (Alícuota: ${owner.alicuota}%)\n\n`;
-
-    msg += `*TOTAL CUOTA:* $${montoCuotaUsd.toFixed(2)}\n`;
-    msg += `*TOTAL PAGADO:* $${pagado.toFixed(2)}\n`;
-    msg += `*SALDO PENDIENTE:* *$${saldoPendienteUsd.toFixed(2)}*\n\n`;
-    msg += `_Por favor enviar el comprobante al realizar su pago._`;
-
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
-}
-
-// ==================== PAGOS Y CONCILIACIÓN ====================
-function getBcvRateForDate(targetDate) {
-    if (!state.bcvHistory || state.bcvHistory.length === 0) return Number(state.building.bcv) || 1;
-    const exact = state.bcvHistory.find(h => h.date === targetDate);
-    if (exact && exact.rate) return Number(exact.rate);
-    return Number(state.building.bcv) || 1;
-}
-
-async function registerAdminPayment(e) {
-    e.preventDefault();
-    const apto = document.getElementById('pay-apto').value;
-    const concept = document.getElementById('pay-concept').value;
-    const method = document.getElementById('pay-method').value;
-    const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
-    const ref = document.getElementById('pay-ref').value;
-    const payDate = document.getElementById('pay-date').value || new Date().toISOString().split('T')[0];
-
-    const bcvRateUsed = getBcvRateForDate(payDate);
-    const isBs = method.includes('Bs');
-    const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
-
-    const payload = {
-        apto,
-        concept,
-        method,
-        amount,
-        usd_equiv: Number(usdEquiv.toFixed(2)),
-        bcv_rate_used: isBs ? bcvRateUsed : null,
-        ref,
-        status: 'Aprobado',
-        date: payDate
-    };
-
-    const { error } = await db.from('payments').insert([payload]);
-    if (error) {
-        alert('Error al registrar pago: ' + error.message);
-        return;
-    }
-
-    document.getElementById('admin-pay-form').reset();
-    await loadStorage();
-    alert('Pago registrado y aprobado correctamente.');
-}
-
-async function approvePayment(id) {
-    const { error } = await db.from('payments').update({ status: 'Aprobado' }).eq('id', id);
-    if (error) {
-        alert('Error aprobando el pago: ' + error.message);
-        return;
-    }
-    await loadStorage();
-}
-
-async function deletePayment(id) {
-    if (!confirm('¿Seguro que deseas eliminar este pago?')) return;
-    const { error } = await db.from('payments').delete().eq('id', id);
-    if (error) {
-        alert('Error eliminando pago: ' + error.message);
-        return;
-    }
-    await loadStorage();
-}
-
-function renderPendingPayments() {
-    const body = document.getElementById('payments-pending-body');
-    if (!body) return;
-    body.innerHTML = '';
-
-    state.payments.forEach(p => {
-        const isBs = p.method && p.method.includes('Bs');
-        const montoOriginalText = isBs ? `Bs. ${Number(p.amount).toFixed(2)}` : `$${Number(p.amount).toFixed(2)}`;
-
-        body.innerHTML += `
-            <tr class="border-b">
-                <td class="p-2 font-bold">${p.apto}</td>
-                <td class="p-2">${p.date}</td>
-                <td class="p-2">${p.method}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref}</span></td>
-                <td class="p-2 text-right font-semibold">${montoOriginalText}</td>
-                <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv).toFixed(2)}</td>
-                <td class="p-2 text-center space-x-1">
-                    ${p.status === 'Pendiente' ? `
-                        <button onclick="approvePayment(${p.id})" class="px-2 py-1 bg-emerald-500 text-white rounded text-[10px]">Aprobar</button>
-                    ` : `<span class="text-emerald-600 font-bold text-[10px]">✓ Aprobado</span>`}
-                    <button onclick="deletePayment(${p.id})" class="px-2 py-1 bg-rose-500 text-white rounded text-[10px]">Eliminar</button>
-                </td>
-            </tr>
-        `;
-    });
-}
-
-// ==================== PROPIETARIOS Y PROVEEDORES ====================
-function renderOwnersTable() {
-    const body = document.getElementById('owners-table-body');
-    if (!body) return;
-    body.innerHTML = '';
-
-    state.owners.forEach((o, index) => {
-        body.innerHTML += `
-            <tr class="border-b">
-                <td class="p-2 font-bold">${o.apto}</td>
-                <td class="p-2">
-                    <input type="text" value="${o.owner}" onchange="updateOwnerName('${o.apto}', this.value)" class="p-1 border rounded w-full">
-                </td>
-                <td class="p-2 font-semibold">${o.alicuota}%</td>
-                <td class="p-2 font-mono text-slate-500">${o.pass}</td>
-                <td class="p-2 space-x-1">
-                    <button onclick="resetPassword('${o.apto}')" class="px-2 py-1 bg-amber-500 text-white text-[10px] rounded hover:bg-amber-600">Resetear Clave</button>
-                    <button onclick="generateWhatsappIndividualMsg('${o.apto}')" class="px-2 py-1 bg-emerald-500 text-white text-[10px] font-semibold rounded hover:bg-emerald-600">📲 WA</button>
-                </td>
-            </tr>
-        `;
-    });
-}
-
-async function updateOwnerName(apto, newName) {
-    const { error } = await db.from('owners').update({ owner_name: newName }).eq('apto', apto);
-    if (error) alert('Error actualizando propietario: ' + error.message);
-}
-
-async function resetPassword(apto) {
-    const { error } = await db.from('owners').update({ pass: '1234' }).eq('apto', apto);
-    if (error) alert('Error reseteando clave: ' + error.message);
-    else alert(`Clave del apto ${apto} reseteada a 1234`);
-    await loadStorage();
-}
-
-async function addProvider(e) {
-    e.preventDefault();
-    const name = document.getElementById('prov-name').value;
-    const service = document.getElementById('prov-service').value;
-    const phone = document.getElementById('prov-phone').value;
-
-    const { error } = await db.from('providers').insert([{ name, service, phone }]);
-    if (error) {
-        alert('Error guardando proveedor: ' + error.message);
-        return;
-    }
-    e.target.reset();
-    await loadStorage();
-}
-
-function renderProvidersTable() {
-    const body = document.getElementById('providers-table-body');
-    if (!body) return;
-    body.innerHTML = '';
-    state.providers.forEach(p => {
-        body.innerHTML += `
-            <tr class="border-b">
-                <td class="p-2 font-bold">${p.name}</td>
-                <td class="p-2">${p.service}</td>
-                <td class="p-2">${p.phone}</td>
-            </tr>
-        `;
-    });
-}
-
-// ==================== REPORTES DE GESTIÓN ====================
-function generateReports() {
-    document.getElementById('print-bldg-name').innerText = state.building.name;
-    document.getElementById('print-bldg-info').innerText = `RIF: ${state.building.rif} | Dirección: ${state.building.address}`;
-    document.getElementById('print-date').innerText = `Fecha de Emisión: ${new Date().toLocaleDateString()}`;
-
-    const oBody = document.getElementById('report-owners-body');
-    if (oBody) {
-        oBody.innerHTML = '';
-        const ordTotal = state.expenses.filter(e => e.type === 'ordinaria').reduce((a, b) => a + b.amount, 0);
-        const extTotal = state.expenses.filter(e => e.type === 'extraordinaria').reduce((a, b) => a + b.amount, 0);
-
-        state.owners.forEach(o => {
-            const factOrd = ordTotal * (o.alicuota / 100);
-            const factExt = extTotal * (o.alicuota / 100);
-            const totalFacturado = factOrd + factExt;
-
-            const ownerPayments = state.payments.filter(p => p.apto === o.apto && p.status === 'Aprobado');
-            const pagado = ownerPayments.reduce((a, b) => a + b.usdEquiv, 0);
-            const referencias = ownerPayments.map(p => p.ref).filter(Boolean).join(', ') || 'N/A';
-            const dif = totalFacturado - pagado;
-
-            let saldoTexto = dif <= 0 ? `$0.00` : `$${dif.toFixed(2)}`;
-
-            oBody.innerHTML += `
-                <tr class="border-b">
-                    <td class="p-2 font-bold text-slate-800">${o.apto}</td>
-                    <td class="p-2">${o.owner}</td>
-                    <td class="p-2 text-right">${o.alicuota}% ($${totalFacturado.toFixed(2)})</td>
-                    <td class="p-2 text-right">$${factOrd.toFixed(2)}</td>
-                    <td class="p-2 text-right">$${factExt.toFixed(2)}</td>
-                    <td class="p-2 text-right font-semibold text-emerald-600">$${pagado.toFixed(2)}</td>
-                    <td class="p-2 text-center text-[11px] text-slate-500">${referencias}</td>
-                    <td class="p-2 text-right font-bold text-rose-600">${saldoTexto}</td>
-                </tr>
-            `;
-        });
-    }
-}
-
-// ==================== VISTA DEL PROPIETARIO Y REPORTAR PAGO ====================
-function renderOwnerData() {
-    const o = currentUser;
-    const bcv = state.building.bcv;
-
-    document.getElementById('owner-dash-apto').innerText = o.apto;
-    document.getElementById('owner-dash-name').innerText = o.owner;
-    document.getElementById('owner-dash-alicuota').innerText = o.alicuota;
-    document.getElementById('owner-bcv-rate').innerText = bcv.toFixed(2);
-
-    const rBody = document.getElementById('owner-receipt-body');
-    rBody.innerHTML = '';
-    let totalAptoUsd = 0;
-
-    state.expenses.forEach(exp => {
-        let cuotaUsd = exp.type === 'no_comun' ? (exp.apto === o.apto ? exp.amount : 0) : exp.amount * (o.alicuota / 100);
-        totalAptoUsd += cuotaUsd;
-        const cuotaBs = cuotaUsd * bcv;
-
-        rBody.innerHTML += `
-            <tr class="border-b">
-                <td class="p-2 font-semibold">${exp.description}</td>
-                <td class="p-2 text-slate-400 capitalize">${exp.type}</td>
-                <td class="p-2 text-right">$${exp.amount.toFixed(2)}</td>
-                <td class="p-2 text-right font-bold text-teal-600">$${cuotaUsd.toFixed(2)}</td>
-                <td class="p-2 text-right font-bold text-slate-700">Bs. ${cuotaBs.toFixed(2)}</td>
-            </tr>
-        `;
-    });
-
-    const pagado = state.payments
-        .filter(p => p.apto === o.apto && p.status === 'Aprobado')
-        .reduce((a, b) => a + (b.usdEquiv || 0), 0);
-
-    const saldoUsd = totalAptoUsd - pagado;
-    const saldoBs = saldoUsd * bcv;
-
-    document.getElementById('owner-dash-balance').innerText = `$${saldoUsd.toFixed(2)}`;
-    document.getElementById('owner-dash-balance-bs').innerText = `Bs. ${saldoBs.toFixed(2)}`;
-}
-
-async function submitOwnerPayment(e) {
-    e.preventDefault();
-    const concept = document.getElementById('rep-concept').value;
-    const curr = document.getElementById('rep-currency').value;
-    const amount = parseFloat(document.getElementById('rep-amount').value);
-    const ref = document.getElementById('rep-ref').value;
-    const date = document.getElementById('rep-date').value || new Date().toISOString().split('T')[0];
-
-    let usdEquiv = amount;
-    let bcvRateUsed = state.building.bcv || 1;
-
-    if (curr === 'BS') {
-        bcvRateUsed = getBcvRateForDate(date);
-        usdEquiv = amount / bcvRateUsed;
-    }
-
-    const payload = {
-        apto: currentUser.apto,
-        concept,
-        method: curr === 'BS' ? 'Bs - Transferencia/Pago Movil' : 'USD - Efectivo/Zelle',
-        amount,
-        usd_equiv: Number(usdEquiv.toFixed(2)),
-        bcv_rate_used: bcvRateUsed,
-        ref,
-        status: 'Pendiente',
-        date
-    };
-
-    const { error } = await db.from('payments').insert([payload]);
-    if (error) {
-        alert('Error enviando reporte de pago: ' + error.message);
-        return;
-    }
-
-    document.getElementById('owner-pay-modal').classList.add('hidden');
-    await loadStorage();
-    alert(`Su pago fue reportado con éxito ($${usdEquiv.toFixed(2)} USD). Queda pendiente por conciliación.`);
-}
-
-function populateSelects() {
-    const expApto = document.getElementById('exp-apto');
-    const payApto = document.getElementById('pay-apto');
-    const expProv = document.getElementById('exp-provider');
-
-    if (!expApto || !payApto || !expProv) return;
-
-    expApto.innerHTML = '';
-    payApto.innerHTML = '';
-    expProv.innerHTML = '<option value="">Sin Proveedor</option>';
-
-    state.owners.forEach(o => {
-        expApto.innerHTML += `<option value="${o.apto}">${o.apto}</option>`;
-        payApto.innerHTML += `<option value="${o.apto}">${o.apto} - ${o.owner}</option>`;
-    });
-
-    state.providers.forEach(p => {
-        expProv.innerHTML += `<option value="${p.name}">${p.name} (${p.service})</option>`;
-    });
-}
-
-document.getElementById('exp-type')?.addEventListener('change', function () {
-    const box = document.getElementById('specific-apto-box');
-    if (this.value === 'no_comun') box.classList.remove('hidden');
-    else box.classList.add('hidden');
-});
-
-async function saveBuildingConfig(e) {
-    e.preventDefault();
-    const name = document.getElementById('cfg-name').value;
-    const rif = document.getElementById('cfg-rif').value;
-    const address = document.getElementById('cfg-address').value;
-
-    const { error } = await db.from('building_config').update({ name, rif, address }).eq('id', 1);
-    if (error) {
-        alert('Error al actualizar edificio: ' + error.message);
-        return;
-    }
-
-    await loadStorage();
-    showDashboard();
-    alert('Datos del condominio actualizados con éxito.');
-}
     </script>
 </body>
-
 </html>
