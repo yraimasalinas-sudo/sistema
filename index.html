@@ -375,7 +375,7 @@
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-bold text-slate-700">Histórico de Avisos Emitidos</h3>
                         <button onclick="saveCurrentNotice()" class="px-3 py-2 bg-teal-600 text-white text-xs font-bold rounded shadow hover:bg-teal-700">
-                            💾 Emitir / Guardar Aviso Actual
+                            💾 Archivar Aviso de Cobro por Mes
                         </button>
                 </div>
     
@@ -1191,47 +1191,58 @@
 
         // ==================== HISTÓRICO DE AVISOS ====================
         async function saveCurrentNotice() {
-            const period = prompt("Ingresa el periodo del aviso (Formato YYYY-MM):", new Date().toISOString().slice(0, 7));
-            if (!period) return;
+        // Te pide el periodo deseado (puedes escribir 2026-08, 2026-09, etc.)
+        const period = prompt("Ingresa el periodo del aviso a archivar (Formato YYYY-MM, ej: 2026-08):", "2026-08");
+        if (!period) return;
 
-            const filterType = document.getElementById('wa-fee-type')?.value || 'all';
-            let filteredExpenses = state.expenses || [];
+        const filterType = document.getElementById('wa-fee-type')?.value || 'all';
+    
+        // Si tus gastos tienen campo 'date' o 'period', filtramos por el periodo seleccionado.
+        // De lo contrario, toma los gastos registrados en el sistema.
+        let filteredExpenses = (state.expenses || []).filter(e => {
+            const matchesType = (filterType === 'all') || 
+                                (filterType === 'ordinary' && e.type === 'ordinaria') || 
+                                (filterType === 'extraordinary' && e.type === 'extraordinaria');
+        
+        // Si el gasto tiene fecha, verifica que pertenezca al periodo ingresado
+        const matchesPeriod = e.date ? e.date.startsWith(period) : true;
+        
+        return matchesType && matchesPeriod;
+    });
 
-            if (filterType === 'ordinary') filteredExpenses = filteredExpenses.filter(e => e.type === 'ordinaria');
-            else if (filterType === 'extraordinary') filteredExpenses = filteredExpenses.filter(e => e.type === 'extraordinaria');
+    if (filteredExpenses.length === 0) {
+        const confirmAll = confirm(`No se encontraron gastos específicos fechados en ${period}.\n¿Deseas archivar los gastos activos del sistema bajo el periodo ${period}?`);
+        if (!confirmAll) return;
+        filteredExpenses = state.expenses || [];
+    }
 
-            if (filteredExpenses.length === 0) {
-                alert("No hay gastos registrados para generar este aviso.");
-                return;
-            }
+    const totalUSD = filteredExpenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
 
-            const totalUSD = filteredExpenses.reduce((acc, e) => acc + (e.amount || 0), 0);
-
-            const noticeData = {
-                period: period,
-                type: filterType,
-                total_amount_usd: totalUSD,
-                bcv_rate: state.building.bcv,
-                details: {
-                    expenses: filteredExpenses,
-                    owners: state.owners.map(o => ({
-                        apto: o.apto,
-                        owner: o.owner,
-                        alicuota: o.alicuota,
-                        usd: totalUSD * (o.alicuota / 100),
-                        bs: (totalUSD * (o.alicuota / 100)) * state.building.bcv
-                    }))
-                }
-            };
-
-            const { error } = await db.from('billing_notices').insert([noticeData]);
-            if (error) {
-                alert("Error al guardar el aviso en Supabase: " + error.message);
-            } else {
-                alert(`¡Aviso de cobro (${period}) guardado exitosamente en el historial!`);
-                renderHistoryNotices();
-            }
+    const noticeData = {
+        period: period,
+        type: filterType,
+        total_amount_usd: totalUSD,
+        bcv_rate: state.building.bcv,
+        details: {
+            expenses: filteredExpenses,
+            owners: state.owners.map(o => ({
+                apto: o.apto,
+                owner: o.owner,
+                alicuota: o.alicuota,
+                usd: totalUSD * (o.alicuota / 100),
+                bs: (totalUSD * (o.alicuota / 100)) * state.building.bcv
+            }))
         }
+    };
+
+    const { error } = await db.from('billing_notices').insert([noticeData]);
+    if (error) {
+        alert("Error al guardar el aviso en Supabase: " + error.message);
+    } else {
+        alert(`¡Aviso de cobro del periodo ${period} archivado exitosamente en el historial!`);
+        renderHistoryNotices();
+    }
+}
 
         async function renderHistoryNotices() {
             const periodFilter = document.getElementById('hist-filter-period')?.value;
