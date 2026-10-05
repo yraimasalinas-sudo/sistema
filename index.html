@@ -106,6 +106,7 @@
                     <button onclick="switchTab(event, 'pagos')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Conciliación y Pagos</button>
                     <button onclick="switchTab(event, 'propietarios')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Propietarios y Alícuotas</button>
                     <button onclick="switchTab(event, 'proveedores')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Proveedores</button>
+                    <button onclick="switchTab(event, 'notices-history')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">📄 Histórico de Avisos</button>
                     <button onclick="switchTab(event, 'reportes')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Reportes de Gestión</button>
                     <button onclick="switchTab(event, 'config')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Config. Edificio</button>
                 </div>
@@ -1139,6 +1140,91 @@
                         <td class="p-2 font-bold">${p.name}</td>
                         <td class="p-2">${p.service}</td>
                         <td class="p-2">${p.phone}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==================== HISTÓRICO DE AVISOS ====================
+        async function saveCurrentNotice() {
+            const period = prompt("Ingresa el periodo del aviso (Formato YYYY-MM):", new Date().toISOString().slice(0, 7));
+            if (!period) return;
+
+            const filterType = document.getElementById('wa-fee-type')?.value || 'all';
+            let filteredExpenses = state.expenses || [];
+
+            if (filterType === 'ordinary') filteredExpenses = filteredExpenses.filter(e => e.type === 'ordinaria');
+            else if (filterType === 'extraordinary') filteredExpenses = filteredExpenses.filter(e => e.type === 'extraordinaria');
+
+            if (filteredExpenses.length === 0) {
+                alert("No hay gastos registrados para generar este aviso.");
+                return;
+            }
+
+            const totalUSD = filteredExpenses.reduce((acc, e) => acc + (e.amount || 0), 0);
+
+            const noticeData = {
+                period: period,
+                type: filterType,
+                total_amount_usd: totalUSD,
+                bcv_rate: state.building.bcv,
+                details: {
+                    expenses: filteredExpenses,
+                    owners: state.owners.map(o => ({
+                        apto: o.apto,
+                        owner: o.owner,
+                        alicuota: o.alicuota,
+                        usd: totalUSD * (o.alicuota / 100),
+                        bs: (totalUSD * (o.alicuota / 100)) * state.building.bcv
+                    }))
+                }
+            };
+
+            const { error } = await db.from('billing_notices').insert([noticeData]);
+            if (error) {
+                alert("Error al guardar el aviso en Supabase: " + error.message);
+            } else {
+                alert(`¡Aviso de cobro (${period}) guardado exitosamente en el historial!`);
+                renderHistoryNotices();
+            }
+        }
+
+        async function renderHistoryNotices() {
+            const periodFilter = document.getElementById('hist-filter-period')?.value;
+            const typeFilter = document.getElementById('hist-filter-type')?.value;
+
+            let query = db.from('billing_notices').select('*').order('created_at', { ascending: false });
+
+            if (periodFilter) query = query.eq('period', periodFilter);
+            if (typeFilter && typeFilter !== 'all') query = query.eq('type', typeFilter);
+
+            const { data: notices, error } = await query;
+            if (error) {
+                console.error("Error consultando avisos:", error.message);
+                return;
+            }
+
+            const body = document.getElementById('history-notices-body');
+            if (!body) return;
+            body.innerHTML = '';
+
+            if (notices.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay avisos guardados para este filtro.</td></tr>`;
+                return;
+            }
+
+            notices.forEach(n => {
+                body.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2 font-bold text-slate-700">${n.period}</td>
+                        <td class="p-2 capitalize text-xs"><span class="px-2 py-0.5 rounded bg-slate-100">${n.type}</span></td>
+                        <td class="p-2 text-right font-bold text-teal-600">$${Number(n.total_amount_usd).toFixed(2)}</td>
+                        <td class="p-2 text-right text-slate-500">Bs. ${Number(n.bcv_rate).toFixed(2)}</td>
+                        <td class="p-2 text-center">
+                            <button onclick='alert("Gastos incluidos:\\n" + ${JSON.stringify(n.details.expenses)}.map(e => "• " + e.description + ": $" + e.amount).join("\\n"))' class="px-2 py-1 bg-sky-500 text-white rounded text-[11px] font-semibold">
+                                👁️ Ver Gastos
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
