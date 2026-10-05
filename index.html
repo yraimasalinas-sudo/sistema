@@ -1191,52 +1191,57 @@
 
         // ==================== HISTÓRICO DE AVISOS ====================
         async function saveCurrentNotice() {
-            // 1. Pedir el periodo exacto del aviso
-            const period = prompt("Ingresa el periodo a archivar (Formato YYYY-MM, ej: 2026-08):", "2026-08");
+            // 1. Pedir el periodo del aviso
+            const period = prompt("Ingresa el periodo del aviso a archivar (Formato YYYY-MM, ej: 2026-08):", "2026-08");
             if (!period) return;
 
-            // 2. Obtener tipo de filtro activo
-            const filterType = document.getElementById('hist-filter-type')?.value || 'all';
+            // 2. Obtener el filtro de tipo de cuota seleccionado en pantalla
+            const filterType = document.getElementById('hist-filter-type')?.value || 
+                       document.getElementById('wa-fee-type')?.value || 'all';
 
-            // 3. Filtrar los gastos en memoria que coincidan con el periodo ingresado
+            // Función auxiliar para normalizar tipos
+            const isOrdinary = (t) => t === 'ordinaria' || t === 'ordinary';
+            const isExtraordinary = (t) => t === 'extraordinaria' || t === 'extraordinary';
+
+            // 3. Filtrar los gastos según periodo y tipo
             let filteredExpenses = (state.expenses || []).filter(e => {
-                // Coincidencia por periodo
-                const matchPeriod = e.period === period;
+                // Coincidencia de periodo (si el gasto tiene period asignado)
+                const matchPeriod = e.period ? e.period === period : true;
 
-                // Coincidencia por tipo de gasto
+                // Coincidencia estricta de tipo
                 let matchType = true;
                 if (filterType === 'ordinary') {
-                    matchType = e.type === 'ordinaria';
+                    matchType = isOrdinary(e.type);
                 } else if (filterType === 'extraordinary') {
-                    matchType = e.type === 'extraordinaria';
+                    matchType = isExtraordinary(e.type);
                 }
 
                 return matchPeriod && matchType;
             });
 
-            // Si no se encuentran gastos con ese periodo exacto en el campo 'period'
+            // Si no encuentra gastos fechados exactamente con ese periodo, consulta si desea usar todos los del tipo seleccionado
             if (filteredExpenses.length === 0) {
-                const confirmAll = confirm(`No se encontraron gastos registrados con el periodo "${period}".\n\n¿Deseas guardar TODOS los gastos que están actualmente en la tabla como el aviso de ${period}?`);
-            if (!confirmAll) return;
-        
+                const confirmAll = confirm(`No se encontraron gastos de tipo "${filterType}" con periodo "${period}".\n\n¿Deseas incluir todos los gastos activos cargados de este tipo?`);
+                if (!confirmAll) return;
+
             filteredExpenses = (state.expenses || []).filter(e => {
-                if (filterType === 'ordinary') return e.type === 'ordinaria';
-                if (filterType === 'extraordinary') return e.type === 'extraordinaria';
+                if (filterType === 'ordinary') return isOrdinary(e.type);
+                if (filterType === 'extraordinary') return isExtraordinary(e.type);
                 return true;
             });
         }
 
         if (filteredExpenses.length === 0) {
-            alert("No hay gastos disponibles para archivar.");
+            alert("No hay gastos del tipo seleccionado para archivar.");
             return;
         }
 
         const totalUSD = filteredExpenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
 
-        // 4. Preparar payload con estructura congelada
+        // 4. Armar el objeto para Supabase
         const noticeData = {
             period: period,
-            type: filterType,
+            type: filterType, // Se guarda 'ordinary', 'extraordinary' o 'all'
             total_amount_usd: totalUSD,
             bcv_rate: state.building?.bcv || 0,
             details: {
@@ -1256,10 +1261,10 @@
         if (error) {
             alert("Error al guardar el aviso en Supabase: " + error.message);
         } else {
-            alert(`¡Aviso de cobro (${period}) archivado exitosamente!`);
+            alert(`¡Aviso de cobro (${filterType}) del periodo ${period} archivado con éxito!`);
             renderHistoryNotices();
         }
-    }
+}
     async function renderHistoryNotices() {
         const tbody = document.getElementById('history-notices-body');
         if (!tbody) return;
@@ -1269,50 +1274,58 @@
 
         tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Cargando avisos...</td></tr>';
 
-        // Consultar a Supabase ordenado por fecha de creación
+        // 1. Obtener los avisos guardados
         let query = db.from('billing_notices').select('*').order('created_at', { ascending: false });
 
         if (selectedPeriod) {
-        query = query.eq('period', selectedPeriod);
+            query = query.eq('period', selectedPeriod);
         }
 
         const { data: notices, error } = await query;
 
         if (error) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Error: ${error.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Error al cargar: ${error.message}</td></tr>`;
         return;
         }
 
-        // Filtrar segun tipo
+        // 2. Filtrar discriminando exactamente entre Ordinarios, Extraordinarios o Todos
         const filteredNotices = (notices || []).filter(item => {
             if (selectedType === 'all') return true;
-            if (selectedType === 'ordinary') return item.type === 'ordinary' || item.type === 'ordinaria';
-            if (selectedType === 'extraordinary') return item.type === 'extraordinary' || item.type === 'extraordinaria';
-            return item.type === selectedType;
-        });
 
-        if (filteredNotices.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay avisos guardados para este filtro.</td></tr>';
-            return;
+            if (selectedType === 'ordinary') {
+            return item.type === 'ordinary' || item.type === 'ordinaria';
+            }
+            if (selectedType === 'extraordinary') {
+            return item.type === 'extraordinary' || item.type === 'extraordinaria';
         }
 
-        // Renderizar filas
-        tbody.innerHTML = filteredNotices.map(item => {
-            const isExtra = item.type === 'extraordinary' || item.type === 'extraordinaria';
-            const typeLabel = isExtra ? 'Extraordinario' : (item.type === 'all' ? 'Todos' : 'Ordinario');
+        return item.type === selectedType;
+    });
 
-            return `
-                <tr class="border-b hover:bg-slate-50">
-                    <td class="p-2 font-bold text-slate-700">${item.period}</td>
-                    <td class="p-2">
-                        <span class="px-2 py-1 rounded text-xs font-semibold ${isExtra ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">
+    if (filteredNotices.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay avisos guardados para este filtro.</td></tr>';
+        return;
+    }
+
+    // 3. Renderizar las filas con su respectiva etiqueta
+    tbody.innerHTML = filteredNotices.map(item => {
+        const isExtra = item.type === 'extraordinary' || item.type === 'extraordinaria';
+        const isOrd = item.type === 'ordinary' || item.type === 'ordinaria';
+        const typeLabel = isExtra ? 'Extraordinario' : (isOrd ? 'Ordinario' : 'Todos / Mixto');
+        const badgeColor = isExtra ? 'bg-amber-100 text-amber-800' : (isOrd ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-800');
+
+        return `
+            <tr class="border-b hover:bg-slate-50">
+                <td class="p-2 font-bold text-slate-700">${item.period}</td>
+                <td class="p-2">
+                    <span class="px-2 py-1 rounded text-xs font-semibold ${badgeColor}">
                         ${typeLabel}
                     </span>
                 </td>
                 <td class="p-2 text-right font-semibold text-teal-600">$${Number(item.total_amount_usd || 0).toFixed(2)}</td>
                 <td class="p-2 text-right text-slate-500">Bs. ${Number(item.bcv_rate || 0).toFixed(2)}</td>
                 <td class="p-2 text-center">
-                    <button onclick='alert("Gastos en este aviso:\\n" + ${JSON.stringify(item.details?.expenses || [])}.map(e => "• " + e.description + ": $" + e.amount).join("\\n"))' class="px-2 py-1 bg-sky-500 text-white text-xs rounded hover:bg-sky-600">
+                    <button onclick='alert("Gastos en este aviso:\\n" + ${JSON.stringify(item.details?.expenses || [])}.map(e => "• [" + (e.type || "").toUpperCase() + "] " + e.description + ": $" + e.amount).join("\\n"))' class="px-2 py-1 bg-sky-500 text-white text-xs rounded hover:bg-sky-600">
                         👁️ Ver Gastos
                     </button>
                 </td>
@@ -1320,7 +1333,6 @@
         `;
     }).join('');
 }
-
         // ==================== REPORTES DE GESTIÓN ====================
         function generateReports() {
             const printBldg = document.getElementById('print-bldg-name');
