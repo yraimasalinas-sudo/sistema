@@ -370,7 +370,51 @@
                     </div>
                 </div>
 
-                <!-- PESTAÑA 5: REPORTES DE GESTIÓN -->
+                <!-- PESTAÑA 5: HISTÓRICO DE AVISOS -->
+                <div id="tab-notices-history" class="tab-content hidden p-4 bg-white rounded-lg shadow mt-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-slate-700">Histórico de Avisos Emitidos</h3>
+                        <button onclick="saveCurrentNotice()" class="px-3 py-2 bg-teal-600 text-white text-xs font-bold rounded shadow hover:bg-teal-700">
+                            💾 Emitir / Guardar Aviso Actual
+                        </button>
+                </div>
+    
+                <!-- Filtros de búsqueda -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 bg-slate-50 p-3 rounded">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Mes:</label>
+                        <input type="month" id="hist-filter-period" class="p-2 border rounded text-sm w-full" onchange="renderHistoryNotices()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Tipo de Cuota:</label>
+                        <select id="hist-filter-type" class="p-2 border rounded text-sm w-full" onchange="renderHistoryNotices()">
+                            <option value="all">Todos (Comunes y Extraordinarios)</option>
+                            <option value="ordinary">Solo Ordinarios (Comunes)</option>
+                            <option value="extraordinary">Solo Extraordinarios</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tabla de avisos guardados -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="border-b bg-slate-100 text-slate-600">
+                            <th class="p-2">Periodo</th>
+                            <th class="p-2">Tipo</th>
+                            <th class="p-2 text-right">Total ($)</th>
+                            <th class="p-2 text-right">Tasa BCV</th>
+                            <th class="p-2 text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-notices-body">
+                        <!-- Se llena dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+                <!-- PESTAÑA 6: REPORTES DE GESTIÓN -->
                 <div id="tab-reportes" class="tab-content hidden space-y-6">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 no-print">
                         <h3 class="font-bold text-slate-800 mb-4 text-sm">🔍 Filtro para Entregas de Gestión (Período)</h3>
