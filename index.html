@@ -1065,70 +1065,44 @@ async function approveAndCloseNotice() {
         }        
         // ==================== WHATSAPP Y COMUNICACIÓN ====================
         function generateWhatsappGroupMsg() {
+            const preview = document.getElementById('whatsapp-preview');
+            const waBtn = document.getElementById('wa-group-btn');
+            if (!preview) return;
+
             const filterType = document.getElementById('wa-fee-type')?.value || 'all';
-            let expenses = state.expenses || [];
 
-            if (filterType === 'ordinary') expenses = expenses.filter(e => e.type === 'ordinaria');
-            else if (filterType === 'extraordinary') expenses = expenses.filter(e => e.type === 'extraordinaria');
+            // FILTRO CLAVE: Solo gastos no facturados
+            let activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
-            const totalUSD = expenses.reduce((acc, e) => acc + (e.amount || 0), 0);
-
-            let title = 'AVISO DE COBRO GENERAL';
-            if (filterType === 'ordinary') title = 'AVISO DE COBRO - CUOTA ORDINARIA';
-            if (filterType === 'extraordinary') title = 'AVISO DE COBRO - CUOTA EXTRAORDINARIA';
-
-            let msg = `*📢 ${title} - ${state.building.name}*\n\n`;
-
-            if (expenses.length === 0) {
-                msg += `_No hay gastos registrados en este concepto._\n`;
-            } else {
-                msg += `*DESGLOSE DE GASTOS:*\n`;
-                expenses.forEach(e => {
-                    msg += `- ${e.description}: $${e.amount.toFixed(2)}\n`;
-                });
-                msg += `\n*TOTAL GASTOS:* *$${totalUSD.toFixed(2)}*\n\n`;
-                msg += `*CUOTAS POR APARTAMENTO:*\n`;
-                state.owners.forEach(o => {
-                    const montoAptoUsd = totalUSD * (o.alicuota / 100);
-                    msg += `• Apto ${o.apto} (${o.alicuota}%): *$${montoAptoUsd.toFixed(2)}*\n`;
-                });
+            if (filterType === 'ordinary') {
+                activeExpenses = activeExpenses.filter(e => e.type === 'ordinaria' || e.type === 'ordinary');
+            } else if (filterType === 'extraordinary') {
+                activeExpenses = activeExpenses.filter(e => e.type === 'extraordinaria' || e.type === 'extraordinary');
             }
 
-            msg += `\n_Agradecemos realizar su pago oportunamente._`;
+            const bcv = state.building?.bcv || 0;
+            const totalUsd = activeExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+            const totalBs = totalUsd * bcv;
 
-            const previewElem = document.getElementById('whatsapp-preview');
-            if (previewElem) previewElem.value = msg;
+            let msg = `🏢 *${state.building?.name || 'RESIDENCIAS EL PARQUE'}*\n`;
+            msg += `📊 *Resumen de Gastos Pendientes*\n\n`;
 
-            const btnElem = document.getElementById('wa-group-btn');
-            if (btnElem) btnElem.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+            if (activeExpenses.length === 0) {
+                msg += `No hay gastos pendientes por cobrar en este periodo.\n`;
+            } else {
+                activeExpenses.forEach(exp => {
+                    msg += `• ${exp.description}: $${Number(exp.amount).toFixed(2)}\n`;
+                });
+                msg += `\n💵 *Total USD:* $${totalUsd.toFixed(2)}\n`;
+                msg += `🇻🇪 *Total Bs. (Tasa ${bcv}):* Bs. ${totalBs.toFixed(2)}\n`;
+            }
+
+            preview.value = msg;
+
+            if (waBtn) {
+                waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+            }
         }
-
-        function generateWhatsappIndividualMsg(aptoTarget) {
-            const owner = state.owners.find(o => o.apto === aptoTarget);
-            if (!owner) return;
-
-            let expenses = state.expenses || [];
-            const totalGastosUsd = expenses.reduce((acc, e) => acc + (e.amount || 0), 0);
-            const montoCuotaUsd = totalGastosUsd * (owner.alicuota / 100);
-
-            const pagado = state.payments
-                .filter(p => p.apto === owner.apto && p.status === 'Aprobado')
-                .reduce((a, b) => a + (b.usdEquiv || 0), 0);
-
-            const saldoPendienteUsd = montoCuotaUsd - pagado;
-
-            let msg = `*ESTADO DE CUENTA INDIVIDUAL - ${state.building.name}*\n`;
-            msg += `Propietario(a): ${owner.owner}\n`;
-            msg += `Apartamento: ${owner.apto} (Alícuota: ${owner.alicuota}%)\n\n`;
-
-            msg += `*TOTAL CUOTA:* $${montoCuotaUsd.toFixed(2)}\n`;
-            msg += `*TOTAL PAGADO:* $${pagado.toFixed(2)}\n`;
-            msg += `*SALDO PENDIENTE:* *$${saldoPendienteUsd.toFixed(2)}*\n\n`;
-            msg += `_Por favor enviar el comprobante al realizar su pago._`;
-
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
         // ==================== PAGOS Y CONCILIACIÓN ====================
         function getBcvRateForDate(targetDate) {
             if (!state.bcvHistory || state.bcvHistory.length === 0) return Number(state.building.bcv) || 1;
