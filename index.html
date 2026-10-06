@@ -423,68 +423,95 @@
                 </div>
 
                 <!-- PESTAÑA 6: REPORTES DE GESTIÓN -->
-                <div id="tab-reportes" class="tab-content hidden space-y-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 no-print">
-                        <h3 class="font-bold text-slate-800 mb-4 text-sm">🔍 Filtro para Entregas de Gestión (Período)</h3>
-                        <div class="flex flex-wrap items-end gap-4">
-                            <div>
-                                <label class="text-xs text-slate-600 block">Desde (MM/AAAA)</label>
-                                <input type="month" id="rep-from" class="p-2 rounded-lg border text-sm">
-                            </div>
-                            <div>
-                                <label class="text-xs text-slate-600 block">Hasta (MM/AAAA)</label>
-                                <input type="month" id="rep-to" class="p-2 rounded-lg border text-sm">
-                            </div>
-                            <button onclick="generateReports()" class="px-5 py-2.5 bg-teal-500 text-white font-semibold text-sm rounded-lg hover:bg-teal-600">Generar Reportes</button>
-                            <button onclick="window.print()" class="px-5 py-2.5 bg-slate-700 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 flex items-center gap-1">🖨 Imprimir / Guardar PDF</button>
-                        </div>
-                    </div>
+               <!-- PESTAÑA 6: REPORTES DE GESTIÓN SEPARADOS -->
+<div id="tab-reportes" class="tab-content hidden space-y-6">
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 no-print">
+        <h3 class="font-bold text-slate-800 mb-4 text-sm">🔍 Filtro para Reportes Financieros</h3>
+        <div class="flex flex-wrap items-end gap-4">
+            <div>
+                <label class="text-xs text-slate-600 block">Mes a Consultar</label>
+                <input type="month" id="rep-period" class="p-2 rounded-lg border text-sm" onchange="generateReports()">
+            </div>
+            <button onclick="generateReports()" class="px-5 py-2.5 bg-teal-500 text-white font-semibold text-sm rounded-lg hover:bg-teal-600">Actualizar Reportes</button>
+            <button onclick="window.print()" class="px-5 py-2.5 bg-slate-700 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 flex items-center gap-1">🖨 Imprimir / Guardar PDF</button>
+        </div>
+    </div>
 
-                    <div id="print-header" class="hidden print-only mb-6 border-b pb-4">
-                        <h1 class="text-xl font-bold text-center uppercase" id="print-bldg-name">Edificio</h1>
-                        <p class="text-center text-xs" id="print-bldg-info">RIF: | Dirección: </p>
-                        <p class="text-right text-xs mt-2" id="print-date">Fecha de emisión: </p>
-                    </div>
+    <!-- Encabezado para impresión -->
+    <div id="print-header" class="hidden print-only mb-6 border-b pb-4">
+        <h1 class="text-xl font-bold text-center uppercase" id="print-bldg-name">Edificio</h1>
+        <p class="text-center text-xs" id="print-bldg-info">RIF: | Dirección: </p>
+        <p class="text-right text-xs mt-2" id="print-date">Fecha de emisión: </p>
+    </div>
 
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <h3 class="font-bold text-slate-800 mb-2 text-sm">📊 Estado Financiero de Propietarios y Morosidad</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-xs">
-                                <thead>
-                                    <tr class="bg-slate-100 text-left">
-                                        <th class="p-2">Apto</th>
-                                        <th class="p-2">Propietario</th>
-                                        <th class="p-2 text-right">Monto Alícuota ($)</th>
-                                        <th class="p-2 text-right">Cuota Ord. ($)</th>
-                                        <th class="p-2 text-right">Cuota Ext. ($)</th>
-                                        <th class="p-2 text-right">Total Pagado ($)</th>
-                                        <th class="p-2 text-center">Referencia</th>
-                                        <th class="p-2 text-right">Saldo ($)</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="report-owners-body"></tbody>
-                            </table>
-                        </div>
-                    </div>
+    <!-- REPORTE 1: CUOTAS ORDINARIAS -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-3">
+        <div class="flex justify-between items-center border-b pb-2">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                📊 Estado Financiero - Cuota Mensual Ordinaria
+            </h3>
+            <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold" id="rep-ord-period-label">Periodo: --</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-700 text-left border-b">
+                        <th class="p-2">Apto</th>
+                        <th class="p-2">Propietario</th>
+                        <th class="p-2 text-right">Alícuota ($)</th>
+                        <th class="p-2 text-right">Total Pagado ($)</th>
+                        <th class="p-2 text-center">Ref. Pago</th>
+                        <th class="p-2 text-right">Estatus / Deuda ($)</th>
+                    </tr>
+                </thead>
+                <tbody id="report-ordinary-body"></tbody>
+            </table>
+        </div>
+    </div>
 
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <h3 class="font-bold text-slate-800 mb-2 text-sm">📑 Reporte Pagos a Proveedores</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-xs">
-                                <thead>
-                                    <tr class="bg-slate-100 text-left">
-                                        <th class="p-2">Proveedor</th>
-                                        <th class="p-2">Fecha</th>
-                                        <th class="p-2 text-right">Monto Cancelado ($)</th>
-                                        <th class="p-2 text-right">Monto Cancelado (Bs)</th>
-                                        <th class="p-2">Observación / Concepto</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="report-providers-body"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+    <!-- REPORTE 2: CUOTAS EXTRAORDINARIAS -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-3">
+        <div class="flex justify-between items-center border-b pb-2">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                📊 Estado Financiero - Cuotas Extraordinarias
+            </h3>
+            <span class="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-bold">Detalle por Proyecto/Concepto</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-700 text-left border-b">
+                        <th class="p-2">Mes Cobro</th>
+                        <th class="p-2">Concepto / Proyecto</th>
+                        <th class="p-2">Apto</th>
+                        <th class="p-2 text-right">Monto Asignado ($)</th>
+                        <th class="p-2 text-right">Monto Pagado ($)</th>
+                        <th class="p-2 text-center">Ref. Pago</th>
+                        <th class="p-2 text-right">Pendiente ($)</th>
+                    </tr>
+                </thead>
+                <tbody id="report-extraordinary-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- REPORTE 3: PAGOS A PROVEEDORES -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <h3 class="font-bold text-slate-800 mb-2 text-sm">📑 Historial de Pagos a Proveedores</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="bg-slate-100 text-left">
+                        <th class="p-2">Proveedor</th>
+                        <th class="p-2">Servicio</th>
+                        <th class="p-2 font-bold text-right">Teléfono / Contacto</th>
+                    </tr>
+                </thead>
+                <tbody id="report-providers-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
                 <!-- PESTAÑA 7: CONFIGURACIÓN -->
                 <div id="tab-config" class="tab-content hidden">
@@ -1415,49 +1442,116 @@
         }
 
         // ==================== REPORTES DE GESTIÓN ====================
-        function generateReports() {
-            const printBldg = document.getElementById('print-bldg-name');
-            if (printBldg) printBldg.innerText = state.building.name;
-            
-            const printInfo = document.getElementById('print-bldg-info');
-            if (printInfo) printInfo.innerText = `RIF: ${state.building.rif} | Dirección: ${state.building.address}`;
-            
-            const printDate = document.getElementById('print-date');
-            if (printDate) printDate.innerText = `Fecha de Emisión: ${new Date().toLocaleDateString()}`;
+       function generateReports() {
+    // 1. Datos del encabezado para la vista de impresión
+    const printBldg = document.getElementById('print-bldg-name');
+    if (printBldg) printBldg.innerText = state.building.name;
+    
+    const printInfo = document.getElementById('print-bldg-info');
+    if (printInfo) printInfo.innerText = `RIF: ${state.building.rif} | Dirección: ${state.building.address}`;
+    
+    const printDate = document.getElementById('print-date');
+    if (printDate) printDate.innerText = `Fecha de Emisión: ${new Date().toLocaleDateString()}`;
 
-            const oBody = document.getElementById('report-owners-body');
-            if (oBody) {
-                oBody.innerHTML = '';
-                const ordTotal = state.expenses.filter(e => e.type === 'ordinaria').reduce((a, b) => a + b.amount, 0);
-                const extTotal = state.expenses.filter(e => e.type === 'extraordinaria').reduce((a, b) => a + b.amount, 0);
+    // Obtener periodo a consultar (ej: 2026-08)
+    const periodInput = document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
+    const ordLabel = document.getElementById('rep-ord-period-label');
+    if (ordLabel) ordLabel.innerText = `Periodo: ${periodInput}`;
+
+    // -------------------------------------------------------------
+    // REPORTE 1: ESTADO FINANCIERO - CUOTA MENSUAL ORDINARIA
+    // -------------------------------------------------------------
+    const ordBody = document.getElementById('report-ordinary-body');
+    if (ordBody) {
+        ordBody.innerHTML = '';
+        
+        // Sumar total de gastos ordinarios del mes
+        const totalOrdUsd = (state.expenses || [])
+            .filter(e => (e.type === 'ordinaria' || e.type === 'ordinary') && (!e.period || e.period === periodInput))
+            .reduce((acc, e) => acc + Number(e.amount || 0), 0);
+
+        state.owners.forEach(o => {
+            const alicuotaVal = Number(o.alicuota || 0);
+            const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+            const montoMantenimiento = totalOrdUsd * factor;
+
+            // Filtrar pagos ordinarios aprobados del apartamento
+            const ownerPayments = (state.payments || []).filter(p => 
+                p.apto === o.apto && 
+                p.status === 'Aprobado' &&
+                (!p.concept || p.concept.includes('Ordinaria') || p.concept.includes('Total'))
+            );
+
+            const totalPagado = ownerPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+            const refs = ownerPayments.map(p => p.ref).filter(Boolean).join(', ') || 'N/A';
+            const saldo = montoMantenimiento - totalPagado;
+
+            const estatusColor = saldo <= 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
+            const estatusTexto = saldo <= 0 ? '$0.00' : `$${saldo.toFixed(2)}`;
+
+            ordBody.innerHTML += `
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="p-2 font-bold text-slate-800">${o.apto}</td>
+                    <td class="p-2">${o.owner}</td>
+                    <td class="p-2 text-right font-semibold">$${montoMantenimiento.toFixed(2)}</td>
+                    <td class="p-2 text-right font-bold text-emerald-600">$${totalPagado.toFixed(2)}</td>
+                    <td class="p-2 text-center text-[11px] text-slate-500">${refs}</td>
+                    <td class="p-2 text-right ${estatusColor}">${estatusTexto}</td>
+                </tr>
+            `;
+        });
+    }
+
+    // -------------------------------------------------------------
+    // REPORTE 2: ESTADO FINANCIERO - CUOTAS EXTRAORDINARIAS
+    // -------------------------------------------------------------
+    const extBody = document.getElementById('report-extraordinary-body');
+    if (extBody) {
+        extBody.innerHTML = '';
+
+        const extraExpenses = (state.expenses || []).filter(e => e.type === 'extraordinaria' || e.type === 'extraordinary');
+
+        if (extraExpenses.length === 0) {
+            extBody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400">No hay cuotas extraordinarias registradas.</td></tr>`;
+        } else {
+            extraExpenses.forEach(exp => {
+                const expPeriod = exp.period || periodInput;
+                const expConcept = exp.description || 'Cuota Extraordinaria';
+                const totalExpenseUsd = Number(exp.amount || 0);
 
                 state.owners.forEach(o => {
-                    const factOrd = ordTotal * (o.alicuota / 100);
-                    const factExt = extTotal * (o.alicuota / 100);
-                    const totalFacturado = factOrd + factExt;
+                    const alicuotaVal = Number(o.alicuota || 0);
+                    const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+                    const asignadoApto = totalExpenseUsd * factor;
 
-                    const ownerPayments = state.payments.filter(p => p.apto === o.apto && p.status === 'Aprobado');
-                    const pagado = ownerPayments.reduce((a, b) => a + b.usdEquiv, 0);
-                    const referencias = ownerPayments.map(p => p.ref).filter(Boolean).join(', ') || 'N/A';
-                    const dif = totalFacturado - pagado;
+                    // Filtrar pagos extraordinarios aprobados del apartamento
+                    const extraPayments = (state.payments || []).filter(p => 
+                        p.apto === o.apto && 
+                        p.status === 'Aprobado' &&
+                        (p.concept && (p.concept.includes('Extraordinaria') || p.concept.includes('Total')))
+                    );
 
-                    let saldoTexto = dif <= 0 ? `$0.00` : `$${dif.toFixed(2)}`;
+                    const pagadoApto = extraPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+                    const refs = extraPayments.map(p => p.ref).filter(Boolean).join(', ') || 'N/A';
+                    const pendiente = asignadoApto - pagadoApto;
+                    const saldoText = pendiente <= 0 ? '$0.00' : `$${pendiente.toFixed(2)}`;
 
-                    oBody.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-2 font-bold text-slate-800">${o.apto}</td>
-                            <td class="p-2">${o.owner}</td>
-                            <td class="p-2 text-right">${o.alicuota}% ($${totalFacturado.toFixed(2)})</td>
-                            <td class="p-2 text-right">$${factOrd.toFixed(2)}</td>
-                            <td class="p-2 text-right">$${factExt.toFixed(2)}</td>
-                            <td class="p-2 text-right font-semibold text-emerald-600">$${pagado.toFixed(2)}</td>
-                            <td class="p-2 text-center text-[11px] text-slate-500">${referencias}</td>
-                            <td class="p-2 text-right font-bold text-rose-600">${saldoTexto}</td>
+                    extBody.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-2 font-semibold text-slate-600">${expPeriod}</td>
+                            <td class="p-2 font-medium text-slate-800">${expConcept}</td>
+                            <td class="p-2 font-bold">${o.apto}</td>
+                            <td class="p-2 text-right font-semibold">$${asignadoApto.toFixed(2)}</td>
+                            <td class="p-2 text-right font-bold text-emerald-600">$${pagadoApto.toFixed(2)}</td>
+                            <td class="p-2 text-center text-[11px] text-slate-500">${refs}</td>
+                            <td class="p-2 text-right font-bold ${pendiente > 0 ? 'text-rose-600' : 'text-slate-400'}">${saldoText}</td>
                         </tr>
                     `;
                 });
-            }
+            });
         }
+    }
+}
 
         // ==================== VISTA DEL PROPIETARIO Y REPORTAR PAGO ====================
         function renderOwnerData() {
