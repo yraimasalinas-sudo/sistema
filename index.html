@@ -387,42 +387,40 @@
                         <button onclick="saveCurrentNotice()" class="px-3 py-2 bg-teal-600 text-white text-xs font-bold rounded shadow hover:bg-teal-700">
                             💾 Archivar Aviso de Cobro por Mes
                         </button>
-                </div>
-    
-                <!-- Filtros de búsqueda -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 bg-slate-50 p-3 rounded">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Mes:</label>
-                        <input type="month" id="hist-filter-period" class="p-2 border rounded text-sm w-full" onchange="renderHistoryNotices()">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Tipo de Cuota:</label>
-                        <select id="hist-filter-type" class="p-2 border rounded text-sm w-full" onchange="renderHistoryNotices()">
-                            <option value="all">Todos (Comunes y Extraordinarios)</option>
-                            <option value="ordinary">Solo Ordinarios (Comunes)</option>
-                            <option value="extraordinary">Solo Extraordinarios</option>
-                    </select>
-                </div>
-            </div>
 
-            <!-- Tabla de avisos guardados -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <thead>
-                        <tr class="border-b bg-slate-100 text-slate-600">
-                            <th class="p-2">Periodo</th>
-                            <th class="p-2">Tipo</th>
-                            <th class="p-2 text-right">Total ($)</th>
-                            <th class="p-2 text-right">Tasa BCV</th>
-                            <th class="p-2 text-center">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-notices-body">
-                        <!-- Se llena dinámicamente -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    <!-- Filtros de búsqueda -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 bg-slate-50 p-3 rounded">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Mes:</label>
+                            <input type="month" id="hist-filter-period" class="p-2 border rounded text-sm w-full" onchange="renderHistoryNotices()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Tipo de Cuota:</label>
+                            <select id="hist-filter-type" class="p-2 border rounded text-sm w-full" onchange="renderHistoryNotices()">
+                                <option value="all">Todos (Comunes y Extraordinarios)</option>
+                                <option value="ordinary">Solo Ordinarios (Comunes)</option>
+                                <option value="extraordinary">Solo Extraordinarios</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de avisos guardados -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b bg-slate-100 text-slate-600">
+                                    <th class="p-2">Periodo</th>
+                                    <th class="p-2">Tipo</th>
+                                    <th class="p-2 text-right">Total ($)</th>
+                                    <th class="p-2 text-right">Tasa BCV</th>
+                                    <th class="p-2 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-notices-body"></tbody>
+                        </table>
+                    </div>
+                </div>
 
                 <!-- PESTAÑA 6: REPORTES DE GESTIÓN -->
                 <div id="tab-reportes" class="tab-content hidden space-y-6">
@@ -488,7 +486,7 @@
                     </div>
                 </div>
 
-                <!-- PESTAÑA 6: CONFIGURACIÓN -->
+                <!-- PESTAÑA 7: CONFIGURACIÓN -->
                 <div id="tab-config" class="tab-content hidden">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-lg">
                         <h3 class="font-bold text-slate-800 mb-4 text-sm">⚙️ Datos Fiscales del Condominio</h3>
@@ -623,7 +621,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT DE LÓGICA -->
+    <!-- SCRIPT DE LÓGICA DE APLICACIÓN -->
     <script>
         const SUPABASE_URL = "https://rzcmqxzzoyqjfryoymqw.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6Y21xeHp6b3lxamZyeW95bXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0Mzc4NzEsImV4cCI6MjEwNjAxMzg3MX0.3foqq3G7OlFPjwNAq-TqrasA2JfG4ZU7RWBCJISSO3s";
@@ -631,6 +629,7 @@
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
+        let realtimeTimer = null;
 
         let defaultOwners = [
             { apto: '1A', owner: 'Propietario 1A', alicuota: 6, pass: '1234' },
@@ -657,18 +656,18 @@
             providers: []
         };
 
-        // Cargar todos los datos estrictamente desde Supabase al iniciar la página
+        // Cargar todos los datos desde Supabase capturando errores individualmente
         async function loadStorage() {
             try {
                 console.log("Cargando datos desde Supabase...");
 
                 const [
-                    { data: cloudPayments },
-                    { data: cloudBcv },
-                    { data: cloudExpenses },
-                    { data: cloudOwners },
-                    { data: cloudProviders },
-                    { data: cloudBuilding }
+                    { data: cloudPayments, error: errPay },
+                    { data: cloudBcv, error: errBcv },
+                    { data: cloudExpenses, error: errExp },
+                    { data: cloudOwners, error: errOwn },
+                    { data: cloudProviders, error: errProv },
+                    { data: cloudBuilding, error: errBldg }
                 ] = await Promise.all([
                     db.from('payments').select('*').order('id', { ascending: false }),
                     db.from('bcv_history').select('*').order('date', { ascending: false }),
@@ -677,6 +676,13 @@
                     db.from('providers').select('*'),
                     db.from('building_config').select('*').limit(1)
                 ]);
+
+                if (errPay) console.warn("Aviso en consulta 'payments':", errPay.message);
+                if (errBcv) console.warn("Aviso en consulta 'bcv_history':", errBcv.message);
+                if (errExp) console.warn("Aviso en consulta 'expenses':", errExp.message);
+                if (errOwn) console.warn("Aviso en consulta 'owners':", errOwn.message);
+                if (errProv) console.warn("Aviso en consulta 'providers':", errProv.message);
+                if (errBldg) console.warn("Aviso en consulta 'building_config':", errBldg.message);
 
                 if (cloudBcv && cloudBcv.length > 0) {
                     state.bcvHistory = cloudBcv.map(b => ({
@@ -711,6 +717,7 @@
                         type: e.type || 'ordinaria',
                         apto: e.apto || 'TODOS',
                         provider: e.provider || null,
+                        status: e.status || 'pending',
                         date: e.date
                     }));
                 }
@@ -751,11 +758,14 @@
             }
         }
 
-        // Suscripción en tiempo real (Sincroniza instantáneamente entre PC y Teléfono)
+        // Suscripción en tiempo real con Debounce para evitar sobrecargas
         function setupRealtimeSubscriptions() {
             db.channel('condo-changes')
               .on('postgres_changes', { event: '*', schema: 'public' }, () => {
-                  loadStorage();
+                  clearTimeout(realtimeTimer);
+                  realtimeTimer = setTimeout(() => {
+                      loadStorage();
+                  }, 400);
               })
               .subscribe();
         }
@@ -898,6 +908,9 @@
             if (evt && evt.currentTarget) {
                 evt.currentTarget.classList.add('bg-teal-500', 'text-white');
             }
+            if (tab === 'notices-history') {
+                renderHistoryNotices();
+            }
         }
 
         function renderAdminData() {
@@ -912,7 +925,6 @@
 
         // ==================== GASTOS Y COBROS ====================
         async function approveAndCloseNotice() {
-            // 1. Filtrar solo los gastos que están pendientes actualmente
             const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
             if (pendingExpenses.length === 0) {
@@ -920,7 +932,6 @@
                 return;
             }
 
-            // Detectar automáticamente el periodo a partir del primer gasto o la fecha actual
             const period = pendingExpenses[0].period || new Date().toISOString().slice(0, 7);
             const filterType = document.getElementById('wa-fee-type')?.value || 'all';
 
@@ -932,13 +943,12 @@
                 `• Total Gastos: $${totalUSD.toFixed(2)}\n` +
                 `• Cantidad de gastos: ${pendingExpenses.length}\n` +
                 `• Tasa BCV: ${bcvRate} Bs.\n\n` +
-                `Al aprobar, este aviso se guardará en el Histórico y la lista de gastos quedará limpia para el nuevo periodo.`
+                `Al aprobar, este aviso se guardará en el Histórico y los gastos quedarán cerrados.`
             );
 
             if (!confirmEmit) return;
 
             try {
-                // 2. Construir el Snapshot del Aviso para guardar en Histórico
                 const noticeData = {
                     period: period,
                     type: filterType,
@@ -947,11 +957,11 @@
                     details: {
                         expenses: pendingExpenses,
                         owners: (state.owners || []).map(o => {
-                            const alicuotaVal = Number(o.alicuota || o.share || 0);
+                            const alicuotaVal = Number(o.alicuota || 0);
                             const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
                             return {
-                                apto: o.apto || o.apto_number,
-                                owner: o.owner || o.name,
+                                apto: o.apto,
+                                owner: o.owner,
                                 alicuota: alicuotaVal,
                                 usd: totalUSD * factor,
                                 bs: (totalUSD * factor) * bcvRate
@@ -960,7 +970,6 @@
                     }
                 };
 
-                // Guardar aviso congelado en 'billing_notices'
                 const { error: noticeErr } = await db.from('billing_notices').insert([noticeData]);
 
                 if (noticeErr) {
@@ -968,25 +977,17 @@
                     return;
                 }
 
-                // 3. Marcar los gastos procesados como 'billed' para que no vuelvan a aparecer
                 const expenseIds = pendingExpenses.map(e => e.id);
                 const { error: updateErr } = await db.from('expenses')
                     .update({ status: 'billed' })
                     .in('id', expenseIds);
 
                 if (updateErr) {
-                    console.warn("Aviso guardado pero hubo un detalle actualizando estado de gastos:", updateErr.message);
+                    console.warn("Detalle actualizando estado de gastos:", updateErr.message);
                 }
 
                 alert(`¡Aviso del periodo ${period} APROBADO Y EMITIDO exitosamente!`);
-
-                // 4. Recargar el almacenamiento para limpiar la pantalla por completo
-                if (typeof loadStorage === 'function') {
-                    await loadStorage();
-                } else {
-                    renderExpenses();
-                    if (typeof renderHistoryNotices === 'function') renderHistoryNotices();
-                }
+                await loadStorage();
 
             } catch (err) {
                 console.error("Error procesando cierre de aviso:", err);
@@ -1010,7 +1011,7 @@
                 type: typeVal,
                 provider: providerVal || null,
                 apto: typeVal === 'no_comun' ? aptoVal : 'TODOS',
-                status: 'pending' // Guarda siempre como pendiente de cobro
+                status: 'pending'
             };
 
             const { error } = await db.from('expenses').insert([payload]);
@@ -1030,7 +1031,6 @@
             body.innerHTML = '';
             let totalUsd = 0;
 
-            // Filtra MENTENIENDO únicamente los gastos que NO han sido cobrados
             const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
             if (pendingExpenses.length === 0) {
@@ -1068,6 +1068,7 @@
             }
             await loadStorage();
         }
+
         // ==================== WHATSAPP Y COMUNICACIÓN ====================
         function generateWhatsappGroupMsg() {
             const preview = document.getElementById('whatsapp-preview');
@@ -1075,8 +1076,6 @@
             if (!preview) return;
 
             const filterType = document.getElementById('wa-fee-type')?.value || 'all';
-
-            // FILTRO CLAVE: Solo gastos no facturados
             let activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
             if (filterType === 'ordinary') {
@@ -1108,6 +1107,7 @@
                 waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
             }
         }
+
         // ==================== PAGOS Y CONCILIACIÓN ====================
         function getBcvRateForDate(targetDate) {
             if (!state.bcvHistory || state.bcvHistory.length === 0) return Number(state.building.bcv) || 1;
@@ -1215,7 +1215,6 @@
                         <td class="p-2 font-mono text-slate-500">${o.pass}</td>
                         <td class="p-2 space-x-1">
                             <button onclick="resetPassword('${o.apto}')" class="px-2 py-1 bg-amber-500 text-white text-[10px] rounded hover:bg-amber-600">Resetear Clave</button>
-                            <button onclick="generateWhatsappIndividualMsg('${o.apto}')" class="px-2 py-1 bg-emerald-500 text-white text-[10px] font-semibold rounded hover:bg-emerald-600">📲 WA</button>
                         </td>
                     </tr>
                 `;
@@ -1269,148 +1268,127 @@
 
         // ==================== HISTÓRICO DE AVISOS ====================
         async function saveCurrentNotice() {
-            // 1. Pedir el periodo del aviso
-            const period = prompt("Ingresa el periodo del aviso a archivar (Formato YYYY-MM, ej: 2026-08):", "2026-08");
+            const period = prompt("Ingresa el periodo del aviso a archivar (Formato YYYY-MM, ej: 2026-08):", new Date().toISOString().slice(0, 7));
             if (!period) return;
 
-            // 2. Obtener el filtro de tipo de cuota seleccionado en pantalla
             const filterType = document.getElementById('hist-filter-type')?.value || 
-                       document.getElementById('wa-fee-type')?.value || 'all';
+                               document.getElementById('wa-fee-type')?.value || 'all';
 
-            // Función auxiliar para normalizar tipos
             const isOrdinary = (t) => t === 'ordinaria' || t === 'ordinary';
             const isExtraordinary = (t) => t === 'extraordinaria' || t === 'extraordinary';
 
-            // 3. Filtrar los gastos según periodo y tipo
             let filteredExpenses = (state.expenses || []).filter(e => {
-                // Coincidencia de periodo (si el gasto tiene period asignado)
                 const matchPeriod = e.period ? e.period === period : true;
-
-                // Coincidencia estricta de tipo
                 let matchType = true;
-                if (filterType === 'ordinary') {
-                    matchType = isOrdinary(e.type);
-                } else if (filterType === 'extraordinary') {
-                    matchType = isExtraordinary(e.type);
-                }
-
+                if (filterType === 'ordinary') matchType = isOrdinary(e.type);
+                else if (filterType === 'extraordinary') matchType = isExtraordinary(e.type);
                 return matchPeriod && matchType;
             });
 
-            // Si no encuentra gastos fechados exactamente con ese periodo, consulta si desea usar todos los del tipo seleccionado
             if (filteredExpenses.length === 0) {
                 const confirmAll = confirm(`No se encontraron gastos de tipo "${filterType}" con periodo "${period}".\n\n¿Deseas incluir todos los gastos activos cargados de este tipo?`);
                 if (!confirmAll) return;
 
-            filteredExpenses = (state.expenses || []).filter(e => {
-                if (filterType === 'ordinary') return isOrdinary(e.type);
-                if (filterType === 'extraordinary') return isExtraordinary(e.type);
-                return true;
+                filteredExpenses = (state.expenses || []).filter(e => {
+                    if (filterType === 'ordinary') return isOrdinary(e.type);
+                    if (filterType === 'extraordinary') return isExtraordinary(e.type);
+                    return true;
+                });
+            }
+
+            if (filteredExpenses.length === 0) {
+                alert("No hay gastos del tipo seleccionado para archivar.");
+                return;
+            }
+
+            const totalUSD = filteredExpenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
+
+            const noticeData = {
+                period: period,
+                type: filterType,
+                total_amount_usd: totalUSD,
+                bcv_rate: state.building?.bcv || 0,
+                details: {
+                    expenses: filteredExpenses,
+                    owners: (state.owners || []).map(o => ({
+                        apto: o.apto,
+                        owner: o.owner,
+                        alicuota: o.alicuota,
+                        usd: totalUSD * (o.alicuota / 100),
+                        bs: (totalUSD * (o.alicuota / 100)) * (state.building?.bcv || 0)
+                    }))
+                }
+            };
+
+            const { error } = await db.from('billing_notices').insert([noticeData]);
+            if (error) {
+                alert("Error al guardar el aviso en Supabase: " + error.message);
+            } else {
+                alert(`¡Aviso de cobro (${filterType}) del periodo ${period} archivado con éxito!`);
+                renderHistoryNotices();
+            }
+        }
+
+        async function renderHistoryNotices() {
+            const tbody = document.getElementById('history-notices-body');
+            if (!tbody) return;
+
+            const selectedPeriod = document.getElementById('hist-filter-period')?.value;
+            const selectedType = document.getElementById('hist-filter-type')?.value || 'all';
+
+            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Cargando avisos...</td></tr>';
+
+            let query = db.from('billing_notices').select('*').order('created_at', { ascending: false });
+
+            if (selectedPeriod) {
+                query = query.eq('period', selectedPeriod);
+            }
+
+            const { data: notices, error } = await query;
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Error al cargar: ${error.message}</td></tr>`;
+                return;
+            }
+
+            const filteredNotices = (notices || []).filter(item => {
+                if (selectedType === 'all') return true;
+                if (selectedType === 'ordinary') return item.type === 'ordinary' || item.type === 'ordinaria';
+                if (selectedType === 'extraordinary') return item.type === 'extraordinary' || item.type === 'extraordinaria';
+                return item.type === selectedType;
             });
-        }
 
-        if (filteredExpenses.length === 0) {
-            alert("No hay gastos del tipo seleccionado para archivar.");
-            return;
-        }
-
-        const totalUSD = filteredExpenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
-
-        // 4. Armar el objeto para Supabase
-        const noticeData = {
-            period: period,
-            type: filterType, // Se guarda 'ordinary', 'extraordinary' o 'all'
-            total_amount_usd: totalUSD,
-            bcv_rate: state.building?.bcv || 0,
-            details: {
-                expenses: filteredExpenses,
-                owners: (state.owners || []).map(o => ({
-                    apto: o.apto,
-                    owner: o.owner,
-                    alicuota: o.alicuota,
-                    usd: totalUSD * (o.alicuota / 100),
-                    bs: (totalUSD * (o.alicuota / 100)) * (state.building?.bcv || 0)
-                }))
+            if (filteredNotices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay avisos guardados para este filtro.</td></tr>';
+                return;
             }
-        };
 
-        // 5. Guardar en Supabase
-        const { error } = await db.from('billing_notices').insert([noticeData]);
-        if (error) {
-            alert("Error al guardar el aviso en Supabase: " + error.message);
-        } else {
-            alert(`¡Aviso de cobro (${filterType}) del periodo ${period} archivado con éxito!`);
-            renderHistoryNotices();
-        }
-}
-    async function renderHistoryNotices() {
-        const tbody = document.getElementById('history-notices-body');
-        if (!tbody) return;
+            tbody.innerHTML = filteredNotices.map(item => {
+                const isExtra = item.type === 'extraordinary' || item.type === 'extraordinaria';
+                const isOrd = item.type === 'ordinary' || item.type === 'ordinaria';
+                const typeLabel = isExtra ? 'Extraordinario' : (isOrd ? 'Ordinario' : 'Todos / Mixto');
+                const badgeColor = isExtra ? 'bg-amber-100 text-amber-800' : (isOrd ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-800');
 
-        const selectedPeriod = document.getElementById('hist-filter-period')?.value; // YYYY-MM
-        const selectedType = document.getElementById('hist-filter-type')?.value || 'all';
-
-        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Cargando avisos...</td></tr>';
-
-        // 1. Obtener los avisos guardados
-        let query = db.from('billing_notices').select('*').order('created_at', { ascending: false });
-
-        if (selectedPeriod) {
-            query = query.eq('period', selectedPeriod);
-        }
-
-        const { data: notices, error } = await query;
-
-        if (error) {
-            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Error al cargar: ${error.message}</td></tr>`;
-        return;
+                return `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2 font-bold text-slate-700">${item.period}</td>
+                        <td class="p-2">
+                            <span class="px-2 py-1 rounded text-xs font-semibold ${badgeColor}">
+                                ${typeLabel}
+                            </span>
+                        </td>
+                        <td class="p-2 text-right font-semibold text-teal-600">$${Number(item.total_amount_usd || 0).toFixed(2)}</td>
+                        <td class="p-2 text-right text-slate-500">Bs. ${Number(item.bcv_rate || 0).toFixed(2)}</td>
+                        <td class="p-2 text-center">
+                            <button onclick='alert("Gastos en este aviso:\\n" + ${JSON.stringify(item.details?.expenses || [])}.map(e => "• [" + (e.type || "").toUpperCase() + "] " + e.description + ": $" + e.amount).join("\\n"))' class="px-2 py-1 bg-sky-500 text-white text-xs rounded hover:bg-sky-600">
+                                👁️ Ver Gastos
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        // 2. Filtrar discriminando exactamente entre Ordinarios, Extraordinarios o Todos
-        const filteredNotices = (notices || []).filter(item => {
-            if (selectedType === 'all') return true;
-
-            if (selectedType === 'ordinary') {
-            return item.type === 'ordinary' || item.type === 'ordinaria';
-            }
-            if (selectedType === 'extraordinary') {
-            return item.type === 'extraordinary' || item.type === 'extraordinaria';
-        }
-
-        return item.type === selectedType;
-    });
-
-    if (filteredNotices.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay avisos guardados para este filtro.</td></tr>';
-        return;
-    }
-
-    // 3. Renderizar las filas con su respectiva etiqueta
-    tbody.innerHTML = filteredNotices.map(item => {
-        const isExtra = item.type === 'extraordinary' || item.type === 'extraordinaria';
-        const isOrd = item.type === 'ordinary' || item.type === 'ordinaria';
-        const typeLabel = isExtra ? 'Extraordinario' : (isOrd ? 'Ordinario' : 'Todos / Mixto');
-        const badgeColor = isExtra ? 'bg-amber-100 text-amber-800' : (isOrd ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-800');
-
-        return `
-            <tr class="border-b hover:bg-slate-50">
-                <td class="p-2 font-bold text-slate-700">${item.period}</td>
-                <td class="p-2">
-                    <span class="px-2 py-1 rounded text-xs font-semibold ${badgeColor}">
-                        ${typeLabel}
-                    </span>
-                </td>
-                <td class="p-2 text-right font-semibold text-teal-600">$${Number(item.total_amount_usd || 0).toFixed(2)}</td>
-                <td class="p-2 text-right text-slate-500">Bs. ${Number(item.bcv_rate || 0).toFixed(2)}</td>
-                <td class="p-2 text-center">
-                    <button onclick='alert("Gastos en este aviso:\\n" + ${JSON.stringify(item.details?.expenses || [])}.map(e => "• [" + (e.type || "").toUpperCase() + "] " + e.description + ": $" + e.amount).join("\\n"))' class="px-2 py-1 bg-sky-500 text-white text-xs rounded hover:bg-sky-600">
-                        👁️ Ver Gastos
-                    </button>
-                </td>
-            </tr>
-        `;
-    }).join('');
-}
         // ==================== REPORTES DE GESTIÓN ====================
         function generateReports() {
             const printBldg = document.getElementById('print-bldg-name');
@@ -1585,7 +1563,6 @@
             loadStorage();
             setupRealtimeSubscriptions();
         });
-    </script>
     </script>
 </body>
 </html>
