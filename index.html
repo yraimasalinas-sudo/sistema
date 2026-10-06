@@ -911,88 +911,89 @@
         }
 
         // ==================== GASTOS Y COBROS ====================
-async function approveAndCloseNotice() {
-    const period = prompt("Ingresa el periodo del aviso a APROBAR y EMITIR (ej: 2026-08):", "2026-08");
-    if (!period) return;
+        async function approveAndCloseNotice() {
+            // 1. Filtrar solo los gastos que están pendientes actualmente
+            const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
-    const filterType = document.getElementById('wa-fee-type')?.value || 'all';
+            if (pendingExpenses.length === 0) {
+                alert("⚠️ No hay gastos pendientes registrados para aprobar.");
+                return;
+            }
 
-    // 1. Obtener gastos pendientes que corresponden a este periodo y tipo
-    let pendingExpenses = (state.expenses || []).filter(e => {
-        const isPending = e.status !== 'billed';
-        const matchPeriod = e.period ? e.period === period : true;
-        
-        let matchType = true;
-        if (filterType === 'ordinary') matchType = (e.type === 'ordinaria' || e.type === 'ordinary');
-        if (filterType === 'extraordinary') matchType = (e.type === 'extraordinaria' || e.type === 'extraordinary');
+            // Detectar automáticamente el periodo a partir del primer gasto o la fecha actual
+            const period = pendingExpenses[0].period || new Date().toISOString().slice(0, 7);
+            const filterType = document.getElementById('wa-fee-type')?.value || 'all';
 
-        return isPending && matchPeriod && matchType;
-    });
+            const totalUSD = pendingExpenses.reduce((acc, e) => acc + Number(e.amount || 0), 0);
+            const bcvRate = Number(state.building?.bcv || 0);
 
-    if (pendingExpenses.length === 0) {
-        alert(`No hay gastos pendientes por aprobar para el periodo ${period}.`);
-        return;
-    }
+            const confirmEmit = confirm(
+                `¿Deseas APROBAR el aviso de cobro de ${period}?\n\n` +
+                `• Total Gastos: $${totalUSD.toFixed(2)}\n` +
+                `• Cantidad de gastos: ${pendingExpenses.length}\n` +
+                `• Tasa BCV: ${bcvRate} Bs.\n\n` +
+                `Al aprobar, este aviso se guardará en el Histórico y la lista de gastos quedará limpia para el nuevo periodo.`
+            );
 
-    const totalUSD = pendingExpenses.reduce((acc, e) => acc + Number(e.amount || 0), 0);
-    const bcvRate = state.building?.bcv || 0;
+            if (!confirmEmit) return;
 
-    const confirmEmit = confirm(
-        `¿Deseas APROBAR el aviso de cobro de ${period}?\n\n` +
-        `• Total Gastos: $${totalUSD.toFixed(2)}\n` +
-        `• Cantidad de gastos: ${pendingExpenses.length}\n` +
-        `• Tasa BCV: ${bcvRate} Bs.\n\n` +
-        `Al aprobar, este aviso se congelará en el Histórico y la lista de gastos quedará lista para el siguiente mes.`
-    );
+            try {
+                // 2. Construir el Snapshot del Aviso para guardar en Histórico
+                const noticeData = {
+                    period: period,
+                    type: filterType,
+                    total_amount_usd: totalUSD,
+                    bcv_rate: bcvRate,
+                    details: {
+                        expenses: pendingExpenses,
+                        owners: (state.owners || []).map(o => {
+                            const alicuotaVal = Number(o.alicuota || o.share || 0);
+                            const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+                            return {
+                                apto: o.apto || o.apto_number,
+                                owner: o.owner || o.name,
+                                alicuota: alicuotaVal,
+                                usd: totalUSD * factor,
+                                bs: (totalUSD * factor) * bcvRate
+                            };
+                        })
+                    }
+                };
 
-    if (!confirmEmit) return;
+                // Guardar aviso congelado en 'billing_notices'
+                const { error: noticeErr } = await db.from('billing_notices').insert([noticeData]);
 
-    // 2. Insertar Snapshot del aviso en Supabase
-    const noticeData = {
-        period: period,
-        type: filterType,
-        total_amount_usd: totalUSD,
-        bcv_rate: bcvRate,
-        details: {
-            expenses: pendingExpenses,
-            owners: (state.owners || []).map(o => ({
-                apto: o.apto,
-                owner: o.owner,
-                alicuota: o.alicuota,
-                usd: totalUSD * (o.alicuota / 100),
-                bs: (totalUSD * (o.alicuota / 100)) * bcvRate
-            }))
+                if (noticeErr) {
+                    alert("Error al emitir el aviso en billing_notices: " + noticeErr.message);
+                    return;
+                }
+
+                // 3. Marcar los gastos procesados como 'billed' para que no vuelvan a aparecer
+                const expenseIds = pendingExpenses.map(e => e.id);
+                const { error: updateErr } = await db.from('expenses')
+                    .update({ status: 'billed' })
+                    .in('id', expenseIds);
+
+                if (updateErr) {
+                    console.warn("Aviso guardado pero hubo un detalle actualizando estado de gastos:", updateErr.message);
+                }
+
+                alert(`¡Aviso del periodo ${period} APROBADO Y EMITIDO exitosamente!`);
+
+                // 4. Recargar el almacenamiento para limpiar la pantalla por completo
+                if (typeof loadStorage === 'function') {
+                    await loadStorage();
+                } else {
+                    renderExpenses();
+                    if (typeof renderHistoryNotices === 'function') renderHistoryNotices();
+                }
+
+            } catch (err) {
+                console.error("Error procesando cierre de aviso:", err);
+                alert("Ocurrió un error inesperado al aprobar el aviso.");
+            }
         }
-    };
 
-    const { data: noticeResult, error: noticeErr } = await db.from('billing_notices').insert([noticeData]).select();
-
-    if (noticeErr) {
-        alert("Error al emitir el aviso: " + noticeErr.message);
-        return;
-    }
-
-    // 3. Marcar los gastos incluidos como 'billed' (procesados)
-    const expenseIds = pendingExpenses.map(e => e.id);
-    const { error: updateErr } = await db.from('expenses')
-        .update({ status: 'billed' })
-        .in('id', expenseIds);
-
-    if (updateErr) {
-        console.warn("Aviso guardado pero hubo un detalle actualizando estado de gastos:", updateErr.message);
-    }
-
-    alert(`¡Aviso del periodo ${period} APROBADO Y EMITIDO exitosamente!`);
-
-    // 4. Recargar datos del sistema para refrescar la tabla limpia
-    if (typeof loadStorage === 'function') {
-        await loadStorage();
-    } else {
-        renderExpenses();
-        if (typeof renderHistoryNotices === 'function') renderHistoryNotices();
-    }
-}
-        
         async function addExpense(e) {
             if (e) e.preventDefault();
             const period = document.getElementById('exp-period')?.value || '';
@@ -1009,7 +1010,7 @@ async function approveAndCloseNotice() {
                 type: typeVal,
                 provider: providerVal || null,
                 apto: typeVal === 'no_comun' ? aptoVal : 'TODOS',
-                status: 'pending' // <-- CAMBIO 1: Guarda como pendiente por cobrar
+                status: 'pending' // Guarda siempre como pendiente de cobro
             };
 
             const { error } = await db.from('expenses').insert([payload]);
@@ -1029,28 +1030,32 @@ async function approveAndCloseNotice() {
             body.innerHTML = '';
             let totalUsd = 0;
 
-            // CAMBIO 2: Filtra solo los gastos que NO han sido cobrados
+            // Filtra MENTENIENDO únicamente los gastos que NO han sido cobrados
             const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
             if (pendingExpenses.length === 0) {
                 body.innerHTML = `<tr><td colspan="4" class="p-2 text-center text-slate-400">No hay gastos pendientes por aprobar.</td></tr>`;
             } else {
                 pendingExpenses.forEach(exp => {
-                    totalUsd += exp.amount;
+                    const amt = Number(exp.amount || 0);
+                    totalUsd += amt;
                     body.innerHTML += `
                         <tr class="border-b">
                             <td class="p-1 font-semibold text-slate-500">${(exp.type || '').toUpperCase()}</td>
                             <td class="p-1">${exp.description} ${exp.apto && exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
-                            <td class="p-1 font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
-                            <td class="p-1"><button onclick="deleteExpense(${exp.id})" class="text-red-500 font-bold">✕</button></td>
+                            <td class="p-1 font-bold text-slate-700">$${amt.toFixed(2)}</td>
+                            <td class="p-1"><button onclick="deleteExpense(${exp.id})" class="text-red-500 font-bold hover:text-red-700">✕</button></td>
                         </tr>
                     `;
                 });
             }
 
-            const totalBs = totalUsd * state.building.bcv;
+            const bcvRate = Number(state.building?.bcv || 0);
+            const totalBs = totalUsd * bcvRate;
+    
             document.getElementById('total-expenses-amount').innerText = `$${totalUsd.toFixed(2)}`;
             document.getElementById('total-expenses-bs').innerText = `(Bs. ${totalBs.toFixed(2)})`;
+    
             if (typeof generateWhatsappGroupMsg === 'function') generateWhatsappGroupMsg();
         }
 
@@ -1062,7 +1067,7 @@ async function approveAndCloseNotice() {
                 return;
             }
             await loadStorage();
-        }        
+        }
         // ==================== WHATSAPP Y COMUNICACIÓN ====================
         function generateWhatsappGroupMsg() {
             const preview = document.getElementById('whatsapp-preview');
