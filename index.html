@@ -901,6 +901,88 @@
         }
 
         // ==================== GASTOS Y COBROS ====================
+async function approveAndCloseNotice() {
+    const period = prompt("Ingresa el periodo del aviso a APROBAR y EMITIR (ej: 2026-08):", "2026-08");
+    if (!period) return;
+
+    const filterType = document.getElementById('wa-fee-type')?.value || 'all';
+
+    // 1. Obtener gastos pendientes que corresponden a este periodo y tipo
+    let pendingExpenses = (state.expenses || []).filter(e => {
+        const isPending = e.status !== 'billed';
+        const matchPeriod = e.period ? e.period === period : true;
+        
+        let matchType = true;
+        if (filterType === 'ordinary') matchType = (e.type === 'ordinaria' || e.type === 'ordinary');
+        if (filterType === 'extraordinary') matchType = (e.type === 'extraordinaria' || e.type === 'extraordinary');
+
+        return isPending && matchPeriod && matchType;
+    });
+
+    if (pendingExpenses.length === 0) {
+        alert(`No hay gastos pendientes por aprobar para el periodo ${period}.`);
+        return;
+    }
+
+    const totalUSD = pendingExpenses.reduce((acc, e) => acc + Number(e.amount || 0), 0);
+    const bcvRate = state.building?.bcv || 0;
+
+    const confirmEmit = confirm(
+        `¿Deseas APROBAR el aviso de cobro de ${period}?\n\n` +
+        `• Total Gastos: $${totalUSD.toFixed(2)}\n` +
+        `• Cantidad de gastos: ${pendingExpenses.length}\n` +
+        `• Tasa BCV: ${bcvRate} Bs.\n\n` +
+        `Al aprobar, este aviso se congelará en el Histórico y la lista de gastos quedará lista para el siguiente mes.`
+    );
+
+    if (!confirmEmit) return;
+
+    // 2. Insertar Snapshot del aviso en Supabase
+    const noticeData = {
+        period: period,
+        type: filterType,
+        total_amount_usd: totalUSD,
+        bcv_rate: bcvRate,
+        details: {
+            expenses: pendingExpenses,
+            owners: (state.owners || []).map(o => ({
+                apto: o.apto,
+                owner: o.owner,
+                alicuota: o.alicuota,
+                usd: totalUSD * (o.alicuota / 100),
+                bs: (totalUSD * (o.alicuota / 100)) * bcvRate
+            }))
+        }
+    };
+
+    const { data: noticeResult, error: noticeErr } = await db.from('billing_notices').insert([noticeData]).select();
+
+    if (noticeErr) {
+        alert("Error al emitir el aviso: " + noticeErr.message);
+        return;
+    }
+
+    // 3. Marcar los gastos incluidos como 'billed' (procesados)
+    const expenseIds = pendingExpenses.map(e => e.id);
+    const { error: updateErr } = await db.from('expenses')
+        .update({ status: 'billed' })
+        .in('id', expenseIds);
+
+    if (updateErr) {
+        console.warn("Aviso guardado pero hubo un detalle actualizando estado de gastos:", updateErr.message);
+    }
+
+    alert(`¡Aviso del periodo ${period} APROBADO Y EMITIDO exitosamente!`);
+
+    // 4. Recargar datos del sistema para refrescar la tabla limpia
+    if (typeof loadStorage === 'function') {
+        await loadStorage();
+    } else {
+        renderExpenses();
+        if (typeof renderHistoryNotices === 'function') renderHistoryNotices();
+    }
+}
+        
         async function addExpense(e) {
             if (e) e.preventDefault();
             const period = document.getElementById('exp-period')?.value || '';
@@ -916,7 +998,8 @@
                 amount,
                 type: typeVal,
                 provider: providerVal || null,
-                apto: typeVal === 'no_comun' ? aptoVal : 'TODOS'
+                apto: typeVal === 'no_comun' ? aptoVal : 'TODOS',
+                status: 'pending' // <-- CAMBIO 1: Guarda como pendiente por cobrar
             };
 
             const { error } = await db.from('expenses').insert([payload]);
@@ -936,22 +1019,29 @@
             body.innerHTML = '';
             let totalUsd = 0;
 
-            state.expenses.forEach(exp => {
-                totalUsd += exp.amount;
-                body.innerHTML += `
-                    <tr class="border-b">
-                        <td class="p-1 font-semibold text-slate-500">${(exp.type || '').toUpperCase()}</td>
-                        <td class="p-1">${exp.description} ${exp.apto && exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
-                        <td class="p-1 font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
-                        <td class="p-1"><button onclick="deleteExpense(${exp.id})" class="text-red-500 font-bold">✕</button></td>
-                    </tr>
-                `;
-            });
+            // CAMBIO 2: Filtra solo los gastos que NO han sido cobrados
+            const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
+
+            if (pendingExpenses.length === 0) {
+                body.innerHTML = `<tr><td colspan="4" class="p-2 text-center text-slate-400">No hay gastos pendientes por aprobar.</td></tr>`;
+            } else {
+                pendingExpenses.forEach(exp => {
+                    totalUsd += exp.amount;
+                    body.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-1 font-semibold text-slate-500">${(exp.type || '').toUpperCase()}</td>
+                            <td class="p-1">${exp.description} ${exp.apto && exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
+                            <td class="p-1 font-bold text-slate-700">$${exp.amount.toFixed(2)}</td>
+                            <td class="p-1"><button onclick="deleteExpense(${exp.id})" class="text-red-500 font-bold">✕</button></td>
+                        </tr>
+                    `;
+                });
+            }
 
             const totalBs = totalUsd * state.building.bcv;
             document.getElementById('total-expenses-amount').innerText = `$${totalUsd.toFixed(2)}`;
             document.getElementById('total-expenses-bs').innerText = `(Bs. ${totalBs.toFixed(2)})`;
-            generateWhatsappGroupMsg();
+            if (typeof generateWhatsappGroupMsg === 'function') generateWhatsappGroupMsg();
         }
 
         async function deleteExpense(id) {
@@ -962,8 +1052,7 @@
                 return;
             }
             await loadStorage();
-        }
-
+        }        
         // ==================== WHATSAPP Y COMUNICACIÓN ====================
         function generateWhatsappGroupMsg() {
             const filterType = document.getElementById('wa-fee-type')?.value || 'all';
