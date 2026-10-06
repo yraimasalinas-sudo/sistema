@@ -1076,6 +1076,11 @@
             if (!preview) return;
 
             const filterType = document.getElementById('wa-fee-type')?.value || 'all';
+    
+            // Periodo actual (ej: 2026-08)
+            const periodInput = document.getElementById('exp-period')?.value || new Date().toISOString().slice(0, 7);
+
+            // Filtrar gastos pendientes según el tipo seleccionado
             let activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
             if (filterType === 'ordinary') {
@@ -1084,23 +1089,43 @@
                 activeExpenses = activeExpenses.filter(e => e.type === 'extraordinaria' || e.type === 'extraordinary');
             }
 
-            const bcv = state.building?.bcv || 0;
             const totalUsd = activeExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
-            const totalBs = totalUsd * bcv;
 
-            let msg = `🏢 *${state.building?.name || 'RESIDENCIAS EL PARQUE'}*\n`;
-            msg += `📊 *Resumen de Gastos Pendientes*\n\n`;
+            // Encabezado del mensaje
+            let msg = `*${state.building?.name || 'Residencias Aventura Suites'}*\n`;
+            msg += `*RESUMEN DE GASTOS Y COBRANZA - ${periodInput}*\n`;
+            msg += `----------------------------------------\n\n`;
 
+            // Desglose de Gastos
+            msg += `*DESGLOSE DE GASTOS DEL MES:*\n`;
             if (activeExpenses.length === 0) {
-                msg += `No hay gastos pendientes por cobrar en este periodo.\n`;
+                msg += `• No hay gastos registrados para este periodo.\n`;
             } else {
                 activeExpenses.forEach(exp => {
-                    msg += `• ${exp.description}: $${Number(exp.amount).toFixed(2)}\n`;
+                    const label = exp.description.toUpperCase();
+                    const aptoNote = exp.apto && exp.apto !== 'TODOS' ? ` (${exp.apto})` : '';
+                    msg += `• ${label}${aptoNote}: $${Number(exp.amount).toFixed(2)}\n`;
                 });
-                msg += `\n💵 *Total USD:* $${totalUsd.toFixed(2)}\n`;
-                msg += `🇻🇪 *Total Bs. (Tasa ${bcv}):* Bs. ${totalBs.toFixed(2)}\n`;
             }
 
+            msg += `\n*TOTAL GASTOS COMUNES:* *$${totalUsd.toFixed(2)}*\n`;
+            msg += `----------------------------------------\n\n`;
+
+            // Desglose por Apartamentos y Alícuotas
+            msg += `*ALÍCUOTAS Y MONTOS A PAGAR POR APTO:*\n`;
+    
+            (state.owners || []).forEach(o => {
+                const alicuotaVal = Number(o.alicuota || 0);
+                const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+                const montoApto = totalUsd * factor;
+
+                msg += `*Apt ${o.apto}* (${alicuotaVal.toFixed(1)}%): *$${montoApto.toFixed(2)}*\n`;
+            });
+
+            msg += `\n----------------------------------------\n`;
+            msg += `*Nota:* Por favor reportar su pago. ¡Gracias!`;
+
+            // Asignar al cuadro de texto y al enlace de WhatsApp
             preview.value = msg;
 
             if (waBtn) {
