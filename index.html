@@ -164,6 +164,7 @@
                 <!-- PESTAÑA 1: GASTOS Y GENERACIÓN DE AVISO -->
                 <div id="tab-gastos" class="tab-content hidden space-y-6">
                     <div class="grid md:grid-cols-3 gap-6">
+                        <!-- Formulario para agregar gastos -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                             <h3 class="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2">📝 Registrar Nuevo Gasto</h3>
                             <form id="expense-form" onsubmit="addExpense(event)" class="space-y-3">
@@ -201,6 +202,7 @@
                             </form>
                         </div>
 
+                        <!-- Tabla de gastos y resumen -->
                         <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
                             <h3 class="font-bold text-slate-800 text-sm">📋 Gastos Registrados del Periodo Actual</h3>
                             <div class="max-h-48 overflow-y-auto border rounded-xl p-2">
@@ -216,14 +218,22 @@
                                     <tbody id="expenses-table-body"></tbody>
                                 </table>
                             </div>
+
+                            <!-- Resumen Total y Botón de Aprobar -->
                             <div class="flex justify-between items-center pt-2 border-t">
-                                <span class="text-sm font-bold">Total Mensual a Repartir:</span>
                                 <div>
+                                    <span class="text-sm font-bold block">Total Mensual a Repartir:</span>
+                                    <button type="button" onclick="approveAndCloseNotice()" class="mt-2 px-3 py-1.5 bg-teal-600 text-white text-xs font-bold rounded-lg shadow hover:bg-teal-700 transition-colors">
+                                        💾 Aprobar y Emitir Aviso
+                                    </button>
+                                </div>
+                                <div class="text-right">
                                     <span id="total-expenses-amount" class="text-lg font-extrabold text-teal-600">$0.00</span>
-                                    <span id="total-expenses-bs" class="text-xs text-slate-500 block text-right">(Bs. 0.00)</span>
+                                    <span id="total-expenses-bs" class="text-xs text-slate-500 block">(Bs. 0.00)</span>
                                 </div>
                             </div>
 
+                            <!-- Previsualización WhatsApp -->
                             <div class="bg-teal-50 p-4 rounded-xl border border-teal-200 space-y-3">
                                 <div class="flex justify-between items-center">
                                     <h4 class="font-bold text-xs text-teal-800">💬 Difusión de Avisos por WhatsApp</h4>
