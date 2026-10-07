@@ -182,7 +182,7 @@
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Tipo de Cuota</label>
-                                    <select id="exp-type" class="w-full p-2.5 rounded-lg border text-sm">
+                                    <select id="exp-type" onchange="toggleAptoBox(this.value)" class="w-full p-2.5 rounded-lg border text-sm">
                                         <option value="ordinaria">Gasto Común Ordinario</option>
                                         <option value="extraordinaria">Cuota Extraordinaria</option>
                                         <option value="no_comun">Gasto No Común (Apto Específico)</option>
@@ -679,7 +679,8 @@
             owners: defaultOwners,
             expenses: [],
             payments: [],
-            providers: []
+            providers: [],
+            billingNotices: []
         };
 
         // Cargar todos los datos desde Supabase capturando errores individualmente
@@ -693,14 +694,16 @@
                     { data: cloudExpenses, error: errExp },
                     { data: cloudOwners, error: errOwn },
                     { data: cloudProviders, error: errProv },
-                    { data: cloudBuilding, error: errBldg }
+                    { data: cloudBuilding, error: errBldg },
+                    { data: cloudNotices, error: errNotices }
                 ] = await Promise.all([
                     db.from('payments').select('*').order('id', { ascending: false }),
                     db.from('bcv_history').select('*').order('date', { ascending: false }),
                     db.from('expenses').select('*').order('id', { ascending: false }),
                     db.from('owners').select('*'),
                     db.from('providers').select('*'),
-                    db.from('building_config').select('*').limit(1)
+                    db.from('building_config').select('*').limit(1),
+                    db.from('billing_notices').select('*').order('id', { ascending: false })
                 ]);
 
                 if (errPay) console.warn("Aviso en consulta 'payments':", errPay.message);
@@ -709,6 +712,7 @@
                 if (errOwn) console.warn("Aviso en consulta 'owners':", errOwn.message);
                 if (errProv) console.warn("Aviso en consulta 'providers':", errProv.message);
                 if (errBldg) console.warn("Aviso en consulta 'building_config':", errBldg.message);
+                if (errNotices) console.warn("Aviso en consulta 'billing_notices':", errNotices.message);
 
                 if (cloudBcv && cloudBcv.length > 0) {
                     state.bcvHistory = cloudBcv.map(b => ({
@@ -770,6 +774,10 @@
                     state.building.name = cloudBuilding[0].name || state.building.name;
                     state.building.rif = cloudBuilding[0].rif || state.building.rif;
                     state.building.address = cloudBuilding[0].address || state.building.address;
+                }
+
+                if (cloudNotices) {
+                    state.billingNotices = cloudNotices;
                 }
 
                 console.log("Datos sincronizados desde la nube:", state);
@@ -939,6 +947,35 @@
             }
         }
 
+        function populateSelects() {
+            const aptoSelects = ['exp-apto', 'pay-apto'];
+            aptoSelects.forEach(id => {
+                const sel = document.getElementById(id);
+                if (sel) {
+                    sel.innerHTML = '';
+                    state.owners.forEach(o => {
+                        sel.innerHTML += `<option value="${o.apto}">Apto ${o.apto} - ${o.owner}</option>`;
+                    });
+                }
+            });
+
+            const provSelect = document.getElementById('exp-provider');
+            if (provSelect) {
+                provSelect.innerHTML = '<option value="">Ninguno</option>';
+                state.providers.forEach(p => {
+                    provSelect.innerHTML += `<option value="${p.id}">${p.name} (${p.service})</option>`;
+                });
+            }
+        }
+
+        function toggleAptoBox(typeVal) {
+            const box = document.getElementById('specific-apto-box');
+            if (box) {
+                if (typeVal === 'no_comun') box.classList.remove('hidden');
+                else box.classList.add('hidden');
+            }
+        }
+
         function renderAdminData() {
             updateBcvUI();
             renderExpenses();
@@ -1103,10 +1140,8 @@
 
             const filterType = document.getElementById('wa-fee-type')?.value || 'all';
     
-            // Periodo actual (ej: 2026-08)
             const periodInput = document.getElementById('exp-period')?.value || new Date().toISOString().slice(0, 7);
 
-            // Filtrar gastos pendientes según el tipo seleccionado
             let activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
             if (filterType === 'ordinary') {
@@ -1117,12 +1152,10 @@
 
             const totalUsd = activeExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
 
-            // Encabezado del mensaje
-            let msg = `*${state.building?.name || 'Residencias Aventura Suites'}*\n`;
+            let msg = `*${state.building?.name || 'Residencias El Parque'}*\n`;
             msg += `*RESUMEN DE GASTOS Y COBRANZA - ${periodInput}*\n`;
             msg += `----------------------------------------\n\n`;
 
-            // Desglose de Gastos
             msg += `*DESGLOSE DE GASTOS DEL MES:*\n`;
             if (activeExpenses.length === 0) {
                 msg += `• No hay gastos registrados para este periodo.\n`;
@@ -1137,7 +1170,6 @@
             msg += `\n*TOTAL GASTOS COMUNES:* *$${totalUsd.toFixed(2)}*\n`;
             msg += `----------------------------------------\n\n`;
 
-            // Desglose por Apartamentos y Alícuotas
             msg += `*ALÍCUOTAS Y MONTOS A PAGAR POR APTO:*\n`;
     
             (state.owners || []).forEach(o => {
@@ -1151,7 +1183,6 @@
             msg += `\n----------------------------------------\n`;
             msg += `*Nota:* Por favor reportar su pago. ¡Gracias!`;
 
-            // Asignar al cuadro de texto y al enlace de WhatsApp
             preview.value = msg;
 
             if (waBtn) {
@@ -1165,11 +1196,9 @@
                 return Number(state.building.bcv) || 1;
             }
 
-            // 1. Buscar coincidencia exacta
             const exact = state.bcvHistory.find(h => h.date === targetDate);
             if (exact && exact.rate) return Number(exact.rate);
 
-            // 2. Si no hay fecha exacta, tomar la tasa más reciente registrada ANTERIOR a la fecha de pago
             const pastRates = state.bcvHistory
                 .filter(h => h.date <= targetDate && h.rate)
                 .sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -1178,7 +1207,6 @@
                 return Number(pastRates[0].rate);
             }
 
-            // 3. Si no hay registros previos, usar la tasa actual por defecto
             return Number(state.building.bcv) || 1;
         }
 
@@ -1391,4 +1419,306 @@
                 alert("Error al guardar el aviso en Supabase: " + error.message);
             } else {
                 alert(`¡Aviso de cobro (${filterType}) del periodo ${period} archivado con éxito!`);
-                renderHistoryNotices();
+                await loadStorage();
+            }
+        }
+
+        function renderHistoryNotices() {
+            const body = document.getElementById('history-notices-body');
+            if (!body) return;
+            body.innerHTML = '';
+
+            const periodFilter = document.getElementById('hist-filter-period')?.value;
+            const typeFilter = document.getElementById('hist-filter-type')?.value;
+
+            let filtered = state.billingNotices || [];
+
+            if (periodFilter) {
+                filtered = filtered.filter(n => n.period === periodFilter);
+            }
+
+            if (typeFilter && typeFilter !== 'all') {
+                filtered = filtered.filter(n => n.type === typeFilter);
+            }
+
+            if (filtered.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay avisos guardados con estos criterios.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(n => {
+                body.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2 font-bold">${n.period}</td>
+                        <td class="p-2"><span class="px-2 py-0.5 rounded text-xs bg-slate-100">${(n.type || 'ALL').toUpperCase()}</span></td>
+                        <td class="p-2 text-right font-bold text-teal-600">$${Number(n.total_amount_usd || 0).toFixed(2)}</td>
+                        <td class="p-2 text-right">Bs. ${Number(n.bcv_rate || 0).toFixed(2)}</td>
+                        <td class="p-2 text-center">
+                            <button onclick="viewNoticeDetail(${n.id})" class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">
+                                👁️ Ver Detalle
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function viewNoticeDetail(id) {
+            const notice = state.billingNotices.find(n => n.id === id);
+            if (!notice) return;
+
+            let detailsMsg = `📄 AVISO DE COBRO - ${notice.period}\n\n`;
+            detailsMsg += `Tipo: ${notice.type.toUpperCase()}\n`;
+            detailsMsg += `TotalUSD: $${Number(notice.total_amount_usd).toFixed(2)}\n`;
+            detailsMsg += `Tasa BCV: Bs. ${Number(notice.bcv_rate).toFixed(2)}\n\n`;
+            detailsMsg += `--- GASTOS --- \n`;
+
+            if (notice.details && notice.details.expenses) {
+                notice.details.expenses.forEach(e => {
+                    detailsMsg += `• ${e.description}: $${Number(e.amount).toFixed(2)}\n`;
+                });
+            }
+
+            alert(detailsMsg);
+        }
+
+        // ==================== VISTA DE PROPIETARIOS ====================
+        function renderOwnerData() {
+            if (!currentUser || currentUser.role !== 'owner') return;
+
+            const myApto = currentUser.apto;
+            const myOwnerObj = state.owners.find(o => o.apto === myApto) || currentUser;
+
+            document.getElementById('owner-dash-apto').innerText = myApto;
+            document.getElementById('owner-dash-name').innerText = myOwnerObj.owner;
+            document.getElementById('owner-dash-alicuota').innerText = myOwnerObj.alicuota;
+
+            const bcvRate = Number(state.building.bcv) || 1;
+            document.getElementById('owner-bcv-rate').innerText = bcvRate.toFixed(2);
+
+            // Calcular gastos pendientes asignados
+            const pendingExpenses = state.expenses.filter(e => e.status !== 'billed');
+            let myTotalUsd = 0;
+
+            const factor = myOwnerObj.alicuota > 1 ? myOwnerObj.alicuota / 100 : myOwnerObj.alicuota;
+
+            pendingExpenses.forEach(e => {
+                if (e.type === 'no_comun') {
+                    if (e.apto === myApto) myTotalUsd += Number(e.amount || 0);
+                } else {
+                    myTotalUsd += Number(e.amount || 0) * factor;
+                }
+            });
+
+            // Restar pagos aprobados recientemente
+            const myApprovedPayments = state.payments.filter(p => p.apto === myApto && p.status === 'Aprobado');
+            const totalPaidUsd = myApprovedPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+
+            const netBalanceUsd = Math.max(0, myTotalUsd - totalPaidUsd);
+            const netBalanceBs = netBalanceUsd * bcvRate;
+
+            document.getElementById('owner-dash-balance').innerText = `$${netBalanceUsd.toFixed(2)}`;
+            document.getElementById('owner-dash-balance-bs').innerText = `Bs. ${netBalanceBs.toFixed(2)}`;
+
+            // Renderizar Recibo de Gastos Actuales
+            const receiptBody = document.getElementById('owner-receipt-body');
+            if (receiptBody) {
+                receiptBody.innerHTML = '';
+                if (pendingExpenses.length === 0) {
+                    receiptBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">No hay gastos emitidos en el periodo actual.</td></tr>`;
+                } else {
+                    pendingExpenses.forEach(e => {
+                        let totalBldg = Number(e.amount || 0);
+                        let myUsd = e.type === 'no_comun' ? (e.apto === myApto ? totalBldg : 0) : totalBldg * factor;
+                        let myBs = myUsd * bcvRate;
+
+                        receiptBody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-2 font-bold">${e.description}</td>
+                                <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(e.type).toUpperCase()}</span></td>
+                                <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
+                                <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
+                                <td class="p-2 text-right font-semibold">Bs. ${myBs.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            }
+
+            // Renderizar Historial de Pagos del Propietario
+            const historyBody = document.getElementById('owner-history-body');
+            if (historyBody) {
+                historyBody.innerHTML = '';
+                const myPayments = state.payments.filter(p => p.apto === myApto);
+
+                if (myPayments.length === 0) {
+                    historyBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">No registras pagos reportados hasta el momento.</td></tr>`;
+                } else {
+                    myPayments.forEach(p => {
+                        const isBs = p.method && p.method.includes('Bs');
+                        const amtStr = isBs ? `Bs. ${Number(p.amount).toFixed(2)}` : `$${Number(p.amount).toFixed(2)}`;
+
+                        historyBody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-2">${p.date}</td>
+                                <td class="p-2">${p.concept}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref} (${p.method})</span></td>
+                                <td class="p-2 text-right font-semibold">${amtStr}</td>
+                                <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv).toFixed(2)}</td>
+                                <td class="p-2 text-center">
+                                    <span class="px-2 py-1 rounded text-[10px] font-bold ${p.status === 'Aprobado' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                                        ${p.status}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            }
+        }
+
+        async function submitOwnerPayment(e) {
+            e.preventDefault();
+            if (!currentUser || currentUser.role !== 'owner') return;
+
+            const concept = document.getElementById('rep-concept').value;
+            const currency = document.getElementById('rep-currency').value;
+            const amount = parseFloat(document.getElementById('rep-amount').value) || 0;
+            const ref = document.getElementById('rep-ref').value;
+            const payDate = document.getElementById('rep-date').value;
+
+            const bcvRateUsed = getBcvRateForDate(payDate);
+            const isBs = currency === 'BS';
+            const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
+
+            const payload = {
+                apto: currentUser.apto,
+                concept,
+                method: isBs ? 'Bs - Pago Móvil / Transferencia' : 'USD - Divisa',
+                amount,
+                usd_equiv: Number(usdEquiv.toFixed(2)),
+                bcv_rate_used: isBs ? bcvRateUsed : null,
+                ref,
+                status: 'Pendiente',
+                date: payDate
+            };
+
+            const { error } = await db.from('payments').insert([payload]);
+            if (error) {
+                alert('Error al enviar el reporte de pago: ' + error.message);
+                return;
+            }
+
+            document.getElementById('owner-pay-modal').classList.add('hidden');
+            e.target.reset();
+            await loadStorage();
+            alert('¡Pago reportado con éxito! Se encuentra en proceso de revisión.');
+        }
+
+        // ==================== REPORTES Y CONFIGURACIÓN ====================
+        function generateReports() {
+            const periodInput = document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
+            const periodLabel = document.getElementById('rep-ord-period-label');
+            if (periodLabel) periodLabel.innerText = `Periodo: ${periodInput}`;
+
+            // 1. Reporte Ordinario
+            const ordBody = document.getElementById('report-ordinary-body');
+            if (ordBody) {
+                ordBody.innerHTML = '';
+                const activeExpenses = state.expenses.filter(e => e.type === 'ordinaria' || e.type === 'ordinary');
+                const totalUsd = activeExpenses.reduce((acc, e) => acc + Number(e.amount || 0), 0);
+
+                state.owners.forEach(o => {
+                    const factor = o.alicuota > 1 ? o.alicuota / 100 : o.alicuota;
+                    const assignedUsd = totalUsd * factor;
+
+                    const approvedPayments = state.payments.filter(p => p.apto === o.apto && p.status === 'Aprobado');
+                    const paidUsd = approvedPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+                    const lastRef = approvedPayments.length > 0 ? approvedPayments[0].ref : 'N/A';
+
+                    const debtUsd = Math.max(0, assignedUsd - paidUsd);
+
+                    ordBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">${o.apto}</td>
+                            <td class="p-2">${o.owner}</td>
+                            <td class="p-2 text-right font-semibold">$${assignedUsd.toFixed(2)}</td>
+                            <td class="p-2 text-right text-emerald-600 font-bold">$${paidUsd.toFixed(2)}</td>
+                            <td class="p-2 text-center text-slate-400 text-[10px]">${lastRef}</td>
+                            <td class="p-2 text-right font-bold ${debtUsd > 0 ? 'text-rose-500' : 'text-emerald-500'}">
+                                ${debtUsd > 0 ? `$${debtUsd.toFixed(2)}` : 'Solvente'}
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // 2. Reporte Extraordinario
+            const extraBody = document.getElementById('report-extraordinary-body');
+            if (extraBody) {
+                extraBody.innerHTML = '';
+                const extraExpenses = state.expenses.filter(e => e.type === 'extraordinaria' || e.type === 'extraordinary');
+
+                if (extraExpenses.length === 0) {
+                    extraBody.innerHTML = `<tr><td colspan="7" class="p-2 text-center text-slate-400">No hay cuotas extraordinarias registradas.</td></tr>`;
+                } else {
+                    extraExpenses.forEach(exp => {
+                        state.owners.forEach(o => {
+                            const factor = o.alicuota > 1 ? o.alicuota / 100 : o.alicuota;
+                            const assignedUsd = Number(exp.amount || 0) * factor;
+
+                            extraBody.innerHTML += `
+                                <tr class="border-b">
+                                    <td class="p-2">${exp.period}</td>
+                                    <td class="p-2 font-bold">${exp.description}</td>
+                                    <td class="p-2">${o.apto}</td>
+                                    <td class="p-2 text-right font-semibold">$${assignedUsd.toFixed(2)}</td>
+                                    <td class="p-2 text-right text-emerald-600 font-bold">$0.00</td>
+                                    <td class="p-2 text-center text-slate-400 text-[10px]">-</td>
+                                    <td class="p-2 text-right font-bold text-rose-500">$${assignedUsd.toFixed(2)}</td>
+                                </tr>
+                            `;
+                        });
+                    });
+                }
+            }
+
+            // 3. Reporte Proveedores
+            const provBody = document.getElementById('report-providers-body');
+            if (provBody) {
+                provBody.innerHTML = '';
+                state.providers.forEach(p => {
+                    provBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">${p.name}</td>
+                            <td class="p-2">${p.service}</td>
+                            <td class="p-2 text-right font-mono">${p.phone || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        async function saveBuildingConfig(e) {
+            e.preventDefault();
+            const name = document.getElementById('cfg-name').value;
+            const rif = document.getElementById('cfg-rif').value;
+            const address = document.getElementById('cfg-address').value;
+
+            const { data, error } = await db.from('building_config').upsert([{ id: 1, name, rif, address }]);
+            if (error) {
+                alert('Error al guardar la configuración: ' + error.message);
+                return;
+            }
+
+            await loadStorage();
+            alert('¡Configuración actualizada con éxito!');
+        }
+
+        // ==================== INICIALIZACIÓN DE LA APP ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStorage();
+            setupRealtimeSubscriptions();
+        });
+    </script>
+</body>
+</html>
