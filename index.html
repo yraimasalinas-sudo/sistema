@@ -423,95 +423,94 @@
                 </div>
 
                 <!-- PESTAÑA 6: REPORTES DE GESTIÓN -->
-               <!-- PESTAÑA 6: REPORTES DE GESTIÓN SEPARADOS -->
-<div id="tab-reportes" class="tab-content hidden space-y-6">
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 no-print">
-        <h3 class="font-bold text-slate-800 mb-4 text-sm">🔍 Filtro para Reportes Financieros</h3>
-        <div class="flex flex-wrap items-end gap-4">
-            <div>
-                <label class="text-xs text-slate-600 block">Mes a Consultar</label>
-                <input type="month" id="rep-period" class="p-2 rounded-lg border text-sm" onchange="generateReports()">
-            </div>
-            <button onclick="generateReports()" class="px-5 py-2.5 bg-teal-500 text-white font-semibold text-sm rounded-lg hover:bg-teal-600">Actualizar Reportes</button>
-            <button onclick="window.print()" class="px-5 py-2.5 bg-slate-700 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 flex items-center gap-1">🖨 Imprimir / Guardar PDF</button>
-        </div>
-    </div>
+                <div id="tab-reportes" class="tab-content hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 no-print">
+                        <h3 class="font-bold text-slate-800 mb-4 text-sm">🔍 Filtro para Reportes Financieros</h3>
+                        <div class="flex flex-wrap items-end gap-4">
+                            <div>
+                                <label class="text-xs text-slate-600 block">Mes a Consultar</label>
+                                <input type="month" id="rep-period" class="p-2 rounded-lg border text-sm" onchange="generateReports()">
+                            </div>
+                            <button onclick="generateReports()" class="px-5 py-2.5 bg-teal-500 text-white font-semibold text-sm rounded-lg hover:bg-teal-600">Actualizar Reportes</button>
+                            <button onclick="window.print()" class="px-5 py-2.5 bg-slate-700 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 flex items-center gap-1">🖨 Imprimir / Guardar PDF</button>
+                        </div>
+                    </div>
 
-    <!-- Encabezado para impresión -->
-    <div id="print-header" class="hidden print-only mb-6 border-b pb-4">
-        <h1 class="text-xl font-bold text-center uppercase" id="print-bldg-name">Edificio</h1>
-        <p class="text-center text-xs" id="print-bldg-info">RIF: | Dirección: </p>
-        <p class="text-right text-xs mt-2" id="print-date">Fecha de emisión: </p>
-    </div>
+                    <!-- Encabezado para impresión -->
+                    <div id="print-header" class="hidden print-only mb-6 border-b pb-4">
+                        <h1 class="text-xl font-bold text-center uppercase" id="print-bldg-name">Edificio</h1>
+                        <p class="text-center text-xs" id="print-bldg-info">RIF: | Dirección: </p>
+                        <p class="text-right text-xs mt-2" id="print-date">Fecha de emisión: </p>
+                    </div>
 
-    <!-- REPORTE 1: CUOTAS ORDINARIAS -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-3">
-        <div class="flex justify-between items-center border-b pb-2">
-            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                📊 Estado Financiero - Cuota Mensual Ordinaria
-            </h3>
-            <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold" id="rep-ord-period-label">Periodo: --</span>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-xs">
-                <thead>
-                    <tr class="bg-slate-50 text-slate-700 text-left border-b">
-                        <th class="p-2">Apto</th>
-                        <th class="p-2">Propietario</th>
-                        <th class="p-2 text-right">Alícuota ($)</th>
-                        <th class="p-2 text-right">Total Pagado ($)</th>
-                        <th class="p-2 text-center">Ref. Pago</th>
-                        <th class="p-2 text-right">Estatus / Deuda ($)</th>
-                    </tr>
-                </thead>
-                <tbody id="report-ordinary-body"></tbody>
-            </table>
-        </div>
-    </div>
+                    <!-- REPORTE 1: CUOTAS ORDINARIAS -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-3">
+                        <div class="flex justify-between items-center border-b pb-2">
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                📊 Estado Financiero - Cuota Mensual Ordinaria
+                            </h3>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold" id="rep-ord-period-label">Periodo: --</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-700 text-left border-b">
+                                        <th class="p-2">Apto</th>
+                                        <th class="p-2">Propietario</th>
+                                        <th class="p-2 text-right">Alícuota ($)</th>
+                                        <th class="p-2 text-right">Total Pagado ($)</th>
+                                        <th class="p-2 text-center">Ref. Pago</th>
+                                        <th class="p-2 text-right">Estatus / Deuda ($)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="report-ordinary-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
 
-    <!-- REPORTE 2: CUOTAS EXTRAORDINARIAS -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-3">
-        <div class="flex justify-between items-center border-b pb-2">
-            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                📊 Estado Financiero - Cuotas Extraordinarias
-            </h3>
-            <span class="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-bold">Detalle por Proyecto/Concepto</span>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-xs">
-                <thead>
-                    <tr class="bg-slate-50 text-slate-700 text-left border-b">
-                        <th class="p-2">Mes Cobro</th>
-                        <th class="p-2">Concepto / Proyecto</th>
-                        <th class="p-2">Apto</th>
-                        <th class="p-2 text-right">Monto Asignado ($)</th>
-                        <th class="p-2 text-right">Monto Pagado ($)</th>
-                        <th class="p-2 text-center">Ref. Pago</th>
-                        <th class="p-2 text-right">Pendiente ($)</th>
-                    </tr>
-                </thead>
-                <tbody id="report-extraordinary-body"></tbody>
-            </table>
-        </div>
-    </div>
+                    <!-- REPORTE 2: CUOTAS EXTRAORDINARIAS -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-3">
+                        <div class="flex justify-between items-center border-b pb-2">
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                📊 Estado Financiero - Cuotas Extraordinarias
+                            </h3>
+                            <span class="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-bold">Detalle por Proyecto/Concepto</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-700 text-left border-b">
+                                        <th class="p-2">Mes Cobro</th>
+                                        <th class="p-2">Concepto / Proyecto</th>
+                                        <th class="p-2">Apto</th>
+                                        <th class="p-2 text-right">Monto Asignado ($)</th>
+                                        <th class="p-2 text-right">Monto Pagado ($)</th>
+                                        <th class="p-2 text-center">Ref. Pago</th>
+                                        <th class="p-2 text-right">Pendiente ($)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="report-extraordinary-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
 
-    <!-- REPORTE 3: PAGOS A PROVEEDORES -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h3 class="font-bold text-slate-800 mb-2 text-sm">📑 Historial de Pagos a Proveedores</h3>
-        <div class="overflow-x-auto">
-            <table class="w-full text-xs">
-                <thead>
-                    <tr class="bg-slate-100 text-left">
-                        <th class="p-2">Proveedor</th>
-                        <th class="p-2">Servicio</th>
-                        <th class="p-2 font-bold text-right">Teléfono / Contacto</th>
-                    </tr>
-                </thead>
-                <tbody id="report-providers-body"></tbody>
-            </table>
-        </div>
-    </div>
-</div>
+                    <!-- REPORTE 3: PAGOS A PROVEEDORES -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <h3 class="font-bold text-slate-800 mb-2 text-sm">📑 Historial de Pagos a Proveedores</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead>
+                                    <tr class="bg-slate-100 text-left">
+                                        <th class="p-2">Proveedor</th>
+                                        <th class="p-2">Servicio</th>
+                                        <th class="p-2 font-bold text-right">Teléfono / Contacto</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="report-providers-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- PESTAÑA 7: CONFIGURACIÓN -->
                 <div id="tab-config" class="tab-content hidden">
@@ -1378,310 +1377,3 @@
             } else {
                 alert(`¡Aviso de cobro (${filterType}) del periodo ${period} archivado con éxito!`);
                 renderHistoryNotices();
-            }
-        }
-
-        async function renderHistoryNotices() {
-            const tbody = document.getElementById('history-notices-body');
-            if (!tbody) return;
-
-            const selectedPeriod = document.getElementById('hist-filter-period')?.value;
-            const selectedType = document.getElementById('hist-filter-type')?.value || 'all';
-
-            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">Cargando avisos...</td></tr>';
-
-            let query = db.from('billing_notices').select('*').order('created_at', { ascending: false });
-
-            if (selectedPeriod) {
-                query = query.eq('period', selectedPeriod);
-            }
-
-            const { data: notices, error } = await query;
-
-            if (error) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Error al cargar: ${error.message}</td></tr>`;
-                return;
-            }
-
-            const filteredNotices = (notices || []).filter(item => {
-                if (selectedType === 'all') return true;
-                if (selectedType === 'ordinary') return item.type === 'ordinary' || item.type === 'ordinaria';
-                if (selectedType === 'extraordinary') return item.type === 'extraordinary' || item.type === 'extraordinaria';
-                return item.type === selectedType;
-            });
-
-            if (filteredNotices.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay avisos guardados para este filtro.</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = filteredNotices.map(item => {
-                const isExtra = item.type === 'extraordinary' || item.type === 'extraordinaria';
-                const isOrd = item.type === 'ordinary' || item.type === 'ordinaria';
-                const typeLabel = isExtra ? 'Extraordinario' : (isOrd ? 'Ordinario' : 'Todos / Mixto');
-                const badgeColor = isExtra ? 'bg-amber-100 text-amber-800' : (isOrd ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-800');
-
-                return `
-                    <tr class="border-b hover:bg-slate-50">
-                        <td class="p-2 font-bold text-slate-700">${item.period}</td>
-                        <td class="p-2">
-                            <span class="px-2 py-1 rounded text-xs font-semibold ${badgeColor}">
-                                ${typeLabel}
-                            </span>
-                        </td>
-                        <td class="p-2 text-right font-semibold text-teal-600">$${Number(item.total_amount_usd || 0).toFixed(2)}</td>
-                        <td class="p-2 text-right text-slate-500">Bs. ${Number(item.bcv_rate || 0).toFixed(2)}</td>
-                        <td class="p-2 text-center">
-                            <button onclick='alert("Gastos en este aviso:\\n" + ${JSON.stringify(item.details?.expenses || [])}.map(e => "• [" + (e.type || "").toUpperCase() + "] " + e.description + ": $" + e.amount).join("\\n"))' class="px-2 py-1 bg-sky-500 text-white text-xs rounded hover:bg-sky-600">
-                                👁️ Ver Gastos
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // ==================== REPORTES DE GESTIÓN ====================
-       function generateReports() {
-    // 1. Datos del encabezado para la vista de impresión
-    const printBldg = document.getElementById('print-bldg-name');
-    if (printBldg) printBldg.innerText = state.building.name;
-    
-    const printInfo = document.getElementById('print-bldg-info');
-    if (printInfo) printInfo.innerText = `RIF: ${state.building.rif} | Dirección: ${state.building.address}`;
-    
-    const printDate = document.getElementById('print-date');
-    if (printDate) printDate.innerText = `Fecha de Emisión: ${new Date().toLocaleDateString()}`;
-
-    // Obtener periodo a consultar (ej: 2026-08)
-    const periodInput = document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
-    const ordLabel = document.getElementById('rep-ord-period-label');
-    if (ordLabel) ordLabel.innerText = `Periodo: ${periodInput}`;
-
-    // -------------------------------------------------------------
-    // REPORTE 1: ESTADO FINANCIERO - CUOTA MENSUAL ORDINARIA
-    // -------------------------------------------------------------
-    const ordBody = document.getElementById('report-ordinary-body');
-    if (ordBody) {
-        ordBody.innerHTML = '';
-        
-        // Sumar total de gastos ordinarios del mes
-        const totalOrdUsd = (state.expenses || [])
-            .filter(e => (e.type === 'ordinaria' || e.type === 'ordinary') && (!e.period || e.period === periodInput))
-            .reduce((acc, e) => acc + Number(e.amount || 0), 0);
-
-        state.owners.forEach(o => {
-            const alicuotaVal = Number(o.alicuota || 0);
-            const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
-            const montoMantenimiento = totalOrdUsd * factor;
-
-            // Filtrar pagos ordinarios aprobados del apartamento
-            const ownerPayments = (state.payments || []).filter(p => 
-                p.apto === o.apto && 
-                p.status === 'Aprobado' &&
-                (!p.concept || p.concept.includes('Ordinaria') || p.concept.includes('Total'))
-            );
-
-            const totalPagado = ownerPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
-            const refs = ownerPayments.map(p => p.ref).filter(Boolean).join(', ') || 'N/A';
-            const saldo = montoMantenimiento - totalPagado;
-
-            const estatusColor = saldo <= 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold';
-            const estatusTexto = saldo <= 0 ? '$0.00' : `$${saldo.toFixed(2)}`;
-
-            ordBody.innerHTML += `
-                <tr class="border-b hover:bg-slate-50">
-                    <td class="p-2 font-bold text-slate-800">${o.apto}</td>
-                    <td class="p-2">${o.owner}</td>
-                    <td class="p-2 text-right font-semibold">$${montoMantenimiento.toFixed(2)}</td>
-                    <td class="p-2 text-right font-bold text-emerald-600">$${totalPagado.toFixed(2)}</td>
-                    <td class="p-2 text-center text-[11px] text-slate-500">${refs}</td>
-                    <td class="p-2 text-right ${estatusColor}">${estatusTexto}</td>
-                </tr>
-            `;
-        });
-    }
-
-    // -------------------------------------------------------------
-    // REPORTE 2: ESTADO FINANCIERO - CUOTAS EXTRAORDINARIAS
-    // -------------------------------------------------------------
-    const extBody = document.getElementById('report-extraordinary-body');
-    if (extBody) {
-        extBody.innerHTML = '';
-
-        const extraExpenses = (state.expenses || []).filter(e => e.type === 'extraordinaria' || e.type === 'extraordinary');
-
-        if (extraExpenses.length === 0) {
-            extBody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400">No hay cuotas extraordinarias registradas.</td></tr>`;
-        } else {
-            extraExpenses.forEach(exp => {
-                const expPeriod = exp.period || periodInput;
-                const expConcept = exp.description || 'Cuota Extraordinaria';
-                const totalExpenseUsd = Number(exp.amount || 0);
-
-                state.owners.forEach(o => {
-                    const alicuotaVal = Number(o.alicuota || 0);
-                    const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
-                    const asignadoApto = totalExpenseUsd * factor;
-
-                    // Filtrar pagos extraordinarios aprobados del apartamento
-                    const extraPayments = (state.payments || []).filter(p => 
-                        p.apto === o.apto && 
-                        p.status === 'Aprobado' &&
-                        (p.concept && (p.concept.includes('Extraordinaria') || p.concept.includes('Total')))
-                    );
-
-                    const pagadoApto = extraPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
-                    const refs = extraPayments.map(p => p.ref).filter(Boolean).join(', ') || 'N/A';
-                    const pendiente = asignadoApto - pagadoApto;
-                    const saldoText = pendiente <= 0 ? '$0.00' : `$${pendiente.toFixed(2)}`;
-
-                    extBody.innerHTML += `
-                        <tr class="border-b hover:bg-slate-50">
-                            <td class="p-2 font-semibold text-slate-600">${expPeriod}</td>
-                            <td class="p-2 font-medium text-slate-800">${expConcept}</td>
-                            <td class="p-2 font-bold">${o.apto}</td>
-                            <td class="p-2 text-right font-semibold">$${asignadoApto.toFixed(2)}</td>
-                            <td class="p-2 text-right font-bold text-emerald-600">$${pagadoApto.toFixed(2)}</td>
-                            <td class="p-2 text-center text-[11px] text-slate-500">${refs}</td>
-                            <td class="p-2 text-right font-bold ${pendiente > 0 ? 'text-rose-600' : 'text-slate-400'}">${saldoText}</td>
-                        </tr>
-                    `;
-                });
-            });
-        }
-    }
-}
-
-        // ==================== VISTA DEL PROPIETARIO Y REPORTAR PAGO ====================
-        function renderOwnerData() {
-            const o = currentUser;
-            const bcv = state.building.bcv;
-
-            document.getElementById('owner-dash-apto').innerText = o.apto;
-            document.getElementById('owner-dash-name').innerText = o.owner;
-            document.getElementById('owner-dash-alicuota').innerText = o.alicuota;
-            document.getElementById('owner-bcv-rate').innerText = bcv.toFixed(2);
-
-            const rBody = document.getElementById('owner-receipt-body');
-            rBody.innerHTML = '';
-            let totalAptoUsd = 0;
-
-            state.expenses.forEach(exp => {
-                let cuotaUsd = exp.type === 'no_comun' ? (exp.apto === o.apto ? exp.amount : 0) : exp.amount * (o.alicuota / 100);
-                totalAptoUsd += cuotaUsd;
-                const cuotaBs = cuotaUsd * bcv;
-
-                rBody.innerHTML += `
-                    <tr class="border-b">
-                        <td class="p-2 font-semibold">${exp.description}</td>
-                        <td class="p-2 text-slate-400 capitalize">${exp.type}</td>
-                        <td class="p-2 text-right">$${exp.amount.toFixed(2)}</td>
-                        <td class="p-2 text-right font-bold text-teal-600">$${cuotaUsd.toFixed(2)}</td>
-                        <td class="p-2 text-right font-bold text-slate-700">Bs. ${cuotaBs.toFixed(2)}</td>
-                    </tr>
-                `;
-            });
-
-            const pagado = state.payments
-                .filter(p => p.apto === o.apto && p.status === 'Aprobado')
-                .reduce((a, b) => a + (b.usdEquiv || 0), 0);
-
-            const saldoUsd = totalAptoUsd - pagado;
-            const saldoBs = saldoUsd * bcv;
-
-            document.getElementById('owner-dash-balance').innerText = `$${saldoUsd.toFixed(2)}`;
-            document.getElementById('owner-dash-balance-bs').innerText = `Bs. ${saldoBs.toFixed(2)}`;
-        }
-
-        async function submitOwnerPayment(e) {
-            e.preventDefault();
-            const concept = document.getElementById('rep-concept').value;
-            const curr = document.getElementById('rep-currency').value;
-            const amount = parseFloat(document.getElementById('rep-amount').value);
-            const ref = document.getElementById('rep-ref').value;
-            const date = document.getElementById('rep-date').value || new Date().toISOString().split('T')[0];
-
-            let usdEquiv = amount;
-            let bcvRateUsed = state.building.bcv || 1;
-
-            if (curr === 'BS') {
-                bcvRateUsed = getBcvRateForDate(date);
-                usdEquiv = amount / bcvRateUsed;
-            }
-
-            const payload = {
-                apto: currentUser.apto,
-                concept,
-                method: curr === 'BS' ? 'Bs - Transferencia/Pago Movil' : 'USD - Efectivo/Zelle',
-                amount,
-                usd_equiv: Number(usdEquiv.toFixed(2)),
-                bcv_rate_used: bcvRateUsed,
-                ref,
-                status: 'Pendiente',
-                date
-            };
-
-            const { error } = await db.from('payments').insert([payload]);
-            if (error) {
-                alert('Error enviando reporte de pago a Supabase: ' + error.message);
-                return;
-            }
-
-            document.getElementById('owner-pay-modal').classList.add('hidden');
-            await loadStorage();
-            alert(`Su pago fue reportado con éxito ($${usdEquiv.toFixed(2)} USD). Queda pendiente por conciliación.`);
-        }
-
-        function populateSelects() {
-            const expApto = document.getElementById('exp-apto');
-            const payApto = document.getElementById('pay-apto');
-            const expProv = document.getElementById('exp-provider');
-
-            if (!expApto || !payApto || !expProv) return;
-
-            expApto.innerHTML = '';
-            payApto.innerHTML = '';
-            expProv.innerHTML = '<option value="">Sin Proveedor</option>';
-
-            state.owners.forEach(o => {
-                expApto.innerHTML += `<option value="${o.apto}">${o.apto}</option>`;
-                payApto.innerHTML += `<option value="${o.apto}">${o.apto} - ${o.owner}</option>`;
-            });
-
-            state.providers.forEach(p => {
-                expProv.innerHTML += `<option value="${p.name}">${p.name} (${p.service})</option>`;
-            });
-        }
-
-        document.getElementById('exp-type')?.addEventListener('change', function () {
-            const box = document.getElementById('specific-apto-box');
-            if (this.value === 'no_comun') box.classList.remove('hidden');
-            else box.classList.add('hidden');
-        });
-
-        async function saveBuildingConfig(e) {
-            e.preventDefault();
-            const name = document.getElementById('cfg-name').value;
-            const rif = document.getElementById('cfg-rif').value;
-            const address = document.getElementById('cfg-address').value;
-
-            const { error } = await db.from('building_config').upsert([{ id: 1, name, rif, address }]);
-            if (error) {
-                alert('Error al actualizar edificio en Supabase: ' + error.message);
-                return;
-            }
-
-            await loadStorage();
-            showDashboard();
-            alert('Datos del condominio actualizados con éxito en la nube.');
-        }
-
-        // Inicialización al cargar la ventana
-        window.addEventListener('DOMContentLoaded', () => {
-            loadStorage();
-            setupRealtimeSubscriptions();
-        });
-    </script>
-</body>
-</html>
