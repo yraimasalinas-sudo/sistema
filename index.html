@@ -729,9 +729,10 @@
                         id: p.id,
                         apto: p.apto,
                         concept: p.concept || 'Cuota Ordinaria Mensual',
+                        type: p.type || (p.concept && p.concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria'),
                         method: p.method || 'Transferencia',
                         amount: parseFloat(p.amount || 0),
-                        usdEquiv: parseFloat(p.usd_equiv || 0),
+                        usdEquiv: parseFloat(p.usd_equiv || p.amount_usd || 0),
                         ref: p.ref || '',
                         status: p.status || 'Pendiente',
                         date: p.date
@@ -1139,7 +1140,6 @@
             if (!preview) return;
 
             const filterType = document.getElementById('wa-fee-type')?.value || 'all';
-    
             const periodInput = document.getElementById('exp-period')?.value || new Date().toISOString().slice(0, 7);
 
             let activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
@@ -1211,51 +1211,47 @@
         }
 
         async function registerAdminPayment(e) {
-        e.preventDefault();
-        const apto = document.getElementById('pay-apto').value;
-        const concept = document.getElementById('pay-concept').value;
-    
-        // 1. Obtener el tipo de pago desde el formulario ('ordinaria' o 'extraordinaria')
-        // Si usas el mismo select de concepto, evalúa si incluye la palabra 'extraordinaria'
-        const typeElement = document.getElementById('pay-type');
-        const type = typeElement 
-            ? typeElement.value 
-            : (concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria');
+            e.preventDefault();
+            const apto = document.getElementById('pay-apto').value;
+            const concept = document.getElementById('pay-concept').value;
+            
+            // Evaluar tipo dinámicamente desde el concepto
+            const type = concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria';
 
-        const method = document.getElementById('pay-method').value;
-        const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
-        const ref = document.getElementById('pay-ref').value;
-        const payDate = document.getElementById('pay-date').value || new Date().toISOString().split('T')[0];
+            const method = document.getElementById('pay-method').value;
+            const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
+            const ref = document.getElementById('pay-ref').value;
+            const payDate = document.getElementById('pay-date').value || new Date().toISOString().split('T')[0];
 
-        const bcvRateUsed = getBcvRateForDate(payDate);
-        const isBs = method.includes('Bs');
-        const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
+            const bcvRateUsed = getBcvRateForDate(payDate);
+            const isBs = method.includes('Bs');
+            const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
 
-        // 2. Incluir `type` y adaptar las claves para que coincidan con las búsquedas del frontend/reporte
-        const payload = {
-            apto,
-            concept,
-            type,                           // <-- Guardar 'extraordinaria' u 'ordinaria'
-            method,
-            amount,
-            amount_usd: Number(usdEquiv.toFixed(2)), // Mantiene compatibilidad con p.amountUsd
-            usd_equiv: Number(usdEquiv.toFixed(2)),
-            bcv_rate_used: isBs ? bcvRateUsed : null,
-            ref,
-            status: 'Aprobado',             // Compatible con la validación del reporte
-            date: payDate
-        };
+            const payload = {
+                apto,
+                concept,
+                type,
+                method,
+                amount,
+                amount_usd: Number(usdEquiv.toFixed(2)),
+                usd_equiv: Number(usdEquiv.toFixed(2)),
+                bcv_rate_used: isBs ? bcvRateUsed : null,
+                ref,
+                status: 'Aprobado',
+                date: payDate
+            };
 
-        const { error } = await db.from('payments').insert([payload]);
-        if (error) {
-            alert('Error al registrar pago en Supabase: ' + error.message);
-            return;
+            const { error } = await db.from('payments').insert([payload]);
+            if (error) {
+                alert('Error al registrar pago en Supabase: ' + error.message);
+                return;
+            }
+
+            document.getElementById('admin-pay-form').reset();
+            await loadStorage();
+            alert('Pago registrado y aprobado correctamente.');
         }
 
-        document.getElementById('admin-pay-form').reset();
-        await loadStorage();
-        alert('Pago registrado y aprobado correctamente.');
-    }
         async function approvePayment(id) {
             const { error } = await db.from('payments').update({ status: 'Aprobado' }).eq('id', id);
             if (error) {
@@ -1599,12 +1595,16 @@
             const bcvRateUsed = getBcvRateForDate(payDate);
             const isBs = currency === 'BS';
             const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
+            
+            const type = concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria';
 
             const payload = {
                 apto: currentUser.apto,
                 concept,
+                type,
                 method: isBs ? 'Bs - Pago Móvil / Transferencia' : 'USD - Divisa',
                 amount,
+                amount_usd: Number(usdEquiv.toFixed(2)),
                 usd_equiv: Number(usdEquiv.toFixed(2)),
                 bcv_rate_used: isBs ? bcvRateUsed : null,
                 ref,
@@ -1641,7 +1641,7 @@
                     const factor = o.alicuota > 1 ? o.alicuota / 100 : o.alicuota;
                     const assignedUsd = totalUsd * factor;
 
-                    const approvedPayments = state.payments.filter(p => p.apto === o.apto && p.status === 'Aprobado');
+                    const approvedPayments = state.payments.filter(p => p.apto === o.apto && p.status === 'Aprobado' && p.type === 'ordinaria');
                     const paidUsd = approvedPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
                     const lastRef = approvedPayments.length > 0 ? approvedPayments[0].ref : 'N/A';
 
@@ -1676,15 +1676,22 @@
                             const factor = o.alicuota > 1 ? o.alicuota / 100 : o.alicuota;
                             const assignedUsd = Number(exp.amount || 0) * factor;
 
+                            const approvedExtraPayments = state.payments.filter(p => p.apto === o.apto && p.status === 'Aprobado' && p.type === 'extraordinaria');
+                            const paidUsd = approvedExtraPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+                            const lastRef = approvedExtraPayments.length > 0 ? approvedExtraPayments[0].ref : '-';
+                            const pendingUsd = Math.max(0, assignedUsd - paidUsd);
+
                             extraBody.innerHTML += `
                                 <tr class="border-b">
                                     <td class="p-2">${exp.period}</td>
                                     <td class="p-2 font-bold">${exp.description}</td>
                                     <td class="p-2">${o.apto}</td>
                                     <td class="p-2 text-right font-semibold">$${assignedUsd.toFixed(2)}</td>
-                                    <td class="p-2 text-right text-emerald-600 font-bold">$0.00</td>
-                                    <td class="p-2 text-center text-slate-400 text-[10px]">-</td>
-                                    <td class="p-2 text-right font-bold text-rose-500">$${assignedUsd.toFixed(2)}</td>
+                                    <td class="p-2 text-right text-emerald-600 font-bold">$${paidUsd.toFixed(2)}</td>
+                                    <td class="p-2 text-center text-slate-400 text-[10px]">${lastRef}</td>
+                                    <td class="p-2 text-right font-bold ${pendingUsd > 0 ? 'text-rose-500' : 'text-emerald-500'}">
+                                        ${pendingUsd > 0 ? `$${pendingUsd.toFixed(2)}` : 'Solvente'}
+                                    </td>
                                 </tr>
                             `;
                         });
