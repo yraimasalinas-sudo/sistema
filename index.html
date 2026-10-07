@@ -1776,11 +1776,13 @@
             alert('¡Configuración actualizada con éxito!');
         }
 
-        // ==================== INICIALIZACIÓN DE LA APP ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            loadStorage();
-            setupRealtimeSubscriptions();
-        });
-    </script>
-</body>
-</html>
+         // ==================== INICIALIZACIÓN DE LA APP ====================
+         } // <- Esta llave cierra la función anterior (renderOwnerData o la que esté justo arriba)
+
+         document.addEventListener('DOMContentLoaded', () => {
+             loadStorage();
+             setupRealtimeSubscriptions();
+         });
+     </script>
+ </body>
+ </html>
