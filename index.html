@@ -1211,41 +1211,51 @@
         }
 
         async function registerAdminPayment(e) {
-            e.preventDefault();
-            const apto = document.getElementById('pay-apto').value;
-            const concept = document.getElementById('pay-concept').value;
-            const method = document.getElementById('pay-method').value;
-            const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
-            const ref = document.getElementById('pay-ref').value;
-            const payDate = document.getElementById('pay-date').value || new Date().toISOString().split('T')[0];
+        e.preventDefault();
+        const apto = document.getElementById('pay-apto').value;
+        const concept = document.getElementById('pay-concept').value;
+    
+        // 1. Obtener el tipo de pago desde el formulario ('ordinaria' o 'extraordinaria')
+        // Si usas el mismo select de concepto, evalúa si incluye la palabra 'extraordinaria'
+        const typeElement = document.getElementById('pay-type');
+        const type = typeElement 
+            ? typeElement.value 
+            : (concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria');
 
-            const bcvRateUsed = getBcvRateForDate(payDate);
-            const isBs = method.includes('Bs');
-            const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
+        const method = document.getElementById('pay-method').value;
+        const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
+        const ref = document.getElementById('pay-ref').value;
+        const payDate = document.getElementById('pay-date').value || new Date().toISOString().split('T')[0];
 
-            const payload = {
-                apto,
-                concept,
-                method,
-                amount,
-                usd_equiv: Number(usdEquiv.toFixed(2)),
-                bcv_rate_used: isBs ? bcvRateUsed : null,
-                ref,
-                status: 'Aprobado',
-                date: payDate
-            };
+        const bcvRateUsed = getBcvRateForDate(payDate);
+        const isBs = method.includes('Bs');
+        const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
 
-            const { error } = await db.from('payments').insert([payload]);
-            if (error) {
-                alert('Error al registrar pago en Supabase: ' + error.message);
-                return;
-            }
+        // 2. Incluir `type` y adaptar las claves para que coincidan con las búsquedas del frontend/reporte
+        const payload = {
+            apto,
+            concept,
+            type,                           // <-- Guardar 'extraordinaria' u 'ordinaria'
+            method,
+            amount,
+            amount_usd: Number(usdEquiv.toFixed(2)), // Mantiene compatibilidad con p.amountUsd
+            usd_equiv: Number(usdEquiv.toFixed(2)),
+            bcv_rate_used: isBs ? bcvRateUsed : null,
+            ref,
+            status: 'Aprobado',             // Compatible con la validación del reporte
+            date: payDate
+        };
 
-            document.getElementById('admin-pay-form').reset();
-            await loadStorage();
-            alert('Pago registrado y aprobado correctamente.');
+        const { error } = await db.from('payments').insert([payload]);
+        if (error) {
+            alert('Error al registrar pago en Supabase: ' + error.message);
+            return;
         }
 
+        document.getElementById('admin-pay-form').reset();
+        await loadStorage();
+        alert('Pago registrado y aprobado correctamente.');
+    }
         async function approvePayment(id) {
             const { error } = await db.from('payments').update({ status: 'Aprobado' }).eq('id', id);
             if (error) {
