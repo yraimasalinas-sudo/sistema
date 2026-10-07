@@ -1492,41 +1492,66 @@
         function renderOwnerData() {
             if (!currentUser || currentUser.role !== 'owner') return;
 
-            const myApto = currentUser.apto;
-            const myOwnerObj = state.owners.find(o => o.apto === myApto) || currentUser;
+            // Normalizar el identificador del apartamento
+            const myApto = String(currentUser.apto || currentUser.apartment || '').trim();
+    
+            // Buscar al propietario dentro de state.owners o usar el usuario actual
+            const myOwnerObj = state.owners.find(o => 
+                String(o.apto || o.apartment || '').trim() === myApto
+            ) || currentUser;
 
-            document.getElementById('owner-dash-apto').innerText = myApto;
-            document.getElementById('owner-dash-name').innerText = myOwnerObj.owner;
-            document.getElementById('owner-dash-alicuota').innerText = myOwnerObj.alicuota;
+            // Renderizar datos básicos del perfil
+            const elApto = document.getElementById('owner-dash-apto');
+            const elName = document.getElementById('owner-dash-name');
+            const elAli = document.getElementById('owner-dash-alicuota');
 
-            const bcvRate = Number(state.building.bcv) || 1;
-            document.getElementById('owner-bcv-rate').innerText = bcvRate.toFixed(2);
+            if (elApto) elApto.innerText = myApto;
+            if (elName) elName.innerText = myOwnerObj.owner || myOwnerObj.full_name || 'Propietario';
+            if (elAli) elAli.innerText = myOwnerObj.alicuota || 0;
 
-            // Calcular gastos pendientes asignados
-            const pendingExpenses = state.expenses.filter(e => e.status !== 'billed');
+            const bcvRate = Number(state.building?.bcv || state.building?.bcv_rate || 1);
+            const elBcv = document.getElementById('owner-bcv-rate');
+            if (elBcv) elBcv.innerText = bcvRate.toFixed(2);
+
+            // 1. Filtrar gastos pendientes del edificio
+            const expensesList = Array.isArray(state.expenses) ? state.expenses : [];
+            const pendingExpenses = expensesList.filter(e => e.status !== 'billed');
+    
             let myTotalUsd = 0;
-
-            const factor = myOwnerObj.alicuota > 1 ? myOwnerObj.alicuota / 100 : myOwnerObj.alicuota;
+            const rawAlicuota = Number(myOwnerObj.alicuota || 0);
+            const factor = rawAlicuota > 1 ? rawAlicuota / 100 : rawAlicuota;
 
             pendingExpenses.forEach(e => {
+                const expenseApto = String(e.apto || e.apartment || '').trim();
+                const amt = Number(e.amount || e.amount_usd || 0);
+
                 if (e.type === 'no_comun') {
-                    if (e.apto === myApto) myTotalUsd += Number(e.amount || 0);
+                    if (expenseApto === myApto) myTotalUsd += amt;
                 } else {
-                    myTotalUsd += Number(e.amount || 0) * factor;
+                    myTotalUsd += amt * factor;
                 }
             });
 
-            // Restar pagos aprobados recientemente
-            const myApprovedPayments = state.payments.filter(p => p.apto === myApto && p.status === 'Aprobado');
-            const totalPaidUsd = myApprovedPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+            // 2. Restar pagos aprobados
+            const paymentsList = Array.isArray(state.payments) ? state.payments : [];
+            const myApprovedPayments = paymentsList.filter(p => {
+                const payApto = String(p.apto || p.apartment || '').trim();
+                return payApto === myApto && (p.status === 'Aprobado' || p.status === 'approved');
+            });
+
+            const totalPaidUsd = myApprovedPayments.reduce((acc, p) => {
+                return acc + Number(p.usdEquiv || p.usd_equiv || p.amount_usd || 0);
+            }, 0);
 
             const netBalanceUsd = Math.max(0, myTotalUsd - totalPaidUsd);
             const netBalanceBs = netBalanceUsd * bcvRate;
 
-            document.getElementById('owner-dash-balance').innerText = `$${netBalanceUsd.toFixed(2)}`;
-            document.getElementById('owner-dash-balance-bs').innerText = `Bs. ${netBalanceBs.toFixed(2)}`;
+            const elBal = document.getElementById('owner-dash-balance');
+            const elBalBs = document.getElementById('owner-dash-balance-bs');
+            if (elBal) elBal.innerText = `$${netBalanceUsd.toFixed(2)}`;
+            if (elBalBs) elBalBs.innerText = `Bs. ${netBalanceBs.toFixed(2)}`;
 
-            // Renderizar Recibo de Gastos Actuales
+           // 3. Renderizar Tabla de Recibo
             const receiptBody = document.getElementById('owner-receipt-body');
             if (receiptBody) {
                 receiptBody.innerHTML = '';
@@ -1534,14 +1559,18 @@
                     receiptBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">No hay gastos emitidos en el periodo actual.</td></tr>`;
                 } else {
                     pendingExpenses.forEach(e => {
-                        let totalBldg = Number(e.amount || 0);
-                        let myUsd = e.type === 'no_comun' ? (e.apto === myApto ? totalBldg : 0) : totalBldg * factor;
-                        let myBs = myUsd * bcvRate;
+                        const totalBldg = Number(e.amount || e.amount_usd || 0);
+                        const expenseApto = String(e.apto || e.apartment || '').trim();
+                
+                        const myUsd = e.type === 'no_comun' 
+                            ? (expenseApto === myApto ? totalBldg : 0) 
+                            : totalBldg * factor;
+                        const myBs = myUsd * bcvRate;
 
                         receiptBody.innerHTML += `
                             <tr class="border-b">
-                                <td class="p-2 font-bold">${e.description}</td>
-                                <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(e.type).toUpperCase()}</span></td>
+                                <td class="p-2 font-bold">${e.description || 'Gasto de condominio'}</td>
+                                <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(e.type || 'comun').toUpperCase()}</span></td>
                                 <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
                                 <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
                                 <td class="p-2 text-right font-semibold">Bs. ${myBs.toFixed(2)}</td>
@@ -1551,27 +1580,32 @@
                 }
             }
 
-            // Renderizar Historial de Pagos del Propietario
+            // 4. Renderizar Historial de Pagos
             const historyBody = document.getElementById('owner-history-body');
             if (historyBody) {
                 historyBody.innerHTML = '';
-                const myPayments = state.payments.filter(p => p.apto === myApto);
+                const myPayments = paymentsList.filter(p => 
+                    String(p.apto || p.apartment || '').trim() === myApto
+                );
 
                 if (myPayments.length === 0) {
                     historyBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">No registras pagos reportados hasta el momento.</td></tr>`;
                 } else {
                     myPayments.forEach(p => {
-                        const isBs = p.method && p.method.includes('Bs');
-                        const amtStr = isBs ? `Bs. ${Number(p.amount).toFixed(2)}` : `$${Number(p.amount).toFixed(2)}`;
+                        const methodStr = p.method || '';
+                        const isBs = methodStr.includes('Bs') || p.currency === 'BS';
+                        const amt = Number(p.amount || 0);
+                        const amtUsd = Number(p.usdEquiv || p.usd_equiv || p.amount_usd || 0);
+                        const amtStr = isBs ? `Bs. ${amt.toFixed(2)}` : `$${amt.toFixed(2)}`;
 
                         historyBody.innerHTML += `
                             <tr class="border-b">
-                                <td class="p-2">${p.date}</td>
-                                <td class="p-2">${p.concept}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref} (${p.method})</span></td>
+                                <td class="p-2">${p.date || '-'}</td>
+                                <td class="p-2">${p.concept || 'Pago de condominio'}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref || '-'} (${methodStr})</span></td>
                                 <td class="p-2 text-right font-semibold">${amtStr}</td>
-                                <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv).toFixed(2)}</td>
+                                <td class="p-2 text-right font-bold text-teal-600">$${amtUsd.toFixed(2)}</td>
                                 <td class="p-2 text-center">
-                                    <span class="px-2 py-1 rounded text-[10px] font-bold ${p.status === 'Aprobado' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                                    <span class="px-2 py-1 rounded text-[10px] font-bold ${p.status === 'Aprobado' || p.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
                                         ${p.status}
                                     </span>
                                 </td>
@@ -1580,48 +1614,6 @@
                     });
                 }
             }
-        }
-
-        async function submitOwnerPayment(e) {
-            e.preventDefault();
-            if (!currentUser || currentUser.role !== 'owner') return;
-
-            const concept = document.getElementById('rep-concept').value;
-            const currency = document.getElementById('rep-currency').value;
-            const amount = parseFloat(document.getElementById('rep-amount').value) || 0;
-            const ref = document.getElementById('rep-ref').value;
-            const payDate = document.getElementById('rep-date').value;
-
-            const bcvRateUsed = getBcvRateForDate(payDate);
-            const isBs = currency === 'BS';
-            const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
-            
-            const type = concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria';
-
-            const payload = {
-                apto: currentUser.apto,
-                concept,
-                type,
-                method: isBs ? 'Bs - Pago Móvil / Transferencia' : 'USD - Divisa',
-                amount,
-                amount_usd: Number(usdEquiv.toFixed(2)),
-                usd_equiv: Number(usdEquiv.toFixed(2)),
-                bcv_rate_used: isBs ? bcvRateUsed : null,
-                ref,
-                status: 'Pendiente',
-                date: payDate
-            };
-
-            const { error } = await db.from('payments').insert([payload]);
-            if (error) {
-                alert('Error al enviar el reporte de pago: ' + error.message);
-                return;
-            }
-
-            document.getElementById('owner-pay-modal').classList.add('hidden');
-            e.target.reset();
-            await loadStorage();
-            alert('¡Pago reportado con éxito! Se encuentra en proceso de revisión.');
         }
 
         // ==================== REPORTES Y CONFIGURACIÓN ====================
