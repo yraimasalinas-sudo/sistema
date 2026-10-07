@@ -1252,6 +1252,48 @@
             alert('Pago registrado y aprobado correctamente.');
         }
 
+        async function submitOwnerPayment(e) {
+            e.preventDefault();
+            if (!currentUser || currentUser.role !== 'owner') return;
+
+            const concept = document.getElementById('rep-concept').value;
+            const currency = document.getElementById('rep-currency').value;
+            const amount = parseFloat(document.getElementById('rep-amount').value) || 0;
+            const ref = document.getElementById('rep-ref').value;
+            const payDate = document.getElementById('rep-date').value || new Date().toISOString().split('T')[0];
+
+            const isBs = currency === 'BS';
+            const bcvRateUsed = getBcvRateForDate(payDate);
+            const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
+            const type = concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria';
+            const methodStr = isBs ? 'Bs - Transferencia/Pago Movil' : 'USD - Efectivo/Zelle';
+
+            const payload = {
+                apto: currentUser.apto,
+                concept,
+                type,
+                method: methodStr,
+                amount,
+                amount_usd: Number(usdEquiv.toFixed(2)),
+                usd_equiv: Number(usdEquiv.toFixed(2)),
+                bcv_rate_used: isBs ? bcvRateUsed : null,
+                ref,
+                status: 'Pendiente',
+                date: payDate
+            };
+
+            const { error } = await db.from('payments').insert([payload]);
+            if (error) {
+                alert('Error enviando el pago: ' + error.message);
+                return;
+            }
+
+            document.getElementById('owner-pay-modal').classList.add('hidden');
+            e.target.reset();
+            await loadStorage();
+            alert('¡Pago reportado exitosamente! Queda pendiente por confirmación de la administración.');
+        }
+
         async function approvePayment(id) {
             const { error } = await db.from('payments').update({ status: 'Aprobado' }).eq('id', id);
             if (error) {
@@ -1551,7 +1593,7 @@
             if (elBal) elBal.innerText = `$${netBalanceUsd.toFixed(2)}`;
             if (elBalBs) elBalBs.innerText = `Bs. ${netBalanceBs.toFixed(2)}`;
 
-           // 3. Renderizar Tabla de Recibo
+            // 3. Renderizar Tabla de Recibo
             const receiptBody = document.getElementById('owner-receipt-body');
             if (receiptBody) {
                 receiptBody.innerHTML = '';
@@ -1626,7 +1668,10 @@
             const ordBody = document.getElementById('report-ordinary-body');
             if (ordBody) {
                 ordBody.innerHTML = '';
-                const activeExpenses = state.expenses.filter(e => e.type === 'ordinaria' || e.type === 'ordinary');
+                const activeExpenses = state.expenses.filter(e => 
+                    (e.type === 'ordinaria' || e.type === 'ordinary') && 
+                    (!e.period || e.period === periodInput)
+                );
                 const totalUsd = activeExpenses.reduce((acc, e) => acc + Number(e.amount || 0), 0);
 
                 state.owners.forEach(o => {
@@ -1658,10 +1703,13 @@
             const extraBody = document.getElementById('report-extraordinary-body');
             if (extraBody) {
                 extraBody.innerHTML = '';
-                const extraExpenses = state.expenses.filter(e => e.type === 'extraordinaria' || e.type === 'extraordinary');
+                const extraExpenses = state.expenses.filter(e => 
+                    (e.type === 'extraordinaria' || e.type === 'extraordinary') &&
+                    (!e.period || e.period === periodInput)
+                );
 
                 if (extraExpenses.length === 0) {
-                    extraBody.innerHTML = `<tr><td colspan="7" class="p-2 text-center text-slate-400">No hay cuotas extraordinarias registradas.</td></tr>`;
+                    extraBody.innerHTML = `<tr><td colspan="7" class="p-2 text-center text-slate-400">No hay cuotas extraordinarias registradas para el periodo.</td></tr>`;
                 } else {
                     extraExpenses.forEach(exp => {
                         state.owners.forEach(o => {
