@@ -1139,4 +1139,643 @@
             const waBtn = document.getElementById('wa-group-btn');
             if (!preview) return;
 
-            const filterType = document.getElementById('wa-fee-type')?.value
+            const filterType = document.getElementById('wa-fee-type')?.value || 'all';
+            const periodInput = document.getElementById('exp-period')?.value || new Date().toISOString().slice(0, 7);
+
+            let activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
+
+            if (filterType === 'ordinary') {
+                activeExpenses = activeExpenses.filter(e => e.type === 'ordinaria' || e.type === 'ordinary');
+            } else if (filterType === 'extraordinary') {
+                activeExpenses = activeExpenses.filter(e => e.type === 'extraordinaria' || e.type === 'extraordinary');
+            }
+
+            const totalUsd = activeExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+            let msg = `*${state.building?.name || 'Residencias El Parque'}*\n`;
+            msg += `*RESUMEN DE GASTOS Y COBRANZA - ${periodInput}*\n`;
+            msg += `----------------------------------------\n\n`;
+
+            msg += `*DESGLOSE DE GASTOS DEL MES:*\n`;
+            if (activeExpenses.length === 0) {
+                msg += `• No hay gastos registrados para este periodo.\n`;
+            } else {
+                activeExpenses.forEach(exp => {
+                    const label = exp.description.toUpperCase();
+                    const aptoNote = exp.apto && exp.apto !== 'TODOS' ? ` (${exp.apto})` : '';
+                    msg += `• ${label}${aptoNote}: $${Number(exp.amount).toFixed(2)}\n`;
+                });
+            }
+
+            msg += `\n*TOTAL GASTOS COMUNES:* *$${totalUsd.toFixed(2)}*\n`;
+            msg += `----------------------------------------\n\n`;
+
+            msg += `*ALÍCUOTAS Y MONTOS A PAGAR POR APTO:*\n`;
+    
+            (state.owners || []).forEach(o => {
+                const alicuotaVal = Number(o.alicuota || 0);
+                const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+                const montoApto = totalUsd * factor;
+
+                msg += `*Apt ${o.apto}* (${alicuotaVal.toFixed(1)}%): *$${montoApto.toFixed(2)}*\n`;
+            });
+
+            msg += `\n----------------------------------------\n`;
+            msg += `*Nota:* Por favor reportar su pago. ¡Gracias!`;
+
+            preview.value = msg;
+
+            if (waBtn) {
+                waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+            }
+        }
+
+        // ==================== PAGOS Y CONCILIACIÓN ====================
+        function getBcvRateForDate(targetDate) {
+            if (!state.bcvHistory || state.bcvHistory.length === 0) {
+                return Number(state.building.bcv) || 1;
+            }
+
+            const exact = state.bcvHistory.find(h => h.date === targetDate);
+            if (exact && exact.rate) return Number(exact.rate);
+
+            const pastRates = state.bcvHistory
+                .filter(h => h.date <= targetDate && h.rate)
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (pastRates.length > 0) {
+                return Number(pastRates[0].rate);
+            }
+
+            return Number(state.building.bcv) || 1;
+        }
+
+        async function registerAdminPayment(e) {
+            e.preventDefault();
+            const apto = document.getElementById('pay-apto').value;
+            const concept = document.getElementById('pay-concept').value;
+            
+            // Evaluar tipo dinámicamente desde el concepto
+            const type = concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria';
+
+            const method = document.getElementById('pay-method').value;
+            const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
+            const ref = document.getElementById('pay-ref').value;
+            const payDate = document.getElementById('pay-date').value || new Date().toISOString().split('T')[0];
+
+            const bcvRateUsed = getBcvRateForDate(payDate);
+            const isBs = method.includes('Bs');
+            const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
+
+            const payload = {
+                apto,
+                concept,
+                type,
+                method,
+                amount,
+                amount_usd: Number(usdEquiv.toFixed(2)),
+                usd_equiv: Number(usdEquiv.toFixed(2)),
+                bcv_rate_used: isBs ? bcvRateUsed : null,
+                ref,
+                status: 'Aprobado',
+                date: payDate
+            };
+
+            const { error } = await db.from('payments').insert([payload]);
+            if (error) {
+                alert('Error al registrar pago en Supabase: ' + error.message);
+                return;
+            }
+
+            document.getElementById('admin-pay-form').reset();
+            await loadStorage();
+            alert('Pago registrado y aprobado correctamente.');
+        }
+
+        async function submitOwnerPayment(e) {
+            e.preventDefault();
+            if (!currentUser || currentUser.role !== 'owner') return;
+
+            const concept = document.getElementById('rep-concept').value;
+            const currency = document.getElementById('rep-currency').value;
+            const amount = parseFloat(document.getElementById('rep-amount').value) || 0;
+            const ref = document.getElementById('rep-ref').value;
+            const payDate = document.getElementById('rep-date').value || new Date().toISOString().split('T')[0];
+
+            const isBs = currency === 'BS';
+            const bcvRateUsed = getBcvRateForDate(payDate);
+            const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
+            const type = concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria';
+            const methodStr = isBs ? 'Bs - Transferencia/Pago Movil' : 'USD - Efectivo/Zelle';
+
+            const payload = {
+                apto: currentUser.apto,
+                concept,
+                type,
+                method: methodStr,
+                amount,
+                amount_usd: Number(usdEquiv.toFixed(2)),
+                usd_equiv: Number(usdEquiv.toFixed(2)),
+                bcv_rate_used: isBs ? bcvRateUsed : null,
+                ref,
+                status: 'Pendiente',
+                date: payDate
+            };
+
+            const { error } = await db.from('payments').insert([payload]);
+            if (error) {
+                alert('Error enviando el pago: ' + error.message);
+                return;
+            }
+
+            document.getElementById('owner-pay-modal').classList.add('hidden');
+            e.target.reset();
+            await loadStorage();
+            alert('¡Pago reportado exitosamente! Queda pendiente por confirmación de la administración.');
+        }
+
+        async function approvePayment(id) {
+            const { error } = await db.from('payments').update({ status: 'Aprobado' }).eq('id', id);
+            if (error) {
+                alert('Error aprobando el pago: ' + error.message);
+                return;
+            }
+            await loadStorage();
+        }
+
+        async function deletePayment(id) {
+            if (!confirm('¿Seguro que deseas eliminar este pago?')) return;
+            const { error } = await db.from('payments').delete().eq('id', id);
+            if (error) {
+                alert('Error eliminando pago: ' + error.message);
+                return;
+            }
+            await loadStorage();
+        }
+
+        function renderPendingPayments() {
+            const body = document.getElementById('payments-pending-body');
+            if (!body) return;
+            body.innerHTML = '';
+
+            state.payments.forEach(p => {
+                const isBs = p.method && p.method.includes('Bs');
+                const montoOriginalText = isBs ? `Bs. ${Number(p.amount).toFixed(2)}` : `$${Number(p.amount).toFixed(2)}`;
+
+                body.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-2 font-bold">${p.apto}</td>
+                        <td class="p-2">${p.date}</td>
+                        <td class="p-2">${p.method}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref}</span></td>
+                        <td class="p-2 text-right font-semibold">${montoOriginalText}</td>
+                        <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv).toFixed(2)}</td>
+                        <td class="p-2 text-center space-x-1">
+                            ${p.status === 'Pendiente' ? `
+                                <button onclick="approvePayment(${p.id})" class="px-2 py-1 bg-emerald-500 text-white rounded text-[10px]">Aprobar</button>
+                            ` : `<span class="text-emerald-600 font-bold text-[10px]">✓ Aprobado</span>`}
+                            <button onclick="deletePayment(${p.id})" class="px-2 py-1 bg-rose-500 text-white rounded text-[10px]">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==================== PROPIETARIOS Y PROVEEDORES ====================
+        function renderOwnersTable() {
+            const body = document.getElementById('owners-table-body');
+            if (!body) return;
+            body.innerHTML = '';
+
+            state.owners.forEach((o) => {
+                body.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-2 font-bold">${o.apto}</td>
+                        <td class="p-2">
+                            <input type="text" value="${o.owner}" onchange="updateOwnerName('${o.apto}', this.value)" class="p-1 border rounded w-full">
+                        </td>
+                        <td class="p-2 font-semibold">${o.alicuota}%</td>
+                        <td class="p-2 font-mono text-slate-500">${o.pass}</td>
+                        <td class="p-2 space-x-1">
+                            <button onclick="resetPassword('${o.apto}')" class="px-2 py-1 bg-amber-500 text-white text-[10px] rounded hover:bg-amber-600">Resetear Clave</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function updateOwnerName(apto, newName) {
+            const { error } = await db.from('owners').update({ owner_name: newName }).eq('apto', apto);
+            if (error) alert('Error actualizando propietario en Supabase: ' + error.message);
+            else await loadStorage();
+        }
+
+        async function resetPassword(apto) {
+            const { error } = await db.from('owners').update({ pass: '1234' }).eq('apto', apto);
+            if (error) alert('Error reseteando clave: ' + error.message);
+            else {
+                alert(`Clave del apto ${apto} reseteada a 1234`);
+                await loadStorage();
+            }
+        }
+
+        async function addProvider(e) {
+            e.preventDefault();
+            const name = document.getElementById('prov-name').value;
+            const service = document.getElementById('prov-service').value;
+            const phone = document.getElementById('prov-phone').value;
+
+            const { error } = await db.from('providers').insert([{ name, service_type: service, phone }]);
+            if (error) {
+                alert('Error guardando proveedor en Supabase: ' + error.message);
+                return;
+            }
+            e.target.reset();
+            await loadStorage();
+        }
+
+        function renderProvidersTable() {
+            const body = document.getElementById('providers-table-body');
+            if (!body) return;
+            body.innerHTML = '';
+            state.providers.forEach(p => {
+                body.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-2 font-bold">${p.name}</td>
+                        <td class="p-2">${p.service}</td>
+                        <td class="p-2">${p.phone}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==================== HISTÓRICO DE AVISOS ====================
+        async function saveCurrentNotice() {
+            const period = prompt("Ingresa el periodo del aviso a archivar (Formato YYYY-MM, ej: 2026-08):", new Date().toISOString().slice(0, 7));
+            if (!period) return;
+
+            const filterType = document.getElementById('hist-filter-type')?.value || 
+                               document.getElementById('wa-fee-type')?.value || 'all';
+
+            const isOrdinary = (t) => t === 'ordinaria' || t === 'ordinary';
+            const isExtraordinary = (t) => t === 'extraordinaria' || t === 'extraordinary';
+
+            let filteredExpenses = (state.expenses || []).filter(e => {
+                const matchPeriod = e.period ? e.period === period : true;
+                let matchType = true;
+                if (filterType === 'ordinary') matchType = isOrdinary(e.type);
+                else if (filterType === 'extraordinary') matchType = isExtraordinary(e.type);
+                return matchPeriod && matchType;
+            });
+
+            if (filteredExpenses.length === 0) {
+                const confirmAll = confirm(`No se encontraron gastos de tipo "${filterType}" con periodo "${period}".\n\n¿Deseas incluir todos los gastos activos cargados de este tipo?`);
+                if (!confirmAll) return;
+
+                filteredExpenses = (state.expenses || []).filter(e => {
+                    if (filterType === 'ordinary') return isOrdinary(e.type);
+                    if (filterType === 'extraordinary') return isExtraordinary(e.type);
+                    return true;
+                });
+            }
+
+            if (filteredExpenses.length === 0) {
+                alert("No hay gastos del tipo seleccionado para archivar.");
+                return;
+            }
+
+            const totalUSD = filteredExpenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
+
+            const noticeData = {
+                period: period,
+                type: filterType,
+                total_amount_usd: totalUSD,
+                bcv_rate: state.building?.bcv || 0,
+                details: {
+                    expenses: filteredExpenses,
+                    owners: (state.owners || []).map(o => ({
+                        apto: o.apto,
+                        owner: o.owner,
+                        alicuota: o.alicuota,
+                        usd: totalUSD * (o.alicuota / 100),
+                        bs: (totalUSD * (o.alicuota / 100)) * (state.building?.bcv || 0)
+                    }))
+                }
+            };
+
+            const { error } = await db.from('billing_notices').insert([noticeData]);
+            if (error) {
+                alert("Error al guardar el aviso en Supabase: " + error.message);
+            } else {
+                alert(`¡Aviso de cobro (${filterType}) del periodo ${period} archivado con éxito!`);
+                await loadStorage();
+            }
+        }
+
+        function renderHistoryNotices() {
+            const body = document.getElementById('history-notices-body');
+            if (!body) return;
+            body.innerHTML = '';
+
+            const periodFilter = document.getElementById('hist-filter-period')?.value;
+            const typeFilter = document.getElementById('hist-filter-type')?.value;
+
+            let filtered = state.billingNotices || [];
+
+            if (periodFilter) {
+                filtered = filtered.filter(n => n.period === periodFilter);
+            }
+
+            if (typeFilter && typeFilter !== 'all') {
+                filtered = filtered.filter(n => n.type === typeFilter);
+            }
+
+            if (filtered.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay avisos guardados con estos criterios.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(n => {
+                body.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2 font-bold">${n.period}</td>
+                        <td class="p-2"><span class="px-2 py-0.5 rounded text-xs bg-slate-100">${(n.type || 'ALL').toUpperCase()}</span></td>
+                        <td class="p-2 text-right font-bold text-teal-600">$${Number(n.total_amount_usd || 0).toFixed(2)}</td>
+                        <td class="p-2 text-right">Bs. ${Number(n.bcv_rate || 0).toFixed(2)}</td>
+                        <td class="p-2 text-center">
+                            <button onclick="viewNoticeDetail(${n.id})" class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">
+                                👁️ Ver Detalle
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function viewNoticeDetail(id) {
+            const notice = state.billingNotices.find(n => n.id === id);
+            if (!notice) return;
+
+            let detailsMsg = `📄 AVISO DE COBRO - ${notice.period}\n\n`;
+            detailsMsg += `Tipo: ${notice.type.toUpperCase()}\n`;
+            detailsMsg += `TotalUSD: $${Number(notice.total_amount_usd).toFixed(2)}\n`;
+            detailsMsg += `Tasa BCV: Bs. ${Number(notice.bcv_rate).toFixed(2)}\n\n`;
+            detailsMsg += `--- GASTOS --- \n`;
+
+            if (notice.details && notice.details.expenses) {
+                notice.details.expenses.forEach(e => {
+                    detailsMsg += `• ${e.description}: $${Number(e.amount).toFixed(2)}\n`;
+                });
+            }
+
+            alert(detailsMsg);
+        }
+
+        // ==================== VISTA DE PROPIETARIOS ====================
+        function renderOwnerData() {
+            if (!currentUser || currentUser.role !== 'owner') return;
+
+            // Normalizar el identificador del apartamento
+            const myApto = String(currentUser.apto || currentUser.apartment || '').trim();
+    
+            // Buscar al propietario dentro de state.owners o usar el usuario actual
+            const myOwnerObj = state.owners.find(o => 
+                String(o.apto || o.apartment || '').trim() === myApto
+            ) || currentUser;
+
+            // Renderizar datos básicos del perfil
+            const elApto = document.getElementById('owner-dash-apto');
+            const elName = document.getElementById('owner-dash-name');
+            const elAli = document.getElementById('owner-dash-alicuota');
+
+            if (elApto) elApto.innerText = myApto;
+            if (elName) elName.innerText = myOwnerObj.owner || myOwnerObj.full_name || 'Propietario';
+            if (elAli) elAli.innerText = myOwnerObj.alicuota || 0;
+
+            const bcvRate = Number(state.building?.bcv || state.building?.bcv_rate || 1);
+            const elBcv = document.getElementById('owner-bcv-rate');
+            if (elBcv) elBcv.innerText = bcvRate.toFixed(2);
+
+            // 1. Filtrar gastos pendientes del edificio
+            const expensesList = Array.isArray(state.expenses) ? state.expenses : [];
+            const pendingExpenses = expensesList.filter(e => e.status !== 'billed');
+    
+            let myTotalUsd = 0;
+            const rawAlicuota = Number(myOwnerObj.alicuota || 0);
+            const factor = rawAlicuota > 1 ? rawAlicuota / 100 : rawAlicuota;
+
+            pendingExpenses.forEach(e => {
+                const expenseApto = String(e.apto || e.apartment || '').trim();
+                const amt = Number(e.amount || e.amount_usd || 0);
+
+                if (e.type === 'no_comun') {
+                    if (expenseApto === myApto) myTotalUsd += amt;
+                } else {
+                    myTotalUsd += amt * factor;
+                }
+            });
+
+            // 2. Restar pagos aprobados
+            const paymentsList = Array.isArray(state.payments) ? state.payments : [];
+            const myApprovedPayments = paymentsList.filter(p => {
+                const payApto = String(p.apto || p.apartment || '').trim();
+                return payApto === myApto && (p.status === 'Aprobado' || p.status === 'approved');
+            });
+
+            const totalPaidUsd = myApprovedPayments.reduce((acc, p) => {
+                return acc + Number(p.usdEquiv || p.usd_equiv || p.amount_usd || 0);
+            }, 0);
+
+            const netBalanceUsd = Math.max(0, myTotalUsd - totalPaidUsd);
+            const netBalanceBs = netBalanceUsd * bcvRate;
+
+            const elBal = document.getElementById('owner-dash-balance');
+            const elBalBs = document.getElementById('owner-dash-balance-bs');
+            if (elBal) elBal.innerText = `$${netBalanceUsd.toFixed(2)}`;
+            if (elBalBs) elBalBs.innerText = `Bs. ${netBalanceBs.toFixed(2)}`;
+
+            // 3. Renderizar Tabla de Recibo
+            const receiptBody = document.getElementById('owner-receipt-body');
+            if (receiptBody) {
+                receiptBody.innerHTML = '';
+                if (pendingExpenses.length === 0) {
+                    receiptBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">No hay gastos emitidos en el periodo actual.</td></tr>`;
+                } else {
+                    pendingExpenses.forEach(e => {
+                        const totalBldg = Number(e.amount || e.amount_usd || 0);
+                        const expenseApto = String(e.apto || e.apartment || '').trim();
+                
+                        const myUsd = e.type === 'no_comun' 
+                            ? (expenseApto === myApto ? totalBldg : 0) 
+                            : totalBldg * factor;
+                        const myBs = myUsd * bcvRate;
+
+                        receiptBody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-2 font-bold">${e.description || 'Gasto de condominio'}</td>
+                                <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(e.type || 'comun').toUpperCase()}</span></td>
+                                <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
+                                <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
+                                <td class="p-2 text-right font-semibold">Bs. ${myBs.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            }
+
+            // 4. Renderizar Historial de Pagos
+            const historyBody = document.getElementById('owner-history-body');
+            if (historyBody) {
+                historyBody.innerHTML = '';
+                const myPayments = paymentsList.filter(p => 
+                    String(p.apto || p.apartment || '').trim() === myApto
+                );
+
+                if (myPayments.length === 0) {
+                    historyBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">No registras pagos reportados hasta el momento.</td></tr>`;
+                } else {
+                    myPayments.forEach(p => {
+                        const methodStr = p.method || '';
+                        const isBs = methodStr.includes('Bs') || p.currency === 'BS';
+                        const amt = Number(p.amount || 0);
+                        const amtUsd = Number(p.usdEquiv || p.usd_equiv || p.amount_usd || 0);
+                        const amtStr = isBs ? `Bs. ${amt.toFixed(2)}` : `$${amt.toFixed(2)}`;
+
+                        historyBody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-2">${p.date || '-'}</td>
+                                <td class="p-2">${p.concept || 'Pago de condominio'}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref || '-'} (${methodStr})</span></td>
+                                <td class="p-2 text-right font-semibold">${amtStr}</td>
+                                <td class="p-2 text-right font-bold text-teal-600">$${amtUsd.toFixed(2)}</td>
+                                <td class="p-2 text-center">
+                                    <span class="px-2 py-1 rounded text-[10px] font-bold ${p.status === 'Aprobado' || p.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                                        ${p.status}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            }
+        }
+
+        // ==================== REPORTES Y CONFIGURACIÓN ====================
+        function generateReports() {
+            const periodInput = document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
+            const periodLabel = document.getElementById('rep-ord-period-label');
+            if (periodLabel) periodLabel.innerText = `Periodo: ${periodInput}`;
+
+            // 1. Reporte Ordinario
+            const ordBody = document.getElementById('report-ordinary-body');
+            if (ordBody) {
+                ordBody.innerHTML = '';
+                const activeExpenses = state.expenses.filter(e => 
+                    (e.type === 'ordinaria' || e.type === 'ordinary') && 
+                    (!e.period || e.period === periodInput)
+                );
+                const totalUsd = activeExpenses.reduce((acc, e) => acc + Number(e.amount || 0), 0);
+
+                state.owners.forEach(o => {
+                    const factor = o.alicuota > 1 ? o.alicuota / 100 : o.alicuota;
+                    const assignedUsd = totalUsd * factor;
+
+                    const approvedPayments = state.payments.filter(p => p.apto === o.apto && p.status === 'Aprobado' && p.type === 'ordinaria');
+                    const paidUsd = approvedPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+                    const lastRef = approvedPayments.length > 0 ? approvedPayments[0].ref : 'N/A';
+
+                    const debtUsd = Math.max(0, assignedUsd - paidUsd);
+
+                    ordBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">${o.apto}</td>
+                            <td class="p-2">${o.owner}</td>
+                            <td class="p-2 text-right font-semibold">$${assignedUsd.toFixed(2)}</td>
+                            <td class="p-2 text-right text-emerald-600 font-bold">$${paidUsd.toFixed(2)}</td>
+                            <td class="p-2 text-center text-slate-400 text-[10px]">${lastRef}</td>
+                            <td class="p-2 text-right font-bold ${debtUsd > 0 ? 'text-rose-500' : 'text-emerald-500'}">
+                                ${debtUsd > 0 ? `$${debtUsd.toFixed(2)}` : 'Solvente'}
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // 2. Reporte Extraordinario
+            const extraBody = document.getElementById('report-extraordinary-body');
+            if (extraBody) {
+                extraBody.innerHTML = '';
+                const extraExpenses = state.expenses.filter(e => 
+                    (e.type === 'extraordinaria' || e.type === 'extraordinary') &&
+                    (!e.period || e.period === periodInput)
+                );
+
+                if (extraExpenses.length === 0) {
+                    extraBody.innerHTML = `<tr><td colspan="7" class="p-2 text-center text-slate-400">No hay cuotas extraordinarias registradas para el periodo.</td></tr>`;
+                } else {
+                    extraExpenses.forEach(exp => {
+                        state.owners.forEach(o => {
+                            const factor = o.alicuota > 1 ? o.alicuota / 100 : o.alicuota;
+                            const assignedUsd = Number(exp.amount || 0) * factor;
+
+                            const approvedExtraPayments = state.payments.filter(p => p.apto === o.apto && p.status === 'Aprobado' && p.type === 'extraordinaria');
+                            const paidUsd = approvedExtraPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+                            const lastRef = approvedExtraPayments.length > 0 ? approvedExtraPayments[0].ref : '-';
+                            const pendingUsd = Math.max(0, assignedUsd - paidUsd);
+
+                            extraBody.innerHTML += `
+                                <tr class="border-b">
+                                    <td class="p-2">${exp.period}</td>
+                                    <td class="p-2 font-bold">${exp.description}</td>
+                                    <td class="p-2">${o.apto}</td>
+                                    <td class="p-2 text-right font-semibold">$${assignedUsd.toFixed(2)}</td>
+                                    <td class="p-2 text-right text-emerald-600 font-bold">$${paidUsd.toFixed(2)}</td>
+                                    <td class="p-2 text-center text-slate-400 text-[10px]">${lastRef}</td>
+                                    <td class="p-2 text-right font-bold ${pendingUsd > 0 ? 'text-rose-500' : 'text-emerald-500'}">
+                                        ${pendingUsd > 0 ? `$${pendingUsd.toFixed(2)}` : 'Solvente'}
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    });
+                }
+            }
+
+            // 3. Reporte Proveedores
+            const provBody = document.getElementById('report-providers-body');
+            if (provBody) {
+                provBody.innerHTML = '';
+                state.providers.forEach(p => {
+                    provBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">${p.name}</td>
+                            <td class="p-2">${p.service}</td>
+                            <td class="p-2 text-right font-mono">${p.phone || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        async function saveBuildingConfig(e) {
+            e.preventDefault();
+            const name = document.getElementById('cfg-name').value;
+            const rif = document.getElementById('cfg-rif').value;
+            const address = document.getElementById('cfg-address').value;
+
+            const { data, error } = await db.from('building_config').upsert([{ id: 1, name, rif, address }]);
+            if (error) {
+                alert('Error al guardar la configuración: ' + error.message);
+                return;
+            }
+
+            await loadStorage();
+            alert('¡Configuración actualizada con éxito!');
+        }
+
+        // ==================== INICIALIZACIÓN DE LA APP ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStorage();
+            setupRealtimeSubscriptions();
+        });
+    </script>
+</body>
+</html>
