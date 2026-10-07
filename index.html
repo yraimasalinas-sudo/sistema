@@ -1161,9 +1161,24 @@
 
         // ==================== PAGOS Y CONCILIACIÓN ====================
         function getBcvRateForDate(targetDate) {
-            if (!state.bcvHistory || state.bcvHistory.length === 0) return Number(state.building.bcv) || 1;
+            if (!state.bcvHistory || state.bcvHistory.length === 0) {
+                return Number(state.building.bcv) || 1;
+            }
+
+            // 1. Buscar coincidencia exacta
             const exact = state.bcvHistory.find(h => h.date === targetDate);
             if (exact && exact.rate) return Number(exact.rate);
+
+            // 2. Si no hay fecha exacta, tomar la tasa más reciente registrada ANTERIOR a la fecha de pago
+            const pastRates = state.bcvHistory
+                .filter(h => h.date <= targetDate && h.rate)
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (pastRates.length > 0) {
+                return Number(pastRates[0].rate);
+            }
+
+            // 3. Si no hay registros previos, usar la tasa actual por defecto
             return Number(state.building.bcv) || 1;
         }
 
