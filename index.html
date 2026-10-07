@@ -714,6 +714,7 @@
                 if (errBldg) console.warn("Aviso en consulta 'building_config':", errBldg.message);
                 if (errNotices) console.warn("Aviso en consulta 'billing_notices':", errNotices.message);
 
+                // 1. TASA BCV HISTORIAL Y ACTIVA
                 if (cloudBcv && cloudBcv.length > 0) {
                     state.bcvHistory = cloudBcv.map(b => ({
                         id: b.id,
@@ -721,89 +722,99 @@
                         rate: parseFloat(b.rate || 0),
                         origin: b.origin || 'BCV'
                     }));
-                    state.building.bcv = parseFloat(cloudBcv[0].rate || 36.50);
+                    const latestRate = parseFloat(cloudBcv[0].rate || 36.50);
+                    if (!state.building) state.building = {};
+                    state.building.bcv = latestRate;
+                    state.bcvRate = latestRate; // Compatibilidad directa
                 }
 
+                // 2. PAGOS DE PROPIETARIOS
                 if (cloudPayments) {
                     state.payments = cloudPayments.map(p => ({
-                        id: p.id,
-                        apto: p.apto,
-                        concept: p.concept || 'Cuota Ordinaria Mensual',
-                        type: p.type || (p.concept && p.concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria'),
-                        method: p.method || 'Transferencia',
-                        amount: parseFloat(p.amount || 0),
-                        usdEquiv: parseFloat(p.usd_equiv || p.amount_usd || 0),
-                        ref: p.ref || '',
-                        status: p.status || 'Pendiente',
-                        date: p.date
-                    }));
-                }
-
-                if (cloudExpenses) {
-                    state.expenses = cloudExpenses.map(e => ({
-                        id: e.id,
-                        period: e.period || new Date().toISOString().slice(0, 7),
-                        description: e.description,
-                        amount: parseFloat(e.amount || 0),
-                        type: e.type || 'ordinaria',
-                        apto: e.apto || 'TODOS',
-                        provider: e.provider || null,
-                        status: e.status || 'pending',
-                        date: e.date
-                    }));
-                }
-
-                if (cloudOwners && cloudOwners.length > 0) {
-                    state.owners = cloudOwners.map(o => ({
-                        apto: o.apto,
-                        owner: o.owner_name || o.owner || `Propietario ${o.apto}`,
-                        alicuota: parseFloat(o.alicuota || 0),
-                        pass: o.pass || '1234'
-                    }));
-                }
-
-                if (cloudProviders) {
-                    state.providers = cloudProviders.map(pr => ({
-                        id: pr.id,
-                        name: pr.name,
-                        service: pr.service_type || pr.service || '',
-                        phone: pr.phone || ''
-                    }));
-                }
-
-                if (cloudBuilding && cloudBuilding.length > 0) {
-                    state.building.name = cloudBuilding[0].name || state.building.name;
-                    state.building.rif = cloudBuilding[0].rif || state.building.rif;
-                    state.building.address = cloudBuilding[0].address || state.building.address;
-                }
-
-                if (cloudNotices) {
-                    state.billingNotices = cloudNotices;
-                }
-
-                console.log("Datos sincronizados desde la nube:", state);
-            } catch (e) {
-                console.error("Error al cargar datos desde la nube:", e);
+                    id: p.id,
+                    apto: p.apto,
+                    concept: p.concept || 'Cuota Ordinaria Mensual',
+                    type: p.type || (p.concept && p.concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria'),
+                    method: p.method || 'Transferencia',
+                    amount: parseFloat(p.amount || 0),
+                    amount_usd: parseFloat(p.amount_usd || p.usd_equiv || p.amount || 0),
+                    usdEquiv: parseFloat(p.usd_equiv || p.amount_usd || 0),
+                    ref: p.ref || '',
+                    status: p.status || 'Pendiente',
+                    date: p.date
+                }));
             }
 
-            updateBcvUI();
-            if (currentUser) {
-                if (currentUser.role === 'admin') renderAdminData();
-                else renderOwnerData();
+            // 3. GASTOS DEL EDIFICIO (Mapeo corregido para USD y Bs)
+            if (cloudExpenses) {
+                state.expenses = cloudExpenses.map(e => ({
+                    id: e.id,
+                    period: e.period || new Date().toISOString().slice(0, 7),
+                    description: e.description || e.concept || 'Gasto de Condominio',
+                    concept: e.concept || e.description || 'Gasto de Condominio',
+                    amount: parseFloat(e.amount || e.amount_usd || 0),
+                    amount_usd: parseFloat(e.amount_usd || e.amount || 0),
+                    type: e.type || 'ordinaria',
+                    apto: e.apto || 'TODOS',
+                    provider: e.provider || null,
+                    status: e.status || 'pending',
+                    date: e.date
+                }));
             }
-        }
 
-        // Suscripción en tiempo real con Debounce para evitar sobrecargas
-        function setupRealtimeSubscriptions() {
-            db.channel('condo-changes')
-              .on('postgres_changes', { event: '*', schema: 'public' }, () => {
-                  clearTimeout(realtimeTimer);
-                  realtimeTimer = setTimeout(() => {
-                      loadStorage();
-                  }, 400);
-              })
-              .subscribe();
+            // 4. PROPIETARIOS Y ALÍCUOTAS
+            if (cloudOwners && cloudOwners.length > 0) {
+                state.owners = cloudOwners.map(o => ({
+                    apto: o.apto,
+                    owner: o.owner_name || o.owner || `Propietario ${o.apto}`,
+                    alicuota: parseFloat(o.alicuota || 0),
+                    pass: o.pass || '1234'
+                }));
+            }
+
+            // 5. PROVEEDORES
+            if (cloudProviders) {
+                state.providers = cloudProviders.map(pr => ({
+                    id: pr.id,
+                    name: pr.name,
+                    service: pr.service_type || pr.service || '',
+                    phone: pr.phone || ''
+                }));
+            }
+
+            // 6. DATOS DE CONFIGURACIÓN DEL EDIFICIO
+            if (cloudBuilding && cloudBuilding.length > 0) {
+                const bldg = cloudBuilding[0];
+                if (!state.building) state.building = {};
+                state.building.name = bldg.name || state.building.name;
+                state.building.rif = bldg.rif || state.building.rif;
+                state.building.address = bldg.address || state.building.address;
+            
+                // Guardar en state.config para mantener compatibilidad
+                state.config = {
+                    name: bldg.name,
+                    rif: bldg.rif,
+                    address: bldg.address,
+                    bcv_rate: state.building.bcv || 36.50
+                };
+            }
+
+            // 7. AVISOS DE COBRO
+            if (cloudNotices) {
+                state.billingNotices = cloudNotices;
+            }
+
+            console.log("Datos sincronizados desde la nube:", state);
+        } catch (e) {
+            console.error("Error al cargar datos desde la nube:", e);
         }
+    
+        updateBcvUI();
+        if (currentUser) {
+            if (currentUser.role === 'admin') renderAdminData();
+            else renderOwnerData();
+        }
+    } 
 
         // ==================== TASA BCV ====================
         function updateBcvUI() {
