@@ -1534,12 +1534,16 @@
         function renderOwnerData() {
             if (!currentUser || currentUser.role !== 'owner') return;
 
-            // Normalizar el identificador del apartamento
-            const myApto = String(currentUser.apto || currentUser.apartment || '').trim();
-    
-            // Buscar al propietario dentro de state.owners o usar el usuario actual
+            // 1. Mapeo flexible del apartamento
+            const myApto = String(
+                currentUser.apto || 
+                currentUser.apartment || 
+                currentUser.apartamento || ''
+            ).trim();
+
+            // 2. Propietario en el state
             const myOwnerObj = state.owners.find(o => 
-                String(o.apto || o.apartment || '').trim() === myApto
+                String(o.apto || o.apartment || o.apartamento || '').trim() === myApto
             ) || currentUser;
 
             // Renderizar datos básicos del perfil
@@ -1548,24 +1552,24 @@
             const elAli = document.getElementById('owner-dash-alicuota');
 
             if (elApto) elApto.innerText = myApto;
-            if (elName) elName.innerText = myOwnerObj.owner || myOwnerObj.full_name || 'Propietario';
+            if (elName) elName.innerText = myOwnerObj.owner || myOwnerObj.full_name || myOwnerObj.nombre || 'Propietario';
             if (elAli) elAli.innerText = myOwnerObj.alicuota || 0;
 
             const bcvRate = Number(state.building?.bcv || state.building?.bcv_rate || 1);
             const elBcv = document.getElementById('owner-bcv-rate');
             if (elBcv) elBcv.innerText = bcvRate.toFixed(2);
 
-            // 1. Filtrar gastos pendientes del edificio
+            // 3. Gastos (si quieres ver todos los del periodo, ajusta o remueve la restricción de 'billed')
             const expensesList = Array.isArray(state.expenses) ? state.expenses : [];
-            const pendingExpenses = expensesList.filter(e => e.status !== 'billed');
-    
+            const activeExpenses = expensesList.filter(e => e.status !== 'billed'); // O mantener todos si es un recibo histórico
+
             let myTotalUsd = 0;
             const rawAlicuota = Number(myOwnerObj.alicuota || 0);
             const factor = rawAlicuota > 1 ? rawAlicuota / 100 : rawAlicuota;
 
-            pendingExpenses.forEach(e => {
-                const expenseApto = String(e.apto || e.apartment || '').trim();
-                const amt = Number(e.amount || e.amount_usd || 0);
+            activeExpenses.forEach(e => {
+                const expenseApto = String(e.apto || e.apartment || e.apartamento || '').trim();
+                const amt = Number(e.amount || e.amount_usd || e.monto || 0);
 
                 if (e.type === 'no_comun') {
                     if (expenseApto === myApto) myTotalUsd += amt;
@@ -1574,15 +1578,17 @@
                 }
             });
 
-            // 2. Restar pagos aprobados
+            // 4. Pagos aprobados
             const paymentsList = Array.isArray(state.payments) ? state.payments : [];
             const myApprovedPayments = paymentsList.filter(p => {
-                const payApto = String(p.apto || p.apartment || '').trim();
-                return payApto === myApto && (p.status === 'Aprobado' || p.status === 'approved');
+                const payApto = String(p.apto || p.apartment || p.apartamento || '').trim();
+                const status = String(p.status || '').toLowerCase();
+                return payApto === myApto && (status === 'aprobado' || status === 'approved');
             });
 
             const totalPaidUsd = myApprovedPayments.reduce((acc, p) => {
-                return acc + Number(p.usdEquiv || p.usd_equiv || p.amount_usd || 0);
+                const paidValue = Number(p.usdEquiv || p.usd_equiv || p.amount_usd || p.monto_usd || p.amount || 0);
+                return acc + paidValue;
             }, 0);
 
             const netBalanceUsd = Math.max(0, myTotalUsd - totalPaidUsd);
@@ -1593,17 +1599,17 @@
             if (elBal) elBal.innerText = `$${netBalanceUsd.toFixed(2)}`;
             if (elBalBs) elBalBs.innerText = `Bs. ${netBalanceBs.toFixed(2)}`;
 
-            // 3. Renderizar Tabla de Recibo
+            // 5. Renderizar Tabla de Recibo
             const receiptBody = document.getElementById('owner-receipt-body');
             if (receiptBody) {
                 receiptBody.innerHTML = '';
-                if (pendingExpenses.length === 0) {
+                if (activeExpenses.length === 0) {
                     receiptBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">No hay gastos emitidos en el periodo actual.</td></tr>`;
                 } else {
-                    pendingExpenses.forEach(e => {
-                        const totalBldg = Number(e.amount || e.amount_usd || 0);
-                        const expenseApto = String(e.apto || e.apartment || '').trim();
-                
+                    activeExpenses.forEach(e => {
+                        const totalBldg = Number(e.amount || e.amount_usd || e.monto || 0);
+                        const expenseApto = String(e.apto || e.apartment || e.apartamento || '').trim();
+
                         const myUsd = e.type === 'no_comun' 
                             ? (expenseApto === myApto ? totalBldg : 0) 
                             : totalBldg * factor;
@@ -1611,7 +1617,7 @@
 
                         receiptBody.innerHTML += `
                             <tr class="border-b">
-                                <td class="p-2 font-bold">${e.description || 'Gasto de condominio'}</td>
+                                <td class="p-2 font-bold">${e.description || e.concepto || 'Gasto de condominio'}</td>
                                 <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(e.type || 'comun').toUpperCase()}</span></td>
                                 <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
                                 <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
@@ -1622,32 +1628,32 @@
                 }
             }
 
-            // 4. Renderizar Historial de Pagos
+            // 6. Renderizar Historial de Pagos
             const historyBody = document.getElementById('owner-history-body');
             if (historyBody) {
                 historyBody.innerHTML = '';
                 const myPayments = paymentsList.filter(p => 
-                    String(p.apto || p.apartment || '').trim() === myApto
+                    String(p.apto || p.apartment || p.apartamento || '').trim() === myApto
                 );
 
                 if (myPayments.length === 0) {
-                    historyBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">No registras pagos reportados hasta el momento.</td></tr>`;
+                        historyBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">No registras pagos reportados hasta el momento.</td></tr>`;
                 } else {
                     myPayments.forEach(p => {
-                        const methodStr = p.method || '';
+                        const methodStr = p.method || p.metodo || '';
                         const isBs = methodStr.includes('Bs') || p.currency === 'BS';
-                        const amt = Number(p.amount || 0);
-                        const amtUsd = Number(p.usdEquiv || p.usd_equiv || p.amount_usd || 0);
+                        const amt = Number(p.amount || p.monto || 0);
+                        const amtUsd = Number(p.usdEquiv || p.usd_equiv || p.amount_usd || p.monto_usd || 0);
                         const amtStr = isBs ? `Bs. ${amt.toFixed(2)}` : `$${amt.toFixed(2)}`;
 
                         historyBody.innerHTML += `
                             <tr class="border-b">
-                                <td class="p-2">${p.date || '-'}</td>
-                                <td class="p-2">${p.concept || 'Pago de condominio'}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref || '-'} (${methodStr})</span></td>
+                                <td class="p-2">${p.date || p.fecha || '-'}</td>
+                                <td class="p-2">${p.concept || p.concepto || 'Pago de condominio'}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref || p.referencia || '-'} (${methodStr})</span></td>
                                 <td class="p-2 text-right font-semibold">${amtStr}</td>
                                 <td class="p-2 text-right font-bold text-teal-600">$${amtUsd.toFixed(2)}</td>
                                 <td class="p-2 text-center">
-                                    <span class="px-2 py-1 rounded text-[10px] font-bold ${p.status === 'Aprobado' || p.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                                    <span class="px-2 py-1 rounded text-[10px] font-bold ${String(p.status).toLowerCase() === 'aprobado' || String(p.status).toLowerCase() === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
                                         ${p.status}
                                     </span>
                                 </td>
@@ -1656,7 +1662,6 @@
                     });
                 }
             }
-        }
 
         // ==================== REPORTES Y CONFIGURACIÓN ====================
         function generateReports() {
