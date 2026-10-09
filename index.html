@@ -1162,33 +1162,53 @@
             }
 
             const totalUsd = activeExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+            const esExtraordinaria = filterType === 'extraordinary';
 
             let msg = `*${state.building?.name || 'Residencias El Parque'}*\n`;
-            msg += `*RESUMEN DE GASTOS Y COBRANZA - ${periodInput}*\n`;
-            msg += `----------------------------------------\n\n`;
 
-            msg += `*DESGLOSE DE GASTOS DEL MES:*\n`;
-            if (activeExpenses.length === 0) {
-                msg += `• No hay gastos registrados para este periodo.\n`;
+            if (esExtraordinaria) {
+                // Encabezado específico para Cuota Extraordinaria
+                msg += `*Cuota Extraordinaria - ${periodInput}*\n`;
+                msg += `----------------------------------------\n\n`;
+                msg += `Estimados propietarios se ha emitido una cuota extraordinaria con los siguientes detalles: \n`;
+        
+                if (activeExpenses.length > 0) {
+                    // Si hay un concepto específico, lo mostramos formateado
+                    const exp = activeExpenses[0]; // O unimos varios si hay más de uno
+                    const concepto = (exp.description || 'Cuota Extraordinaria').toUpperCase();
+                    msg += `Concepto:    ${concepto}: $${totalUsd.toFixed(2)}\n\n`;
+                }
+
+                msg += `*TOTAL CUOTA EXTRAORDINARIA :* *$${totalUsd.toFixed(2)}*\n`;
             } else {
-                activeExpenses.forEach(exp => {
-                    const label = exp.description.toUpperCase();
-                    const aptoNote = exp.apto && exp.apto !== 'TODOS' ? ` (${exp.apto})` : '';
-                    msg += `• ${label}${aptoNote}: $${Number(exp.amount).toFixed(2)}\n`;
-                });
+                // Encabezado para Gastos Ordinarios / Generales
+                msg += `*RESUMEN DE GASTOS Y COBRANZA - ${periodInput}*\n`;
+                msg += `----------------------------------------\n\n`;
+                msg += `*DESGLOSE DE GASTOS DEL MES:*\n`;
+        
+                if (activeExpenses.length === 0) {
+                    msg += `• No hay gastos registrados para este periodo.\n`;
+                } else {
+                    activeExpenses.forEach(exp => {
+                        const label = (exp.description || '').toUpperCase();
+                        const aptoNote = exp.apto && exp.apto !== 'TODOS' ? ` (${exp.apto})` : '';
+                        msg += `• ${label}${aptoNote}: $${Number(exp.amount || 0).toFixed(2)}\n`;
+                    });
+                }
+    
+                msg += `\n*TOTAL GASTOS COMUNES:* *$${totalUsd.toFixed(2)}*\n`;
             }
 
-            msg += `\n*TOTAL GASTOS COMUNES:* *$${totalUsd.toFixed(2)}*\n`;
             msg += `----------------------------------------\n\n`;
-
             msg += `*ALÍCUOTAS Y MONTOS A PAGAR POR APTO:*\n`;
-    
+
             (state.owners || []).forEach(o => {
                 const alicuotaVal = Number(o.alicuota || 0);
                 const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+                const porcentajeStr = (factor * 100).toFixed(1) + '%';
                 const montoApto = totalUsd * factor;
 
-                msg += `*Apt ${o.apto}* (${alicuotaVal.toFixed(1)}%): *$${montoApto.toFixed(2)}*\n`;
+                msg += `*Apt ${o.apto}* (${porcentajeStr}): *$${montoApto.toFixed(2)}*\n`;
             });
 
             msg += `\n----------------------------------------\n`;
@@ -1200,7 +1220,6 @@
                 waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
             }
         }
-
         // ==================== PAGOS Y CONCILIACIÓN ====================
         function getBcvRateForDate(targetDate) {
             if (!state.bcvHistory || state.bcvHistory.length === 0) {
