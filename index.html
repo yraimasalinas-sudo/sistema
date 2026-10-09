@@ -1568,7 +1568,7 @@
 
             // 1. Filtrar gastos pendientes del edificio
             const expensesList = Array.isArray(state.expenses) ? state.expenses : [];
-            const pendingExpenses = expensesList.filter(e => e.status !== 'billed');
+            const pendingExpenses = expensesList.filter(e => e.status !== 'anulado' && e.status !== 'cancelled');
     
             let myTotalUsd = 0;
             const rawAlicuota = Number(myOwnerObj.alicuota || 0);
