@@ -1150,38 +1150,47 @@
             const waBtn = document.getElementById('wa-group-btn');
             if (!preview) return;
 
-            const filterType = document.getElementById('wa-fee-type')?.value || 'all';
+            const filterSelect = document.getElementById('wa-fee-type');
+            const filterValue = filterSelect ? String(filterSelect.value || '').toLowerCase() : '';
             const periodInput = document.getElementById('exp-period')?.value || new Date().toISOString().slice(0, 7);
 
             let activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
-            if (filterType === 'ordinary') {
-                activeExpenses = activeExpenses.filter(e => e.type === 'ordinaria' || e.type === 'ordinary');
-            } else if (filterType === 'extraordinary') {
-                activeExpenses = activeExpenses.filter(e => e.type === 'extraordinaria' || e.type === 'extraordinary');
+            // Filtrar según la selección del usuario
+            if (filterValue.includes('ord') || filterValue.includes('comun')) {
+                activeExpenses = activeExpenses.filter(e => {
+                    const t = (e.type || '').toLowerCase();
+                    return t === 'ordinaria' || t === 'ordinary' || t === 'comun';
+                });
+            } else if (filterValue.includes('extra')) {
+                activeExpenses = activeExpenses.filter(e => {
+                    const t = (e.type || '').toLowerCase();
+                    return t.includes('extra');
+                });
             }
 
             const totalUsd = activeExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
-            const esExtraordinaria = filterType === 'extraordinary';
+
+            // Detectar si es una cuota extraordinaria
+            const esExtraordinaria = filterValue.includes('extra') || activeExpenses.some(e => (e.type || '').toLowerCase().includes('extra'));
 
             let msg = `*${state.building?.name || 'Residencias El Parque'}*\n`;
 
             if (esExtraordinaria) {
-                // Encabezado específico para Cuota Extraordinaria
+                // === MENSAJE PARA CUOTA EXTRAORDINARIA ===
                 msg += `*Cuota Extraordinaria - ${periodInput}*\n`;
                 msg += `----------------------------------------\n\n`;
                 msg += `Estimados propietarios se ha emitido una cuota extraordinaria con los siguientes detalles: \n`;
         
                 if (activeExpenses.length > 0) {
-                    // Si hay un concepto específico, lo mostramos formateado
-                    const exp = activeExpenses[0]; // O unimos varios si hay más de uno
+                    const exp = activeExpenses[0];
                     const concepto = (exp.description || 'Cuota Extraordinaria').toUpperCase();
                     msg += `Concepto:    ${concepto}: $${totalUsd.toFixed(2)}\n\n`;
                 }
 
                 msg += `*TOTAL CUOTA EXTRAORDINARIA :* *$${totalUsd.toFixed(2)}*\n`;
             } else {
-                // Encabezado para Gastos Ordinarios / Generales
+                // === MENSAJE PARA GASTOS ORDINARIOS / GENERALES ===
                 msg += `*RESUMEN DE GASTOS Y COBRANZA - ${periodInput}*\n`;
                 msg += `----------------------------------------\n\n`;
                 msg += `*DESGLOSE DE GASTOS DEL MES:*\n`;
@@ -1195,7 +1204,7 @@
                         msg += `• ${label}${aptoNote}: $${Number(exp.amount || 0).toFixed(2)}\n`;
                     });
                 }
-    
+
                 msg += `\n*TOTAL GASTOS COMUNES:* *$${totalUsd.toFixed(2)}*\n`;
             }
 
