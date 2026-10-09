@@ -1867,6 +1867,11 @@
             alert('¡Configuración actualizada con éxito!');
 }
 
+        // ==================== CONFIGURACIÓN DE TIEMPO REAL (OPCIONAL) ====================
+        function setupRealtimeSubscriptions() {
+            // Función de respaldo para evitar errores si no se usa Realtime
+            console.log("Suscripciones en tiempo real omitidas.");
+        } 
         // ==================== INICIALIZACIÓN DE LA APP ====================
         document.addEventListener('DOMContentLoaded', () => {
             loadStorage();
