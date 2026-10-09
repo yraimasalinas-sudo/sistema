@@ -1670,85 +1670,172 @@
         }
 
         // ==================== REPORTES Y CONFIGURACIÓN ====================
-        function generateReports() {
-            const periodInput = document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
+         function generateReports() {
+            // 1. Obtener rango de fechas (Desde / Hasta)
+            const fromInput = document.getElementById('rep-from-period')?.value || ''; // Formato: YYYY-MM
+            const toInput = document.getElementById('rep-to-period')?.value || document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
+    
             const periodLabel = document.getElementById('rep-ord-period-label');
-            if (periodLabel) periodLabel.innerText = `Periodo: ${periodInput}`;
+            if (periodLabel) {
+                periodLabel.innerText = fromInput ? `Periodo: ${fromInput} hasta ${toInput}` : `Periodo: Hasta ${toInput}`;
+            }
 
-            // 1. Reporte Ordinario
+            // ==========================================
+            // SECCIÓN 1: REPORTE DE CUOTAS MENSUALES (ORDINARIO)
+            // ==========================================
             const ordBody = document.getElementById('report-ordinary-body');
             if (ordBody) {
                 ordBody.innerHTML = '';
-                const activeExpenses = state.expenses.filter(e => 
-                    (e.type === 'ordinaria' || e.type === 'ordinary') && 
-                    (!e.period || e.period === periodInput)
-                );
-                const totalUsd = activeExpenses.reduce((acc, e) => acc + Number(e.amount || 0), 0);
+
+                // Filtrar gastos ordinarios en el rango seleccionado
+                const ordinaryExpenses = state.expenses.filter(e => {
+                    const isOrd = e.type === 'ordinaria' || e.type === 'ordinary';
+                    if (!isOrd) return false;
+                    if (!e.period) return true;
+                    if (fromInput && e.period < fromInput) return false;
+                    if (toInput && e.period > toInput) return false;
+                    return true;
+                });
 
                 state.owners.forEach(o => {
-                    const factor = o.alicuota > 1 ? o.alicuota / 100 : o.alicuota;
-                    const assignedUsd = totalUsd * factor;
+                    const factor = o.alicuota > 1 ? o.alicuota / 100 : Number(o.alicuota || 0);
+            
+                    let totalAsignado = 0;
+                    let totalPagado = 0;
+                    let mesesAdeudadosCount = 0;
+                    let conceptosPendientes = [];
 
-                    const approvedPayments = state.payments.filter(p => p.apto === o.apto && p.status === 'Aprobado' && p.type === 'ordinaria');
-                    const paidUsd = approvedPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
-                    const lastRef = approvedPayments.length > 0 ? approvedPayments[0].ref : 'N/A';
+                    ordinaryExpenses.forEach(exp => {
+                        const montoAsignadoItem = Number(exp.amount || 0) * factor;
+                        totalAsignado += montoAsignadoItem;
 
-                    const debtUsd = Math.max(0, assignedUsd - paidUsd);
+                        const approvedPayments = state.payments.filter(p => 
+                            p.apto === o.apto && 
+                            p.status === 'Aprobado' && 
+                            (p.type === 'ordinaria' || p.type === 'ordinary') &&
+                            (!p.period || p.period === exp.period)
+                        );
+
+                        const pagadoItem = approvedPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+                        totalPagado += pagadoItem;
+
+                        // Si queda deuda en este mes específico
+                        if ((montoAsignadoItem - pagadoItem) > 0.01) {
+                            mesesAdeudadosCount++;
+                            const [yyyy, mm] = (exp.period || toInput).split('-');
+                            const nombreMes = new Date(yyyy, mm - 1, 1).toLocaleString('es', { month: 'long', year: 'numeric' }).toUpperCase();
+                            conceptosPendientes.push(nombreMes);
+                        }
+                    });
+
+                    const diferencia = totalAsignado - totalPagado;
+                    let estadoTexto = '';
+                    let estadoClase = '';
+
+                    if (diferencia > 0.01) {
+                        estadoTexto = `Deuda: $${diferencia.toFixed(2)}`;
+                        estadoClase = 'text-rose-500 font-bold';
+                    } else if (diferencia < -0.01) {
+                        estadoTexto = `A favor: $${Math.abs(diferencia).toFixed(2)}`;
+                        estadoClase = 'text-blue-500 font-bold';
+                    } else {
+                        estadoTexto = 'Solvente ($0.00)';
+                        estadoClase = 'text-emerald-500 font-bold';
+                    }
+
+                    const detalleTexto = conceptosPendientes.length > 0 ? conceptosPendientes.join(', ') : 'Solvente';
 
                     ordBody.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-2 font-bold">${o.apto}</td>
-                            <td class="p-2">${o.owner}</td>
-                            <td class="p-2 text-right font-semibold">$${assignedUsd.toFixed(2)}</td>
-                            <td class="p-2 text-right text-emerald-600 font-bold">$${paidUsd.toFixed(2)}</td>
-                            <td class="p-2 text-center text-slate-400 text-[10px]">${lastRef}</td>
-                            <td class="p-2 text-right font-bold ${debtUsd > 0 ? 'text-rose-500' : 'text-emerald-500'}">
-                                ${debtUsd > 0 ? `$${debtUsd.toFixed(2)}` : 'Solvente'}
-                            </td>
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-2 font-bold text-center">${o.apto}</td>
+                            <td class="p-2 text-center">${mesesAdeudadosCount > 0 ? mesesAdeudadosCount : '-'}</td>
+                            <td class="p-2 text-xs text-slate-700">${detalleTexto}</td>
+                            <td class="p-2 text-right font-semibold">$${totalAsignado.toFixed(2)}</td>
+                            <td class="p-2 text-right ${estadoClase}">${estadoTexto}</td>
                         </tr>
                     `;
                 });
             }
 
-            // 2. Reporte Extraordinario
+            // ==========================================
+            // SECCIÓN 2: REPORTE DE CUOTAS EXTRAORDINARIAS
+            // ==========================================
             const extraBody = document.getElementById('report-extraordinary-body');
             if (extraBody) {
                 extraBody.innerHTML = '';
-                const extraExpenses = state.expenses.filter(e => 
-                    (e.type === 'extraordinaria' || e.type === 'extraordinary') &&
-                    (!e.period || e.period === periodInput)
-                );
 
-                if (extraExpenses.length === 0) {
-                    extraBody.innerHTML = `<tr><td colspan="7" class="p-2 text-center text-slate-400">No hay cuotas extraordinarias registradas para el periodo.</td></tr>`;
-                } else {
-                    extraExpenses.forEach(exp => {
-                        state.owners.forEach(o => {
-                            const factor = o.alicuota > 1 ? o.alicuota / 100 : o.alicuota;
-                            const assignedUsd = Number(exp.amount || 0) * factor;
+                // Filtrar gastos extraordinarios en el rango seleccionado
+                const extraordinaryExpenses = state.expenses.filter(e => {
+                    const isExtra = e.type === 'extraordinaria' || e.type === 'extraordinary';
+                    if (!isExtra) return false;
+                    if (!e.period) return true;
+                    if (fromInput && e.period < fromInput) return false;
+                    if (toInput && e.period > toInput) return false;
+                    return true;
+                });
 
-                            const approvedExtraPayments = state.payments.filter(p => p.apto === o.apto && p.status === 'Aprobado' && p.type === 'extraordinaria');
-                            const paidUsd = approvedExtraPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
-                            const lastRef = approvedExtraPayments.length > 0 ? approvedExtraPayments[0].ref : '-';
-                            const pendingUsd = Math.max(0, assignedUsd - paidUsd);
-
-                            extraBody.innerHTML += `
-                                <tr class="border-b">
-                                    <td class="p-2">${exp.period}</td>
-                                    <td class="p-2 font-bold">${exp.description}</td>
-                                    <td class="p-2">${o.apto}</td>
-                                    <td class="p-2 text-right font-semibold">$${assignedUsd.toFixed(2)}</td>
-                                    <td class="p-2 text-right text-emerald-600 font-bold">$${paidUsd.toFixed(2)}</td>
-                                    <td class="p-2 text-center text-slate-400 text-[10px]">${lastRef}</td>
-                                    <td class="p-2 text-right font-bold ${pendingUsd > 0 ? 'text-rose-500' : 'text-emerald-500'}">
-                                        ${pendingUsd > 0 ? `$${pendingUsd.toFixed(2)}` : 'Solvente'}
-                                    </td>
-                                </tr>
-                            `;
-                        });
-                    });
+                if (extraordinaryExpenses.length === 0) {
+                    extraBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay cuotas extraordinarias registradas para este periodo.</td></tr>`;
+                    return;
                 }
+
+                state.owners.forEach(o => {
+                    const factor = o.alicuota > 1 ? o.alicuota / 100 : Number(o.alicuota || 0);
+            
+                    let totalAsignadoExtra = 0;
+                    let totalPagadoExtra = 0;
+                    let conceptosPendientesExtra = [];
+                    let conceptosAdeudadosCount = 0;
+
+                    extraordinaryExpenses.forEach(exp => {
+                        const montoAsignadoItem = Number(exp.amount || 0) * factor;
+                        totalAsignadoExtra += montoAsignadoItem;
+
+                        const approvedExtraPayments = state.payments.filter(p => 
+                            p.apto === o.apto && 
+                            p.status === 'Aprobado' && 
+                            (p.type === 'extraordinaria' || p.type === 'extraordinary') &&
+                            (!p.expense_id || p.expense_id === exp.id)
+                        );
+
+                        const pagadoItem = approvedExtraPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+                        totalPagadoExtra += pagadoItem;
+        
+                        if ((montoAsignadoItem - pagadoItem) > 0.01) {
+                            conceptosAdeudadosCount++;
+                            conceptosPendientesExtra.push(exp.description || 'Cuota Extraordinaria');
+                        }
+                    });
+
+                    const diferenciaExtra = totalAsignadoExtra - totalPagadoExtra;
+                    let estadoExtraTexto = '';
+                    let estadoExtraClase = '';
+
+                    if (diferenciaExtra > 0.01) {
+                        estadoExtraTexto = `Deuda: $${diferenciaExtra.toFixed(2)}`;
+                        estadoExtraClase = 'text-rose-500 font-bold';
+                    } else if (diferenciaExtra < -0.01) {
+                        estadoExtraTexto = `A favor: $${Math.abs(diferenciaExtra).toFixed(2)}`;
+                        estadoExtraClase = 'text-blue-500 font-bold';
+                    } else {
+                        estadoExtraTexto = 'Solvente ($0.00)';
+                        estadoExtraClase = 'text-emerald-500 font-bold';
+                    }
+
+                    const detalleExtraTexto = conceptosPendientesExtra.length > 0 ? conceptosPendientesExtra.join(', ') : 'Solvente';
+
+                    extraBody.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-2 font-bold text-center">${o.apto}</td>
+                            <td class="p-2 text-center">${conceptosAdeudadosCount > 0 ? conceptosAdeudadosCount : '-'}</td>
+                            <td class="p-2 text-xs text-slate-700">${detalleExtraTexto}</td>
+                            <td class="p-2 text-right font-semibold">$${totalAsignadoExtra.toFixed(2)}</td>
+                            <td class="p-2 text-right ${estadoExtraClase}">${estadoExtraTexto}</td>
+                        </tr>
+                    `;
+                });
             }
+        }
 
             // 3. Reporte Proveedores
             const provBody = document.getElementById('report-providers-body');
