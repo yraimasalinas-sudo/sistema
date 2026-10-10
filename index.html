@@ -1746,7 +1746,7 @@
 
             const totalBs = myTotalUsd * bcvRate;
 
-            // Crear una ventana emergente limpia solo con la estructura del recibo de pago
+            // Crear una ventana emergente limpia
             const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
     
             ventanaImpresion.document.write(`
@@ -1813,19 +1813,19 @@
                     <div class="footer">
                         <p>Por favor reportar su pago a través de la plataforma del condominio. ¡Gracias por su puntualidad!</p>
                     </div>
-
-                    <script>
-                        window.onload = function() {
-                            window.print();
-                        }
-                    </script>
                 </body>
                 </html>
             `);
     
             ventanaImpresion.document.close();
+            
+            // Forzar la impresión de manera limpia asegurando que el contenido cargue primero
+            ventanaImpresion.onload = function() {
+                ventanaImpresion.focus();
+                ventanaImpresion.print();
+            };
         }
-     </script>
+      </script>
          // ==================== REPORTES Y CONFIGURACIÓN ====================
          function generateReports() {
             // 1. Obtener rango de fechas (Desde / Hasta)
