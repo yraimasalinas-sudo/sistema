@@ -1697,6 +1697,134 @@
             }
         }
 
+        function imprimirReciboPropietario() {
+            if (!currentUser || currentUser.role !== 'owner') return;
+
+            const myApto = String(currentUser.apto || currentUser.apartment || '').trim();
+            const myOwnerObj = state.owners.find(o => 
+                String(o.apto || o.apartment || '').trim() === myApto
+            ) || currentUser;
+
+            const nombreEdificio = state.building?.name || 'Residencias El Parque';
+            const bcvRate = Number(state.building?.bcv || state.building?.bcv_rate || 1);
+            const periodoActual = new Date().toISOString().slice(0, 7);
+
+            // Gastos pendientes
+            const expensesList = Array.isArray(state.expenses) ? state.expenses : [];
+            const pendingExpenses = expensesList.filter(e => e.status !== 'anulado' && e.status !== 'cancelled');
+
+            let myTotalUsd = 0;
+            const rawAlicuota = Number(myOwnerObj.alicuota || 0);
+            const factor = rawAlicuota > 1 ? rawAlicuota / 100 : rawAlicuota;
+
+            let filasTablaHTML = '';
+
+            pendingExpenses.forEach(e => {
+                const totalBldg = Number(e.amount || e.amount_usd || 0);
+                const expenseApto = String(e.apto || e.apartment || '').trim();
+                const tipoGasto = (e.type || 'comun').toUpperCase();
+
+                const myUsd = tipoGasto.includes('NO_COMUN') || tipoGasto.includes('EXTRA') 
+                    ? (expenseApto === myApto ? totalBldg : 0) 
+                    : totalBldg * factor;
+
+                if (myUsd > 0 || expenseApto === myApto || !expenseApto) {
+                    myTotalUsd += myUsd;
+                    const myBs = myUsd * bcvRate;
+
+                    filasTablaHTML += `
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold;">${e.description || 'Gasto de condominio'}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;"><span style="background: #eee; padding: 3px 6px; border-radius: 4px; font-size: 11px;">${tipoGasto}</span></td>
+                            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">$${totalBldg.toFixed(2)}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; font-weight: bold; color: #0d9488;">$${myUsd.toFixed(2)}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; font-weight: 600;">Bs. ${myBs.toFixed(2)}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            const totalBs = myTotalUsd * bcvRate;
+
+            // Crear una ventana emergente limpia solo con la estructura del recibo de pago
+            const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
+    
+            ventanaImpresion.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Recibo de Cobro - Apt ${myApto}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; color: #333; margin: 30px; }
+                        .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 15px; margin-bottom: 20px; }
+                        .header h2 { margin: 0; color: #0f172a; font-size: 22px; }
+                        .header p { margin: 4px 0; font-size: 14px; color: #475569; }
+                        .info-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; margin-bottom: 25px; border-radius: 6px; }
+                        .info-box table { width: 100%; border-collapse: collapse; }
+                        .info-box td { padding: 5px; font-size: 14px; color: #1e293b; }
+                        table.receipt { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        table.receipt th { background: #f1f5f9; border-bottom: 2px solid #cbd5e1; padding: 10px; text-align: left; font-size: 13px; color: #334155; }
+                        table.receipt td { font-size: 13px; }
+                        .totals { margin-top: 25px; text-align: right; font-size: 16px; border-top: 2px solid #e2e8f0; padding-top: 15px; }
+                        .totals p { margin: 6px 0; color: #0f172a; }
+                        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 15px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h2>${nombreEdificio}</h2>
+                        <p>RECIBO DE COBRO Y ESTADO DE CUENTA</p>
+                        <p>Período: ${periodoActual} | Tasa BCV Oficial: Bs. ${bcvRate.toFixed(2)}</p>
+                    </div>
+
+                    <div class="info-box">
+                        <table>
+                            <tr>
+                                <td><strong>Propietario:</strong> ${myOwnerObj.owner || myOwnerObj.full_name || 'N/D'}</td>
+                                <td><strong>Apartamento:</strong> ${myApto}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Alícuota:</strong> ${rawAlicuota > 1 ? rawAlicuota.toFixed(1) : (rawAlicuota * 100).toFixed(1)}%</td>
+                                <td><strong>Fecha de Emisión:</strong> ${new Date().toLocaleDateString()}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <table class="receipt">
+                        <thead>
+                            <tr>
+                                <th>Concepto / Descripción</th>
+                                <th style="text-align: center;">Tipo</th>
+                                <th style="text-align: right;">Total Edificio ($)</th>
+                                <th style="text-align: right;">Su Parte ($)</th>
+                                <th style="text-align: right;">Su Parte (Bs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filasTablaHTML || '<tr><td colspan="5" style="text-align:center; padding: 20px; color: #94a3b8;">No hay gastos pendientes en este período.</td></tr>'}
+                        </tbody>
+                    </table>
+
+                    <div class="totals">
+                        <p><strong>TOTAL A PAGAR (USD): $${myTotalUsd.toFixed(2)}</strong></p>
+                        <p><strong>TOTAL A PAGAR (Bs.): Bs. ${totalBs.toFixed(2)}</strong></p>
+                    </div>
+    
+                    <div class="footer">
+                        <p>Por favor reportar su pago a través de la plataforma del condominio. ¡Gracias por su puntualidad!</p>
+                    </div>
+
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                        }
+                    </script>
+                </body>
+                </html>
+            `);
+    
+            ventanaImpresion.document.close();
+        }
         // ==================== REPORTES Y CONFIGURACIÓN ====================
          function generateReports() {
             // 1. Obtener rango de fechas (Desde / Hasta)
