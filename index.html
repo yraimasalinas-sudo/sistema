@@ -1705,7 +1705,7 @@
                 String(o.apto || o.apartment || '').trim() === myApto
             ) || currentUser;
 
-            const nombreEdificio = state.building?.name || 'Residencias El Parque';
+            const nombreEdificio = state.building?.name || 'Administración de Condominio';
             const bcvRate = Number(state.building?.bcv || state.building?.bcv_rate || 1);
             const periodoActual = new Date().toISOString().slice(0, 7);
 
@@ -1824,7 +1824,7 @@
             `);
     
             ventanaImpresion.document.close();
-        }  
+        }
          // ==================== REPORTES Y CONFIGURACIÓN ====================
          function generateReports() {
             // 1. Obtener rango de fechas (Desde / Hasta)
