@@ -1661,7 +1661,7 @@
                 }
             }
 
-            // 4. Renderizar Historial de Pagos
+        // 4. Renderizar Historial de Pagos
             const historyBody = document.getElementById('owner-history-body');
             if (historyBody) {
                 historyBody.innerHTML = '';
@@ -1696,7 +1696,8 @@
                 }
             }
         }
-<script>
+
+        // Función de impresión del recibo del propietario (integrada limpiamente)
         function imprimirReciboPropietario() {
             if (!currentUser || currentUser.role !== 'owner') return;
 
@@ -1818,14 +1819,11 @@
             `);
     
             ventanaImpresion.document.close();
-            
-            // Forzar la impresión de manera limpia asegurando que el contenido cargue primero
             ventanaImpresion.onload = function() {
                 ventanaImpresion.focus();
                 ventanaImpresion.print();
             };
         }
-      </script>
          // ==================== REPORTES Y CONFIGURACIÓN ====================
          function generateReports() {
             // 1. Obtener rango de fechas (Desde / Hasta)
