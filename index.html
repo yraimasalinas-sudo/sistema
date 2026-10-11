@@ -167,7 +167,7 @@
                         <!-- Formulario para agregar gastos -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                             <h3 class="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2">📝 Registrar Nuevo Gasto</h3>
-                            <form id="expense-form" onsubmit="addExpense(event)" class="space-y-3">
+                             <form id="expense-form" onsubmit="addExpense(event)" class="space-y-3">
                                 <div>
                                     <label class="text-xs text-slate-600">Mes a Cobrar / Período</label>
                                     <input type="month" id="exp-period" required class="w-full p-2.5 rounded-lg border text-sm">
@@ -176,10 +176,25 @@
                                     <label class="text-xs text-slate-600">Concepto / Descripción</label>
                                     <input type="text" id="exp-desc" required class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-xs text-slate-600">Moneda</label>
+                                        <select id="exp-currency" onchange="toggleEuroRateInput(this.value)" class="w-full p-2.5 rounded-lg border text-sm">
+                                            <option value="USD">Dólares ($)</option>
+                                            <option value="EUR">Euros (€)</option>
+                                        </select>
+                                    </div>
                                 <div>
-                                    <label class="text-xs text-slate-600">Monto ($ USD)</label>
-                                    <input type="number" id="exp-amount" step="0.01" required class="w-full p-2.5 rounded-lg border text-sm">
+                                        <label class="text-xs text-slate-600">Monto</label>
+                                        <input type="number" id="exp-amount" step="0.01" required class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 150">
+                                    </div>
                                 </div>
+                                <!-- Campo oculto por defecto que aparece solo si selecciona Euros -->
+                                <div id="euro-rate-box" class="hidden bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                                    <label class="text-xs text-amber-800 font-bold block mb-1">Tasa de Cambio del Euro (Bs. por €):</label>
+                                    <input type="number" id="exp-euro-rate" step="0.0001" placeholder="Ej: 92.50" class="w-full p-2 rounded border text-sm bg-white">
+                                    <p class="text-[10px] text-amber-700 mt-1">Se convertirá automáticamente a USD usando la tasa BCV actual.</p>
+                                    </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Tipo de Cuota</label>
                                     <select id="exp-type" onchange="toggleAptoBox(this.value)" class="w-full p-2.5 rounded-lg border text-sm">
@@ -192,7 +207,7 @@
                                     <label class="text-xs text-slate-600">Apartamento Afectado</label>
                                     <select id="exp-apto" class="w-full p-2.5 rounded-lg border text-sm"></select>
                                 </div>
-                                <div>
+                            <div>
                                     <label class="text-xs text-slate-600">Proveedor (Opcional)</label>
                                     <select id="exp-provider" class="w-full p-2.5 rounded-lg border text-sm"></select>
                                 </div>
@@ -1070,19 +1085,54 @@
             }
         }
 
+        // NUEVA FUNCIÓN PARA CONTROLAR EL CAMPO DEL EURO
+        function toggleEuroRateInput(currency) {
+            const euroBox = document.getElementById('euro-rate-box');
+            const euroInput = document.getElementById('exp-euro-rate');
+            if (!euroBox) return;
+
+            if (currency === 'EUR') {
+                euroBox.classList.remove('hidden');
+                if (euroInput && !euroInput.value) {
+                    const currentBcv = Number(state.building?.bcv || 36.50);
+                    euroInput.value = (currentBcv * 1.08).toFixed(2);
+                }
+            } else {
+                euroBox.classList.add('hidden');
+            }
+        }
+
+        // NUEVA FUNCIÓN ADDEXPENSE ACTUALIZADA CON SOPORTE PARA EUROS
         async function addExpense(e) {
             if (e) e.preventDefault();
             const period = document.getElementById('exp-period')?.value || '';
             const desc = document.getElementById('exp-desc')?.value || '';
-            const amount = parseFloat(document.getElementById('exp-amount')?.value) || 0;
+            const rawAmount = parseFloat(document.getElementById('exp-amount')?.value) || 0;
+            const currency = document.getElementById('exp-currency')?.value || 'USD';
             const typeVal = document.getElementById('exp-type')?.value || 'ordinaria';
             const providerVal = document.getElementById('exp-provider')?.value || null;
             const aptoVal = document.getElementById('exp-apto')?.value || 'TODOS';
 
+            let amountUsd = rawAmount;
+            let euroRateUsed = null;
+
+            if (currency === 'EUR') {
+                euroRateUsed = parseFloat(document.getElementById('exp-euro-rate')?.value) || 0;
+                const bcvRate = Number(state.building?.bcv || 1);
+                
+                if (euroRateUsed <= 0) {
+                    alert("Por favor ingresa una tasa válida para el Euro.");
+                    return;
+                }
+                const montoEnBs = rawAmount * euroRateUsed;
+                amountUsd = montoEnBs / bcvRate;
+            }
+
             const payload = {
                 period,
-                description: desc,
-                amount,
+                description: currency === 'EUR' ? `${desc} (€${rawAmount.toFixed(2)})` : desc,
+                amount: Number(amountUsd.toFixed(2)),
+                amount_usd: Number(amountUsd.toFixed(2)),
                 type: typeVal,
                 provider: providerVal || null,
                 apto: typeVal === 'no_comun' ? aptoVal : 'TODOS',
@@ -1096,6 +1146,9 @@
             }
 
             document.getElementById('expense-form')?.reset();
+            const euroBox = document.getElementById('euro-rate-box');
+            if (euroBox) euroBox.classList.add('hidden');
+            
             await loadStorage();
             alert('¡Gasto registrado con éxito!');
         }
@@ -1143,7 +1196,6 @@
             }
             await loadStorage();
         }
-
         // ==================== WHATSAPP Y COMUNICACIÓN ====================
         function generateWhatsappGroupMsg() {
             const preview = document.getElementById('whatsapp-preview');
