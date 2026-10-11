@@ -1131,8 +1131,7 @@
             const payload = {
                 period,
                 description: currency === 'EUR' ? `${desc} (€${rawAmount.toFixed(2)})` : desc,
-                amount: Number(amountUsd.toFixed(2)),
-                amount_usd: Number(amountUsd.toFixed(2)),
+                amount: Number(amountUsd.toFixed(2)), // Enviamos el valor convertido directamente a la columna amount
                 type: typeVal,
                 provider: providerVal || null,
                 apto: typeVal === 'no_comun' ? aptoVal : 'TODOS',
