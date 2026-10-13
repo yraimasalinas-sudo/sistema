@@ -1102,10 +1102,10 @@
             }
         }
 
-        // NUEVA FUNCIÓN ADDEXPENSE ACTUALIZADA CON SOPORTE PARA EUROS
+        // NUEVA FUNCIÓN ADDEXPENSE ACTUALIZADA CON TASA HISTÓRICA DEL MES Y SOPORTE PARA EUROS
         async function addExpense(e) {
             if (e) e.preventDefault();
-            const period = document.getElementById('exp-period')?.value || '';
+            const period = document.getElementById('exp-period')?.value || ''; // Formato "YYYY-MM"
             const desc = document.getElementById('exp-desc')?.value || '';
             const rawAmount = parseFloat(document.getElementById('exp-amount')?.value) || 0;
             const currency = document.getElementById('exp-currency')?.value || 'USD';
@@ -1113,25 +1113,29 @@
             const providerVal = document.getElementById('exp-provider')?.value || null;
             const aptoVal = document.getElementById('exp-apto')?.value || 'TODOS';
 
+            // Buscar la tasa del BCV correspondiente al día 1 del mes del gasto seleccionado
+            const targetDate = period ? `${period}-01` : new Date().toISOString().split('T')[0];
+            const bcvRateForPeriod = getBcvRateForDate(targetDate);
+
             let amountUsd = rawAmount;
             let euroRateUsed = null;
 
             if (currency === 'EUR') {
                 euroRateUsed = parseFloat(document.getElementById('exp-euro-rate')?.value) || 0;
-                const bcvRate = Number(state.building?.bcv || 1);
                 
                 if (euroRateUsed <= 0) {
                     alert("Por favor ingresa una tasa válida para el Euro.");
                     return;
                 }
+                // Convertir Euros a Bolívares con la tasa del euro, y luego a USD usando la tasa BCV de ese mes
                 const montoEnBs = rawAmount * euroRateUsed;
-                amountUsd = montoEnBs / bcvRate;
+                amountUsd = montoEnBs / bcvRateForPeriod;
             }
 
             const payload = {
                 period,
                 description: currency === 'EUR' ? `${desc} (€${rawAmount.toFixed(2)})` : desc,
-                amount: Number(amountUsd.toFixed(2)), // Enviamos el valor convertido directamente a la columna amount
+                amount: Number(amountUsd.toFixed(2)),
                 type: typeVal,
                 provider: providerVal || null,
                 apto: typeVal === 'no_comun' ? aptoVal : 'TODOS',
@@ -1149,7 +1153,7 @@
             if (euroBox) euroBox.classList.add('hidden');
             
             await loadStorage();
-            alert('¡Gasto registrado con éxito!');
+            alert(`¡Gasto registrado con éxito! (Calculado usando la Tasa BCV del periodo: Bs. ${bcvRateForPeriod})`);
         }
 
         function renderExpenses() {
