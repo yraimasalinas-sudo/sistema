@@ -1440,7 +1440,15 @@
             if (!body) return;
             body.innerHTML = '';
 
-            state.owners.forEach((o) => {
+            // Crear una copia ordenada naturalmente por el número de apartamento (apto)
+            const sortedOwners = [...(state.owners || [])].sort((a, b) => {
+                return (a.apto || '').localeCompare(b.apto || '', undefined, { 
+                    numeric: true, 
+                    sensitivity: 'base' 
+                });
+            });
+
+            sortedOwners.forEach((o) => {
                 body.innerHTML += `
                     <tr class="border-b">
                         <td class="p-2 font-bold">${o.apto}</td>
