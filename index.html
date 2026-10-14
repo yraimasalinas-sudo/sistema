@@ -184,7 +184,7 @@
                                             <option value="EUR">Euros (€)</option>
                                         </select>
                                     </div>
-                                    <div>
+                                <div>
                                         <label class="text-xs text-slate-600">Monto</label>
                                         <input type="number" id="exp-amount" step="0.01" required class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 150">
                                     </div>
@@ -194,7 +194,7 @@
                                     <label class="text-xs text-amber-800 font-bold block mb-1">Tasa de Cambio del Euro (Bs. por €):</label>
                                     <input type="number" id="exp-euro-rate" step="0.0001" placeholder="Ej: 92.50" class="w-full p-2 rounded border text-sm bg-white">
                                     <p class="text-[10px] text-amber-700 mt-1">Se convertirá automáticamente a USD usando la tasa BCV actual.</p>
-                                </div>
+                                    </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Tipo de Cuota</label>
                                     <select id="exp-type" onchange="toggleAptoBox(this.value)" class="w-full p-2.5 rounded-lg border text-sm">
@@ -207,7 +207,7 @@
                                     <label class="text-xs text-slate-600">Apartamento Afectado</label>
                                     <select id="exp-apto" class="w-full p-2.5 rounded-lg border text-sm"></select>
                                 </div>
-                                <div>
+                            <div>
                                     <label class="text-xs text-slate-600">Proveedor (Opcional)</label>
                                     <select id="exp-provider" class="w-full p-2.5 rounded-lg border text-sm"></select>
                                 </div>
@@ -493,8 +493,16 @@
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-xs">
-                                <thead id="report-extraordinary-head" class="bg-slate-50">
-                                    <!-- Las columnas dinámicas se cargan aquí -->
+                                <thead>
+                                    <tr class="bg-slate-50 text-slate-700 text-left border-b">
+                                        <th class="p-2">Mes Cobro</th>
+                                        <th class="p-2">Concepto / Proyecto</th>
+                                        <th class="p-2">Apto</th>
+                                        <th class="p-2 text-right">Monto Asignado ($)</th>
+                                        <th class="p-2 text-right">Monto Pagado ($)</th>
+                                        <th class="p-2 text-center">Ref. Pago</th>
+                                        <th class="p-2 text-right">Pendiente ($)</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="report-extraordinary-body"></tbody>
                             </table>
@@ -732,95 +740,96 @@
                     const latestRate = parseFloat(cloudBcv[0].rate || 36.50);
                     if (!state.building) state.building = {};
                     state.building.bcv = latestRate;
-                    state.bcvRate = latestRate;
+                    state.bcvRate = latestRate; // Compatibilidad directa
                 }
 
                 // 2. PAGOS DE PROPIETARIOS
                 if (cloudPayments) {
                     state.payments = cloudPayments.map(p => ({
-                        id: p.id,
-                        apto: p.apto,
-                        concept: p.concept || 'Cuota Ordinaria Mensual',
-                        type: p.type || (p.concept && p.concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria'),
-                        method: p.method || 'Transferencia',
-                        amount: parseFloat(p.amount || 0),
-                        amount_usd: parseFloat(p.amount_usd || p.usd_equiv || p.amount || 0),
-                        usdEquiv: parseFloat(p.usd_equiv || p.amount_usd || 0),
-                        ref: p.ref || '',
-                        status: p.status || 'Pendiente',
-                        date: p.date
-                    }));
-                }
-
-                // 3. GASTOS DEL EDIFICIO
-                if (cloudExpenses) {
-                    state.expenses = cloudExpenses.map(e => ({
-                        id: e.id,
-                        period: e.period || new Date().toISOString().slice(0, 7),
-                        description: e.description || e.concept || 'Gasto de Condominio',
-                        concept: e.concept || e.description || 'Gasto de Condominio',
-                        amount: parseFloat(e.amount || e.amount_usd || 0),
-                        amount_usd: parseFloat(e.amount_usd || e.amount || 0),
-                        type: e.type || 'ordinaria',
-                        apto: e.apto || 'TODOS',
-                        provider: e.provider || null,
-                        status: e.status || 'pending',
-                        date: e.date
-                    }));
-                }
-
-                // 4. PROPIETARIOS Y ALÍCUOTAS
-                if (cloudOwners && cloudOwners.length > 0) {
-                    state.owners = cloudOwners.map(o => ({
-                        apto: o.apto,
-                        owner: o.owner_name || o.owner || `Propietario ${o.apto}`,
-                        alicuota: parseFloat(o.alicuota || 0),
-                        pass: o.pass || '1234'
-                    }));
-                }
-
-                // 5. PROVEEDORES
-                if (cloudProviders) {
-                    state.providers = cloudProviders.map(pr => ({
-                        id: pr.id,
-                        name: pr.name,
-                        service: pr.service_type || pr.service || '',
-                        phone: pr.phone || ''
-                    }));
-                }
-
-                // 6. DATOS DE CONFIGURACIÓN DEL EDIFICIO
-                if (cloudBuilding && cloudBuilding.length > 0) {
-                    const bldg = cloudBuilding[0];
-                    if (!state.building) state.building = {};
-                    state.building.name = bldg.name || state.building.name;
-                    state.building.rif = bldg.rif || state.building.rif;
-                    state.building.address = bldg.address || state.building.address;
-                
-                    state.config = {
-                        name: bldg.name,
-                        rif: bldg.rif,
-                        address: bldg.address,
-                        bcv_rate: state.building.bcv || 36.50
-                    };
-                }
-
-                // 7. AVISOS DE COBRO
-                if (cloudNotices) {
-                    state.billingNotices = cloudNotices;
-                }
-
-                console.log("Datos sincronizados desde la nube:", state);
-            } catch (e) {
-                console.error("Error al cargar datos desde la nube:", e);
+                    id: p.id,
+                    apto: p.apto,
+                    concept: p.concept || 'Cuota Ordinaria Mensual',
+                    type: p.type || (p.concept && p.concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria'),
+                    method: p.method || 'Transferencia',
+                    amount: parseFloat(p.amount || 0),
+                    amount_usd: parseFloat(p.amount_usd || p.usd_equiv || p.amount || 0),
+                    usdEquiv: parseFloat(p.usd_equiv || p.amount_usd || 0),
+                    ref: p.ref || '',
+                    status: p.status || 'Pendiente',
+                    date: p.date
+                }));
             }
-        
-            updateBcvUI();
-            if (currentUser) {
-                if (currentUser.role === 'admin') renderAdminData();
-                else renderOwnerData();
+
+            // 3. GASTOS DEL EDIFICIO (Mapeo corregido para USD y Bs)
+            if (cloudExpenses) {
+                state.expenses = cloudExpenses.map(e => ({
+                    id: e.id,
+                    period: e.period || new Date().toISOString().slice(0, 7),
+                    description: e.description || e.concept || 'Gasto de Condominio',
+                    concept: e.concept || e.description || 'Gasto de Condominio',
+                    amount: parseFloat(e.amount || e.amount_usd || 0),
+                    amount_usd: parseFloat(e.amount_usd || e.amount || 0),
+                    type: e.type || 'ordinaria',
+                    apto: e.apto || 'TODOS',
+                    provider: e.provider || null,
+                    status: e.status || 'pending',
+                    date: e.date
+                }));
             }
-        } 
+
+            // 4. PROPIETARIOS Y ALÍCUOTAS
+            if (cloudOwners && cloudOwners.length > 0) {
+                state.owners = cloudOwners.map(o => ({
+                    apto: o.apto,
+                    owner: o.owner_name || o.owner || `Propietario ${o.apto}`,
+                    alicuota: parseFloat(o.alicuota || 0),
+                    pass: o.pass || '1234'
+                }));
+            }
+
+            // 5. PROVEEDORES
+            if (cloudProviders) {
+                state.providers = cloudProviders.map(pr => ({
+                    id: pr.id,
+                    name: pr.name,
+                    service: pr.service_type || pr.service || '',
+                    phone: pr.phone || ''
+                }));
+            }
+
+            // 6. DATOS DE CONFIGURACIÓN DEL EDIFICIO
+            if (cloudBuilding && cloudBuilding.length > 0) {
+                const bldg = cloudBuilding[0];
+                if (!state.building) state.building = {};
+                state.building.name = bldg.name || state.building.name;
+                state.building.rif = bldg.rif || state.building.rif;
+                state.building.address = bldg.address || state.building.address;
+            
+                // Guardar en state.config para mantener compatibilidad
+                state.config = {
+                    name: bldg.name,
+                    rif: bldg.rif,
+                    address: bldg.address,
+                    bcv_rate: state.building.bcv || 36.50
+                };
+            }
+
+            // 7. AVISOS DE COBRO
+            if (cloudNotices) {
+                state.billingNotices = cloudNotices;
+            }
+
+            console.log("Datos sincronizados desde la nube:", state);
+        } catch (e) {
+            console.error("Error al cargar datos desde la nube:", e);
+        }
+    
+        updateBcvUI();
+        if (currentUser) {
+            if (currentUser.role === 'admin') renderAdminData();
+            else renderOwnerData();
+        }
+    } 
 
         // ==================== TASA BCV ====================
         function updateBcvUI() {
@@ -972,7 +981,7 @@
                 if (sel) {
                     sel.innerHTML = '';
                     state.owners.forEach(o => {
-                        sel.innerHTML += `<option value="${o.apto}">Apto ${o.apto} -${o.owner}</option>`;
+                        sel.innerHTML += `<option value="${o.apto}">Apto ${o.apto} - ${o.owner}</option>`;
                     });
                 }
             });
@@ -1076,7 +1085,7 @@
             }
         }
 
-        // CONTROLAR EL CAMPO DEL EURO
+        // NUEVA FUNCIÓN PARA CONTROLAR EL CAMPO DEL EURO
         function toggleEuroRateInput(currency) {
             const euroBox = document.getElementById('euro-rate-box');
             const euroInput = document.getElementById('exp-euro-rate');
@@ -1093,10 +1102,10 @@
             }
         }
 
-        // ADDEXPENSE ACTUALIZADA CON TASA HISTÓRICA DEL MES Y SOPORTE PARA EUROS
+        // NUEVA FUNCIÓN ADDEXPENSE ACTUALIZADA CON TASA HISTÓRICA DEL MES Y SOPORTE PARA EUROS
         async function addExpense(e) {
             if (e) e.preventDefault();
-            const period = document.getElementById('exp-period')?.value || ''; 
+            const period = document.getElementById('exp-period')?.value || ''; // Formato "YYYY-MM"
             const desc = document.getElementById('exp-desc')?.value || '';
             const rawAmount = parseFloat(document.getElementById('exp-amount')?.value) || 0;
             const currency = document.getElementById('exp-currency')?.value || 'USD';
@@ -1104,6 +1113,7 @@
             const providerVal = document.getElementById('exp-provider')?.value || null;
             const aptoVal = document.getElementById('exp-apto')?.value || 'TODOS';
 
+            // Buscar la tasa del BCV correspondiente al día 1 del mes del gasto seleccionado
             const targetDate = period ? `${period}-01` : new Date().toISOString().split('T')[0];
             const bcvRateForPeriod = getBcvRateForDate(targetDate);
 
@@ -1117,6 +1127,7 @@
                     alert("Por favor ingresa una tasa válida para el Euro.");
                     return;
                 }
+                // Convertir Euros a Bolívares con la tasa del euro, y luego a USD usando la tasa BCV de ese mes
                 const montoEnBs = rawAmount * euroRateUsed;
                 amountUsd = montoEnBs / bcvRateForPeriod;
             }
@@ -1162,7 +1173,7 @@
                     body.innerHTML += `
                         <tr class="border-b">
                             <td class="p-1 font-semibold text-slate-500">${(exp.type || '').toUpperCase()}</td>
-                            <td class="p-1">${exp.description}${exp.apto && exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
+                            <td class="p-1">${exp.description} ${exp.apto && exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
                             <td class="p-1 font-bold text-slate-700">$${amt.toFixed(2)}</td>
                             <td class="p-1"><button onclick="deleteExpense(${exp.id})" class="text-red-500 font-bold hover:text-red-700">✕</button></td>
                         </tr>
@@ -1188,7 +1199,6 @@
             }
             await loadStorage();
         }
-
         // ==================== WHATSAPP Y COMUNICACIÓN ====================
         function generateWhatsappGroupMsg() {
             const preview = document.getElementById('whatsapp-preview');
@@ -1201,6 +1211,7 @@
 
             let activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
+            // Filtrar según la selección del usuario
             if (filterValue.includes('ord') || filterValue.includes('comun')) {
                 activeExpenses = activeExpenses.filter(e => {
                     const t = (e.type || '').toLowerCase();
@@ -1214,11 +1225,14 @@
             }
 
             const totalUsd = activeExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+            // Detectar si es una cuota extraordinaria
             const esExtraordinaria = filterValue.includes('extra') || activeExpenses.some(e => (e.type || '').toLowerCase().includes('extra'));
 
-            let msg = `*${state.building?.name || 'Residencias Aventura Suites'}*\n`;
+            let msg = `*${state.building?.name || 'Residencias El Parque'}*\n`;
 
             if (esExtraordinaria) {
+                // === MENSAJE PARA CUOTA EXTRAORDINARIA ===
                 msg += `*Cuota Extraordinaria - ${periodInput}*\n`;
                 msg += `----------------------------------------\n\n`;
                 msg += `Estimados propietarios se ha emitido una cuota extraordinaria con los siguientes detalles: \n`;
@@ -1226,11 +1240,12 @@
                 if (activeExpenses.length > 0) {
                     const exp = activeExpenses[0];
                     const concepto = (exp.description || 'Cuota Extraordinaria').toUpperCase();
-                    msg += `Concepto:    ${concepto}:$${totalUsd.toFixed(2)}\n\n`;
+                    msg += `Concepto:    ${concepto}: $${totalUsd.toFixed(2)}\n\n`;
                 }
 
                 msg += `*TOTAL CUOTA EXTRAORDINARIA :* *$${totalUsd.toFixed(2)}*\n`;
             } else {
+                // === MENSAJE PARA GASTOS ORDINARIOS / GENERALES ===
                 msg += `*RESUMEN DE GASTOS Y COBRANZA - ${periodInput}*\n`;
                 msg += `----------------------------------------\n\n`;
                 msg += `*DESGLOSE DE GASTOS DEL MES:*\n`;
@@ -1241,7 +1256,7 @@
                     activeExpenses.forEach(exp => {
                         const label = (exp.description || '').toUpperCase();
                         const aptoNote = exp.apto && exp.apto !== 'TODOS' ? ` (${exp.apto})` : '';
-                        msg += `• ${label}${aptoNote}:$${Number(exp.amount || 0).toFixed(2)}\n`;
+                        msg += `• ${label}${aptoNote}: $${Number(exp.amount || 0).toFixed(2)}\n`;
                     });
                 }
 
@@ -1251,11 +1266,7 @@
             msg += `----------------------------------------\n\n`;
             msg += `*ALÍCUOTAS Y MONTOS A PAGAR POR APTO:*\n`;
 
-            const sortedOwnersForWa = [...(state.owners || [])].sort((a, b) => {
-                return (a.apto || '').localeCompare(b.apto || '', undefined, { numeric: true, sensitivity: 'base' });
-            });
-
-            sortedOwnersForWa.forEach(o => {
+            (state.owners || []).forEach(o => {
                 const alicuotaVal = Number(o.alicuota || 0);
                 const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
                 const porcentajeStr = (factor * 100).toFixed(1) + '%';
@@ -1273,7 +1284,6 @@
                 waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
             }
         }
-
         // ==================== PAGOS Y CONCILIACIÓN ====================
         function getBcvRateForDate(targetDate) {
             if (!state.bcvHistory || state.bcvHistory.length === 0) {
@@ -1298,7 +1308,10 @@
             e.preventDefault();
             const apto = document.getElementById('pay-apto').value;
             const concept = document.getElementById('pay-concept').value;
+            
+            // Evaluar tipo dinámicamente desde el concepto
             const type = concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria';
+
             const method = document.getElementById('pay-method').value;
             const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
             const ref = document.getElementById('pay-ref').value;
@@ -1406,4 +1419,722 @@
                 body.innerHTML += `
                     <tr class="border-b">
                         <td class="p-2 font-bold">${p.apto}</td>
-                        <td class="p
+                        <td class="p-2">${p.date}</td>
+                        <td class="p-2">${p.method}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref}</span></td>
+                        <td class="p-2 text-right font-semibold">${montoOriginalText}</td>
+                        <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv).toFixed(2)}</td>
+                        <td class="p-2 text-center space-x-1">
+                            ${p.status === 'Pendiente' ? `
+                                <button onclick="approvePayment(${p.id})" class="px-2 py-1 bg-emerald-500 text-white rounded text-[10px]">Aprobar</button>
+                            ` : `<span class="text-emerald-600 font-bold text-[10px]">✓ Aprobado</span>`}
+                            <button onclick="deletePayment(${p.id})" class="px-2 py-1 bg-rose-500 text-white rounded text-[10px]">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==================== PROPIETARIOS Y PROVEEDORES ====================
+        function renderOwnersTable() {
+            const body = document.getElementById('owners-table-body');
+            if (!body) return;
+            body.innerHTML = '';
+
+            // Crear una copia ordenada naturalmente por el número de apartamento (apto)
+            const sortedOwners = [...(state.owners || [])].sort((a, b) => {
+                return (a.apto || '').localeCompare(b.apto || '', undefined, { 
+                    numeric: true, 
+                    sensitivity: 'base' 
+                });
+            });
+
+            sortedOwners.forEach((o) => {
+                body.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-2 font-bold">${o.apto}</td>
+                        <td class="p-2">
+                            <input type="text" value="${o.owner}" onchange="updateOwnerName('${o.apto}', this.value)" class="p-1 border rounded w-full">
+                        </td>
+                        <td class="p-2 font-semibold">${o.alicuota}%</td>
+                        <td class="p-2 font-mono text-slate-500">${o.pass}</td>
+                        <td class="p-2 space-x-1">
+                            <button onclick="resetPassword('${o.apto}')" class="px-2 py-1 bg-amber-500 text-white text-[10px] rounded hover:bg-amber-600">Resetear Clave</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function updateOwnerName(apto, newName) {
+            const { error } = await db.from('owners').update({ owner_name: newName }).eq('apto', apto);
+            if (error) alert('Error actualizando propietario en Supabase: ' + error.message);
+            else await loadStorage();
+        }
+
+        async function resetPassword(apto) {
+            const { error } = await db.from('owners').update({ pass: '1234' }).eq('apto', apto);
+            if (error) alert('Error reseteando clave: ' + error.message);
+            else {
+                alert(`Clave del apto ${apto} reseteada a 1234`);
+                await loadStorage();
+            }
+        }
+
+        async function addProvider(e) {
+            e.preventDefault();
+            const name = document.getElementById('prov-name').value;
+            const service = document.getElementById('prov-service').value;
+            const phone = document.getElementById('prov-phone').value;
+
+            const { error } = await db.from('providers').insert([{ name, service_type: service, phone }]);
+            if (error) {
+                alert('Error guardando proveedor en Supabase: ' + error.message);
+                return;
+            }
+            e.target.reset();
+            await loadStorage();
+        }
+
+        function renderProvidersTable() {
+            const body = document.getElementById('providers-table-body');
+            if (!body) return;
+            body.innerHTML = '';
+            state.providers.forEach(p => {
+                body.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-2 font-bold">${p.name}</td>
+                        <td class="p-2">${p.service}</td>
+                        <td class="p-2">${p.phone}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==================== HISTÓRICO DE AVISOS ====================
+        async function saveCurrentNotice() {
+            const period = prompt("Ingresa el periodo del aviso a archivar (Formato YYYY-MM, ej: 2026-08):", new Date().toISOString().slice(0, 7));
+            if (!period) return;
+
+            const filterType = document.getElementById('hist-filter-type')?.value || 
+                               document.getElementById('wa-fee-type')?.value || 'all';
+
+            const isOrdinary = (t) => t === 'ordinaria' || t === 'ordinary';
+            const isExtraordinary = (t) => t === 'extraordinaria' || t === 'extraordinary';
+
+            let filteredExpenses = (state.expenses || []).filter(e => {
+                const matchPeriod = e.period ? e.period === period : true;
+                let matchType = true;
+                if (filterType === 'ordinary') matchType = isOrdinary(e.type);
+                else if (filterType === 'extraordinary') matchType = isExtraordinary(e.type);
+                return matchPeriod && matchType;
+            });
+
+            if (filteredExpenses.length === 0) {
+                const confirmAll = confirm(`No se encontraron gastos de tipo "${filterType}" con periodo "${period}".\n\n¿Deseas incluir todos los gastos activos cargados de este tipo?`);
+                if (!confirmAll) return;
+
+                filteredExpenses = (state.expenses || []).filter(e => {
+                    if (filterType === 'ordinary') return isOrdinary(e.type);
+                    if (filterType === 'extraordinary') return isExtraordinary(e.type);
+                    return true;
+                });
+            }
+
+            if (filteredExpenses.length === 0) {
+                alert("No hay gastos del tipo seleccionado para archivar.");
+                return;
+            }
+
+            const totalUSD = filteredExpenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
+
+            const noticeData = {
+                period: period,
+                type: filterType,
+                total_amount_usd: totalUSD,
+                bcv_rate: state.building?.bcv || 0,
+                details: {
+                    expenses: filteredExpenses,
+                    owners: (state.owners || []).map(o => ({
+                        apto: o.apto,
+                        owner: o.owner,
+                        alicuota: o.alicuota,
+                        usd: totalUSD * (o.alicuota / 100),
+                        bs: (totalUSD * (o.alicuota / 100)) * (state.building?.bcv || 0)
+                    }))
+                }
+            };
+
+            const { error } = await db.from('billing_notices').insert([noticeData]);
+            if (error) {
+                alert("Error al guardar el aviso en Supabase: " + error.message);
+            } else {
+                alert(`¡Aviso de cobro (${filterType}) del periodo ${period} archivado con éxito!`);
+                await loadStorage();
+            }
+        }
+
+        function renderHistoryNotices() {
+            const body = document.getElementById('history-notices-body');
+            if (!body) return;
+            body.innerHTML = '';
+
+            const periodFilter = document.getElementById('hist-filter-period')?.value;
+            const typeFilter = document.getElementById('hist-filter-type')?.value;
+
+            let filtered = state.billingNotices || [];
+
+            if (periodFilter) {
+                filtered = filtered.filter(n => n.period === periodFilter);
+            }
+
+            if (typeFilter && typeFilter !== 'all') {
+                filtered = filtered.filter(n => n.type === typeFilter);
+            }
+
+            if (filtered.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay avisos guardados con estos criterios.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(n => {
+                body.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2 font-bold">${n.period}</td>
+                        <td class="p-2"><span class="px-2 py-0.5 rounded text-xs bg-slate-100">${(n.type || 'ALL').toUpperCase()}</span></td>
+                        <td class="p-2 text-right font-bold text-teal-600">$${Number(n.total_amount_usd || 0).toFixed(2)}</td>
+                        <td class="p-2 text-right">Bs. ${Number(n.bcv_rate || 0).toFixed(2)}</td>
+                        <td class="p-2 text-center">
+                            <button onclick="viewNoticeDetail(${n.id})" class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">
+                                👁️ Ver Detalle
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function viewNoticeDetail(id) {
+            const notice = state.billingNotices.find(n => n.id === id);
+            if (!notice) return;
+
+            let detailsMsg = `📄 AVISO DE COBRO - ${notice.period}\n\n`;
+            detailsMsg += `Tipo: ${notice.type.toUpperCase()}\n`;
+            detailsMsg += `TotalUSD: $${Number(notice.total_amount_usd).toFixed(2)}\n`;
+            detailsMsg += `Tasa BCV: Bs. ${Number(notice.bcv_rate).toFixed(2)}\n\n`;
+            detailsMsg += `--- GASTOS --- \n`;
+
+            if (notice.details && notice.details.expenses) {
+                notice.details.expenses.forEach(e => {
+                    detailsMsg += `• ${e.description}: $${Number(e.amount).toFixed(2)}\n`;
+                });
+            }
+
+            alert(detailsMsg);
+        }
+
+        // ==================== VISTA DE PROPIETARIOS ====================
+        function renderOwnerData() {
+            if (!currentUser || currentUser.role !== 'owner') return;
+
+            // Normalizar el identificador del apartamento
+            const myApto = String(currentUser.apto || currentUser.apartment || '').trim();
+    
+            // Buscar al propietario dentro de state.owners o usar el usuario actual
+            const myOwnerObj = state.owners.find(o => 
+                String(o.apto || o.apartment || '').trim() === myApto
+            ) || currentUser;
+
+            // Renderizar datos básicos del perfil
+            const elApto = document.getElementById('owner-dash-apto');
+            const elName = document.getElementById('owner-dash-name');
+            const elAli = document.getElementById('owner-dash-alicuota');
+
+            if (elApto) elApto.innerText = myApto;
+            if (elName) elName.innerText = myOwnerObj.owner || myOwnerObj.full_name || 'Propietario';
+            if (elAli) elAli.innerText = myOwnerObj.alicuota || 0;
+
+            const bcvRate = Number(state.building?.bcv || state.building?.bcv_rate || 1);
+            const elBcv = document.getElementById('owner-bcv-rate');
+            if (elBcv) elBcv.innerText = bcvRate.toFixed(2);
+
+            // 1. Filtrar gastos pendientes del edificio
+            const expensesList = Array.isArray(state.expenses) ? state.expenses : [];
+            const pendingExpenses = expensesList.filter(e => e.status !== 'anulado' && e.status !== 'cancelled');
+    
+            let myTotalUsd = 0;
+            const rawAlicuota = Number(myOwnerObj.alicuota || 0);
+            const factor = rawAlicuota > 1 ? rawAlicuota / 100 : rawAlicuota;
+
+            pendingExpenses.forEach(e => {
+                const expenseApto = String(e.apto || e.apartment || '').trim();
+                const amt = Number(e.amount || e.amount_usd || 0);
+
+                if (e.type === 'no_comun') {
+                    if (expenseApto === myApto) myTotalUsd += amt;
+                } else {
+                    myTotalUsd += amt * factor;
+                }
+            });
+
+            // 2. Restar pagos aprobados
+            const paymentsList = Array.isArray(state.payments) ? state.payments : [];
+            const myApprovedPayments = paymentsList.filter(p => {
+                const payApto = String(p.apto || p.apartment || '').trim();
+                return payApto === myApto && (p.status === 'Aprobado' || p.status === 'approved');
+            });
+
+            const totalPaidUsd = myApprovedPayments.reduce((acc, p) => {
+                return acc + Number(p.usdEquiv || p.usd_equiv || p.amount_usd || 0);
+            }, 0);
+
+            const netBalanceUsd = Math.max(0, myTotalUsd - totalPaidUsd);
+            const netBalanceBs = netBalanceUsd * bcvRate;
+
+            const elBal = document.getElementById('owner-dash-balance');
+            const elBalBs = document.getElementById('owner-dash-balance-bs');
+            if (elBal) elBal.innerText = `$${netBalanceUsd.toFixed(2)}`;
+            if (elBalBs) elBalBs.innerText = `Bs. ${netBalanceBs.toFixed(2)}`;
+
+            // 3. Renderizar Tabla de Recibo
+            const receiptBody = document.getElementById('owner-receipt-body');
+            if (receiptBody) {
+                receiptBody.innerHTML = '';
+                if (pendingExpenses.length === 0) {
+                    receiptBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">No hay gastos emitidos en el periodo actual.</td></tr>`;
+                } else {
+                    pendingExpenses.forEach(e => {
+                        const totalBldg = Number(e.amount || e.amount_usd || 0);
+                        const expenseApto = String(e.apto || e.apartment || '').trim();
+                
+                        const myUsd = e.type === 'no_comun' 
+                            ? (expenseApto === myApto ? totalBldg : 0) 
+                            : totalBldg * factor;
+                        const myBs = myUsd * bcvRate;
+
+                        receiptBody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-2 font-bold">${e.description || 'Gasto de condominio'}</td>
+                                <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(e.type || 'comun').toUpperCase()}</span></td>
+                                <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
+                                <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
+                                <td class="p-2 text-right font-semibold">Bs. ${myBs.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            }
+
+        // 4. Renderizar Historial de Pagos
+            const historyBody = document.getElementById('owner-history-body');
+            if (historyBody) {
+                historyBody.innerHTML = '';
+                const myPayments = paymentsList.filter(p => 
+                    String(p.apto || p.apartment || '').trim() === myApto
+                );
+
+                if (myPayments.length === 0) {
+                    historyBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">No registras pagos reportados hasta el momento.</td></tr>`;
+                } else {
+                    myPayments.forEach(p => {
+                        const methodStr = p.method || '';
+                        const isBs = methodStr.includes('Bs') || p.currency === 'BS';
+                        const amt = Number(p.amount || 0);
+                        const amtUsd = Number(p.usdEquiv || p.usd_equiv || p.amount_usd || 0);
+                        const amtStr = isBs ? `Bs. ${amt.toFixed(2)}` : `$${amt.toFixed(2)}`;
+
+                        historyBody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-2">${p.date || '-'}</td>
+                                <td class="p-2">${p.concept || 'Pago de condominio'}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref || '-'} (${methodStr})</span></td>
+                                <td class="p-2 text-right font-semibold">${amtStr}</td>
+                                <td class="p-2 text-right font-bold text-teal-600">$${amtUsd.toFixed(2)}</td>
+                                <td class="p-2 text-center">
+                                    <span class="px-2 py-1 rounded text-[10px] font-bold ${p.status === 'Aprobado' || p.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                                        ${p.status}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            }
+        }
+
+        // Función de impresión del recibo del propietario (integrada limpiamente)
+        function imprimirReciboPropietario() {
+            if (!currentUser || currentUser.role !== 'owner') return;
+
+            const myApto = String(currentUser.apto || currentUser.apartment || '').trim();
+            const myOwnerObj = state.owners.find(o => 
+                String(o.apto || o.apartment || '').trim() === myApto
+            ) || currentUser;
+
+            const nombreEdificio = state.building?.name || 'Administración de Condominio';
+            const bcvRate = Number(state.building?.bcv || state.building?.bcv_rate || 1);
+            const periodoActual = new Date().toISOString().slice(0, 7);
+
+            // Gastos pendientes
+            const expensesList = Array.isArray(state.expenses) ? state.expenses : [];
+            const pendingExpenses = expensesList.filter(e => e.status !== 'anulado' && e.status !== 'cancelled');
+
+            let myTotalUsd = 0;
+            const rawAlicuota = Number(myOwnerObj.alicuota || 0);
+            const factor = rawAlicuota > 1 ? rawAlicuota / 100 : rawAlicuota;
+
+            let filasTablaHTML = '';
+
+            pendingExpenses.forEach(e => {
+                const totalBldg = Number(e.amount || e.amount_usd || 0);
+                const expenseApto = String(e.apto || e.apartment || '').trim();
+                const tipoGasto = (e.type || 'comun').toUpperCase();
+
+                // Lógica unificada con el panel principal de propietario
+                let myUsd = 0;
+                if (tipoGasto.includes('NO_COMUN') || tipoGasto.includes('NO COMÚN')) {
+                    myUsd = (expenseApto === myApto) ? totalBldg : 0;
+                } else {
+                    myUsd = totalBldg * factor;
+                }
+
+                if (myUsd > 0) {
+                    myTotalUsd += myUsd;
+                    const myBs = myUsd * bcvRate;
+
+                    filasTablaHTML += `
+                        <tr>
+                            <td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold;">${e.description || 'Gasto de condominio'}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;"><span style="background: #eee; padding: 3px 6px; border-radius: 4px; font-size: 11px;">${tipoGasto}</span></td>
+                            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">$${totalBldg.toFixed(2)}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; font-weight: bold; color: #0d9488;">$${myUsd.toFixed(2)}</td>
+                            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; font-weight: 600;">Bs. ${myBs.toFixed(2)}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            const totalBs = myTotalUsd * bcvRate;
+
+            // Crear una ventana emergente limpia
+            const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
+    
+            ventanaImpresion.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Recibo de Cobro - Apt ${myApto}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; color: #333; margin: 30px; }
+                        .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 15px; margin-bottom: 20px; }
+                        .header h2 { margin: 0; color: #0f172a; font-size: 22px; }
+                        .header p { margin: 4px 0; font-size: 14px; color: #475569; }
+                        .info-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; margin-bottom: 25px; border-radius: 6px; }
+                        .info-box table { width: 100%; border-collapse: collapse; }
+                        .info-box td { padding: 5px; font-size: 14px; color: #1e293b; }
+                        table.receipt { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        table.receipt th { background: #f1f5f9; border-bottom: 2px solid #cbd5e1; padding: 10px; text-align: left; font-size: 13px; color: #334155; }
+                        table.receipt td { font-size: 13px; }
+                        .totals { margin-top: 25px; text-align: right; font-size: 16px; border-top: 2px solid #e2e8f0; padding-top: 15px; }
+                        .totals p { margin: 6px 0; color: #0f172a; }
+                        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 15px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h2>${nombreEdificio}</h2>
+                        <p>RECIBO DE COBRO Y ESTADO DE CUENTA</p>
+                        <p>Período: ${periodoActual} | Tasa BCV Oficial: Bs. ${bcvRate.toFixed(2)}</p>
+                    </div>
+
+                    <div class="info-box">
+                        <table>
+                            <tr>
+                                <td><strong>Propietario:</strong> ${myOwnerObj.owner || myOwnerObj.full_name || 'N/D'}</td>
+                                <td><strong>Apartamento:</strong> ${myApto}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Alícuota:</strong> ${rawAlicuota > 1 ? rawAlicuota.toFixed(1) : (rawAlicuota * 100).toFixed(1)}%</td>
+                                <td><strong>Fecha de Emisión:</strong> ${new Date().toLocaleDateString()}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <table class="receipt">
+                        <thead>
+                            <tr>
+                                <th>Concepto / Descripción</th>
+                                <th style="text-align: center;">Tipo</th>
+                                <th style="text-align: right;">Total Edificio ($)</th>
+                                <th style="text-align: right;">Su Parte ($)</th>
+                                <th style="text-align: right;">Su Parte (Bs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filasTablaHTML || '<tr><td colspan="5" style="text-align:center; padding: 20px; color: #94a3b8;">No hay gastos pendientes en este período.</td></tr>'}
+                        </tbody>
+                    </table>
+
+                    <div class="totals">
+                        <p><strong>TOTAL A PAGAR (USD): $${myTotalUsd.toFixed(2)}</strong></p>
+                        <p><strong>TOTAL A PAGAR (Bs.): Bs. ${totalBs.toFixed(2)}</strong></p>
+                    </div>
+    
+                    <div class="footer">
+                        <p>Por favor reportar su pago a través de la plataforma del condominio. ¡Gracias por su puntualidad!</p>
+                    </div>
+                </body>
+                </html>
+            `);
+    
+            ventanaImpresion.document.close();
+            ventanaImpresion.onload = function() {
+                ventanaImpresion.focus();
+                ventanaImpresion.print();
+            };
+        }
+         // ==================== REPORTES Y CONFIGURACIÓN ====================
+         function generateReports() {
+            // 1. Obtener rango de fechas (Desde / Hasta)
+            const fromInput = document.getElementById('rep-from-period')?.value || ''; // Formato: YYYY-MM
+            const toInput = document.getElementById('rep-to-period')?.value || document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
+    
+            const periodLabel = document.getElementById('rep-ord-period-label');
+            if (periodLabel) {
+                periodLabel.innerText = fromInput ? `Periodo: ${fromInput} hasta ${toInput}` : `Periodo: Hasta ${toInput}`;
+            }
+
+            // ==========================================
+            // SECCIÓN 1: REPORTE DE CUOTAS MENSUALES (ORDINARIO)
+            // ==========================================
+            const ordBody = document.getElementById('report-ordinary-body');
+            if (ordBody) {
+                ordBody.innerHTML = '';
+
+                // Filtrar gastos ordinarios en el rango seleccionado
+                const ordinaryExpenses = state.expenses.filter(e => {
+                    const isOrd = e.type === 'ordinaria' || e.type === 'ordinary';
+                    if (!isOrd) return false;
+                    if (!e.period) return true;
+                    if (fromInput && e.period < fromInput) return false;
+                    if (toInput && e.period > toInput) return false;
+                    return true;
+                });
+
+                state.owners.forEach(o => {
+                    const factor = o.alicuota > 1 ? o.alicuota / 100 : Number(o.alicuota || 0);
+            
+                    let totalAsignado = 0;
+                    let totalPagado = 0;
+                    let mesesAdeudadosCount = 0;
+                    let conceptosPendientes = [];
+
+                    ordinaryExpenses.forEach(exp => {
+                        const montoAsignadoItem = Number(exp.amount || 0) * factor;
+                        totalAsignado += montoAsignadoItem;
+
+                        const approvedPayments = state.payments.filter(p => 
+                            p.apto === o.apto && 
+                            p.status === 'Aprobado' && 
+                            (p.type === 'ordinaria' || p.type === 'ordinary') &&
+                            (!p.period || p.period === exp.period)
+                        );
+
+                        const pagadoItem = approvedPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+                        totalPagado += pagadoItem;
+
+                        // Si queda deuda en este mes específico
+                        if ((montoAsignadoItem - pagadoItem) > 0.01) {
+                            mesesAdeudadosCount++;
+                            const [yyyy, mm] = (exp.period || toInput).split('-');
+                            const nombreMes = new Date(yyyy, mm - 1, 1).toLocaleString('es', { month: 'long', year: 'numeric' }).toUpperCase();
+                            conceptosPendientes.push(nombreMes);
+                        }
+                    });
+
+                    const diferencia = totalAsignado - totalPagado;
+                    let estadoTexto = '';
+                    let estadoClase = '';
+
+                    if (diferencia > 0.01) {
+                        estadoTexto = `Deuda: $${diferencia.toFixed(2)}`;
+                        estadoClase = 'text-rose-500 font-bold';
+                    } else if (diferencia < -0.01) {
+                        estadoTexto = `A favor: $${Math.abs(diferencia).toFixed(2)}`;
+                        estadoClase = 'text-blue-500 font-bold';
+                    } else {
+                        estadoTexto = 'Solvente ($0.00)';
+                        estadoClase = 'text-emerald-500 font-bold';
+                    }
+
+                    const detalleTexto = conceptosPendientes.length > 0 ? conceptosPendientes.join(', ') : 'Solvente';
+
+                    ordBody.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-2 font-bold text-center">${o.apto}</td>
+                            <td class="p-2 text-center">${mesesAdeudadosCount > 0 ? mesesAdeudadosCount : '-'}</td>
+                            <td class="p-2 text-xs text-slate-700">${detalleTexto}</td>
+                            <td class="p-2 text-right font-semibold">$${totalAsignado.toFixed(2)}</td>
+                            <td class="p-2 text-right ${estadoClase}">${estadoTexto}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+          // ==========================================
+        // SECCIÓN 2: REPORTE DE CUOTAS EXTRAORDINARIAS (DINÁMICO POR COLUMNAS)
+        // ==========================================
+        const extraHead = document.getElementById('report-extraordinary-head'); // Asegúrate de tener este id en el <thead> de tu tabla
+        const extraBody = document.getElementById('report-extraordinary-body');
+        
+        if (extraBody) {
+            extraBody.innerHTML = '';
+            if (extraHead) extraHead.innerHTML = '';
+
+            // 1. Filtrar gastos extraordinarios en el rango seleccionado y ordenarlos
+            const extraordinaryExpenses = state.expenses.filter(e => {
+                const isExtra = e.type === 'extraordinaria' || e.type === 'extraordinary';
+                if (!isExtra) return false;
+                if (!e.period) return true;
+                if (fromInput && e.period < fromInput) return false;
+                if (toInput && e.period > toInput) return false;
+                return true;
+            });
+
+            if (extraordinaryExpenses.length === 0) {
+                if (extraHead) {
+                    extraHead.innerHTML = `<tr><th class="p-2 text-center">Propietario</th><th class="p-2 text-center">Apto</th><th class="p-2 text-center">Alícuota</th><th class="p-2 text-center">Sin cuotas extraordinarias</th></tr>`;
+                }
+                extraBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No hay cuotas extraordinarias registradas para este periodo.</td></tr>`;
+            } else {
+                // 2. Construir el Encabezado (Thead) dinámico con las columnas de cada cuota
+                let headCols = `
+                    <th class="p-2 text-left border-b">Propietario</th>
+                    <th class="p-2 text-center border-b">Apto</th>
+                    <th class="p-2 text-center border-b">Alícuota (%)</th>
+                `;
+
+                extraordinaryExpenses.forEach((exp, index) => {
+                    headCols += `
+                        <th class="p-2 text-center border-b bg-slate-50" colspan="2">
+                            Cuota ${index + 1}: ${exp.description || 'Extraordinaria'}<br>
+                            <span class="text-xs font-normal text-slate-500">(Total: $${Number(exp.amount || 0).toFixed(2)})</span>
+                        </th>
+                    `;
+                });
+                headCols += `<th class="p-2 text-right border-b font-bold bg-slate-100">Deuda Total</th>`;
+                
+                if (extraHead) {
+                    extraHead.innerHTML = `<tr>${headCols}</tr>`;
+                }
+
+                // Sub-encabezado opcional para aclarar "Monto a Pagar / Monto Pagado" debajo de cada cuota si lo deseas
+                let subHeadCols = `
+                    <th class="p-2 border-b"></th>
+                    <th class="p-2 border-b"></th>
+                    <th class="p-2 border-b"></th>
+                `;
+                extraordinaryExpenses.forEach(() => {
+                    subHeadCols += `
+                        <th class="p-2 text-center border-b text-xs text-slate-600">Monto a Pagar</th>
+                        <th class="p-2 text-center border-b text-xs text-slate-600">Monto Pagado</th>
+                    `;
+                });
+                subHeadCols += `<th class="p-2 border-b"></th>`;
+
+                // 3. Ordenar propietarios de forma natural (1A, 1B, 2, 3A...)
+                const sortedOwners = [...(state.owners || [])].sort((a, b) => {
+                    return (a.apto || '').localeCompare(b.apto || '', undefined, { 
+                        numeric: true, 
+                        sensitivity: 'base' 
+                    });
+                });
+
+                // 4. Recorrer cada propietario para rellenar sus celdas por cada cuota
+                sortedOwners.forEach(o => {
+                    const factor = o.alicuota > 1 ? o.alicuota / 100 : Number(o.alicuota || 0);
+                    let rowHtml = `
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-2 text-left font-medium">${o.owner || 'Sin registrar'}</td>
+                            <td class="p-2 text-center font-bold">${o.apto}</td>
+                            <td class="p-2 text-center">${(Number(o.alicuota || 0)).toFixed(2)}%</td>
+                    `;
+
+                    let deudaTotalApto = 0;
+
+                    extraordinaryExpenses.forEach(exp => {
+                        const montoAsignadoItem = Number(exp.amount || 0) * factor;
+
+                        // Buscar pagos aprobados para este apartamento y esta cuota específica
+                        const approvedExtraPayments = state.payments.filter(p => 
+                            p.apto === o.apto && 
+                            p.status === 'Aprobado' && 
+                            (p.type === 'extraordinaria' || p.type === 'extraordinary') &&
+                            (!p.expense_id || p.expense_id === exp.id)
+                        );
+
+                        const pagadoItem = approvedExtraPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+                        const diferenciaItem = montoAsignadoItem - pagadoItem;
+                        
+                        deudaTotalApto += diferenciaItem;
+
+                        rowHtml += `
+                            <td class="p-2 text-right text-slate-700">$${montoAsignadoItem.toFixed(2)}</td>
+                            <td class="p-2 text-right text-emerald-600 font-medium">$${pagadoItem.toFixed(2)}</td>
+                        `;
+                    });
+
+                    const claseDeudaTotal = deudaTotalApto > 0.01 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold';
+
+                    rowHtml += `
+                            <td class="p-2 text-right ${claseDeudaTotal}">$${deudaTotalApto.toFixed(2)}</td>
+                        </tr>
+                    `;
+
+                    extraBody.innerHTML += rowHtml;
+                });
+            }
+        }
+
+            // 3. Reporte Proveedores
+            const provBody = document.getElementById('report-providers-body');
+            if (provBody) {
+                provBody.innerHTML = '';
+                state.providers.forEach(p => {
+                    provBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">${p.name}</td>
+                            <td class="p-2">${p.service}</td>
+                            <td class="p-2 text-right font-mono">${p.phone || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+    }
+
+        async function saveBuildingConfig(e) {
+            e.preventDefault();
+            const name = document.getElementById('cfg-name').value;
+            const rif = document.getElementById('cfg-rif').value;
+            const address = document.getElementById('cfg-address').value;
+
+            const { data, error } = await db.from('building_config').upsert([{ id: 1, name, rif, address }]);
+            if (error) {
+                alert('Error al guardar la configuración: ' + error.message);
+                return;
+            }
+
+            await loadStorage();
+            alert('¡Configuración actualizada con éxito!');
+        }
+
+        // ==================== CONFIGURACIÓN DE TIEMPO REAL (OPCIONAL) ====================
+        function setupRealtimeSubscriptions() {
+            // Función de respaldo para evitar errores si no se usa Realtime
+            console.log("Suscripciones en tiempo real omitidas.");
+        } 
+        // ==================== INICIALIZACIÓN DE LA APP ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStorage();
+            setupRealtimeSubscriptions();
+        });
+    </script>
+</body>
+</html>
