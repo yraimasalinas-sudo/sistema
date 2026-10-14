@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +10,8 @@
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 
     <style>
         body {
@@ -40,8 +42,10 @@
 
         <!-- ==================== PANTALLA DE LOGIN ==================== -->
         <div id="login-section" class="flex flex-col items-center justify-center min-h-[85vh]">
-            <div class="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-teal-100 max-w-md w-full text-center">
-                <div class="w-20 h-20 bg-gradient-to-tr from-teal-400 to-amber-400 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-md mb-4">
+            <div
+                class="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-teal-100 max-w-md w-full text-center">
+                <div
+                    class="w-20 h-20 bg-gradient-to-tr from-teal-400 to-amber-400 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-md mb-4">
                     🏢
                 </div>
                 <h1 class="text-2xl font-bold text-slate-800 mb-1" id="login-building-name">Mi Condominio</h1>
@@ -70,14 +74,17 @@
         <!-- ==================== PANEL PRINCIPAL (DASHBOARD) ==================== -->
         <div id="dashboard-section" class="hidden">
             <!-- Barra Superior / Encabezado -->
-            <header class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap justify-between items-center border border-slate-100 no-print">
+            <header
+                class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap justify-between items-center border border-slate-100 no-print">
                 <div class="flex items-center gap-3">
-                    <div id="header-logo" class="w-12 h-12 bg-amber-400 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow">
+                    <div id="header-logo"
+                        class="w-12 h-12 bg-amber-400 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow">
                         🏢
                     </div>
                     <div>
                         <h2 class="font-bold text-lg text-slate-800" id="dash-bldg-name">Edificio Residencial</h2>
-                        <p class="text-xs text-slate-500">RIF: <span id="dash-bldg-rif">J-00000000-0</span> | <span id="dash-bldg-address">Dirección del Inmueble</span></p>
+                        <p class="text-xs text-slate-500">RIF: <span id="dash-bldg-rif">J-00000000-0</span> | <span
+                                id="dash-bldg-address">Dirección del Inmueble</span></p>
                     </div>
                 </div>
 
@@ -91,8 +98,10 @@
                         </div>
                     </div>
                     <div class="text-right">
-                        <span id="user-badge" class="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-bold uppercase"></span>
-                        <button onclick="logout()" class="block text-xs text-red-500 hover:underline mt-1">Cerrar Sesión</button>
+                        <span id="user-badge"
+                            class="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-bold uppercase"></span>
+                        <button onclick="logout()" class="block text-xs text-red-500 hover:underline mt-1">Cerrar
+                            Sesión</button>
                     </div>
                 </div>
             </header>
@@ -101,42 +110,67 @@
             <div id="admin-view" class="hidden space-y-6">
                 <!-- Navegación por pestañas -->
                 <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-2 no-print">
-                    <button onclick="switchTab(event, 'bcv')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-teal-500 text-white">💵 Tasa BCV (Manual / API)</button>
-                    <button onclick="switchTab(event, 'gastos')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Gastos y Cobro</button>
-                    <button onclick="switchTab(event, 'pagos')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Conciliación y Pagos</button>
-                    <button onclick="switchTab(event, 'propietarios')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Propietarios y Alícuotas</button>
-                    <button onclick="switchTab(event, 'proveedores')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Proveedores</button>
-                    <button onclick="switchTab(event, 'notices-history')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">📄 Histórico de Avisos</button>
-                    <button onclick="switchTab(event, 'reportes')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Reportes de Gestión</button>
-                    <button onclick="switchTab(event, 'config')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Config. Edificio</button>
+                    <button onclick="switchTab(event, 'bcv')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-teal-500 text-white">💵 Tasa BCV
+                        (Manual / API)</button>
+                    <button onclick="switchTab(event, 'gastos')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Gastos
+                        y Cobro</button>
+                    <button onclick="switchTab(event, 'pagos')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Conciliación
+                        y Pagos</button>
+                    <button onclick="switchTab(event, 'propietarios')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Propietarios
+                        y Alícuotas</button>
+                    <button onclick="switchTab(event, 'proveedores')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Proveedores</button>
+                    <button onclick="switchTab(event, 'notices-history')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">📄
+                        Histórico de Avisos</button>
+                    <button onclick="switchTab(event, 'reportes')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Reportes
+                        de Gestión</button>
+                    <button onclick="switchTab(event, 'config')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Config.
+                        Edificio</button>
                 </div>
 
                 <!-- PESTAÑA 0: GESTIÓN DE TASA BCV -->
                 <div id="tab-bcv" class="tab-content space-y-6">
                     <div class="grid md:grid-cols-2 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">⚙️ Configuración de la Tasa Oficial BCV</h3>
-                            <p class="text-xs text-slate-500">Ingresa la tasa diaria manualmente o consúltala automáticamente por la API del BCV.</p>
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">⚙️ Configuración de la
+                                Tasa Oficial BCV</h3>
+                            <p class="text-xs text-slate-500">Ingresa la tasa diaria manualmente o consúltala
+                                automáticamente por la API del BCV.</p>
 
                             <form onsubmit="saveBcvManual(event)" class="space-y-3 pt-2">
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label class="text-xs text-slate-600 font-bold block mb-1">Fecha de la Tasa:</label>
-                                        <input type="date" id="manual-bcv-date" required class="w-full p-2.5 rounded-lg border text-sm font-bold text-slate-800">
+                                        <label class="text-xs text-slate-600 font-bold block mb-1">Fecha de la
+                                            Tasa:</label>
+                                        <input type="date" id="manual-bcv-date" required
+                                            class="w-full p-2.5 rounded-lg border text-sm font-bold text-slate-800">
                                     </div>
                                     <div>
-                                        <label class="text-xs text-slate-600 font-bold block mb-1">Monto (Bs. / USD):</label>
-                                        <input type="number" id="manual-bcv-input" step="0.0001" placeholder="Ej: 36.50" required class="w-full p-2.5 rounded-lg border text-sm font-bold text-slate-800">
+                                        <label class="text-xs text-slate-600 font-bold block mb-1">Monto (Bs. /
+                                            USD):</label>
+                                        <input type="number" id="manual-bcv-input" step="0.0001" placeholder="Ej: 36.50"
+                                            required
+                                            class="w-full p-2.5 rounded-lg border text-sm font-bold text-slate-800">
                                     </div>
                                 </div>
-                                <button type="submit" class="w-full py-2.5 bg-teal-500 text-white rounded-lg text-xs font-semibold hover:bg-teal-600">
+                                <button type="submit"
+                                    class="w-full py-2.5 bg-teal-500 text-white rounded-lg text-xs font-semibold hover:bg-teal-600">
                                     Guardar Tasa para esta Fecha
                                 </button>
                             </form>
 
                             <div>
-                                <label class="text-xs text-slate-600 font-bold block mb-1">Obtener Tasa BCV automáticamente desde API:</label>
-                                <button onclick="fetchBcvApi()" id="btn-api-bcv" class="w-full py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-bold text-xs rounded-lg shadow hover:from-amber-500 hover:to-amber-600 flex items-center justify-center gap-2">
+                                <label class="text-xs text-slate-600 font-bold block mb-1">Obtener Tasa BCV
+                                    automáticamente desde API:</label>
+                                <button onclick="fetchBcvApi()" id="btn-api-bcv"
+                                    class="w-full py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-bold text-xs rounded-lg shadow hover:from-amber-500 hover:to-amber-600 flex items-center justify-center gap-2">
                                     <span>🔄</span> Actualizar Tasa con API Oficial BCV
                                 </button>
                                 <p id="api-status-msg" class="text-[11px] text-slate-400 mt-1 italic"></p>
@@ -166,38 +200,48 @@
                     <div class="grid md:grid-cols-3 gap-6">
                         <!-- Formulario para agregar gastos -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 class="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2">📝 Registrar Nuevo Gasto</h3>
-                             <form id="expense-form" onsubmit="addExpense(event)" class="space-y-3">
+                            <h3 class="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2">📝 Registrar Nuevo
+                                Gasto</h3>
+                            <form id="expense-form" onsubmit="addExpense(event)" class="space-y-3">
                                 <div>
                                     <label class="text-xs text-slate-600">Mes a Cobrar / Período</label>
-                                    <input type="month" id="exp-period" required class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="month" id="exp-period" required
+                                        class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Concepto / Descripción</label>
-                                    <input type="text" id="exp-desc" required class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="text" id="exp-desc" required
+                                        class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
                                         <label class="text-xs text-slate-600">Moneda</label>
-                                        <select id="exp-currency" onchange="toggleEuroRateInput(this.value)" class="w-full p-2.5 rounded-lg border text-sm">
+                                        <select id="exp-currency" onchange="toggleEuroRateInput(this.value)"
+                                            class="w-full p-2.5 rounded-lg border text-sm">
                                             <option value="USD">Dólares ($)</option>
                                             <option value="EUR">Euros (€)</option>
                                         </select>
                                     </div>
-                                <div>
+                                    <div>
                                         <label class="text-xs text-slate-600">Monto</label>
-                                        <input type="number" id="exp-amount" step="0.01" required class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 150">
+                                        <input type="number" id="exp-amount" step="0.01" required
+                                            class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 150">
                                     </div>
                                 </div>
                                 <!-- Campo oculto por defecto que aparece solo si selecciona Euros -->
-                                <div id="euro-rate-box" class="hidden bg-amber-50 p-2.5 rounded-lg border border-amber-200">
-                                    <label class="text-xs text-amber-800 font-bold block mb-1">Tasa de Cambio del Euro (Bs. por €):</label>
-                                    <input type="number" id="exp-euro-rate" step="0.0001" placeholder="Ej: 92.50" class="w-full p-2 rounded border text-sm bg-white">
-                                    <p class="text-[10px] text-amber-700 mt-1">Se convertirá automáticamente a USD usando la tasa BCV actual.</p>
-                                    </div>
+                                <div id="euro-rate-box"
+                                    class="hidden bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                                    <label class="text-xs text-amber-800 font-bold block mb-1">Tasa de Cambio del Euro
+                                        (Bs. por €):</label>
+                                    <input type="number" id="exp-euro-rate" step="0.0001" placeholder="Ej: 92.50"
+                                        class="w-full p-2 rounded border text-sm bg-white">
+                                    <p class="text-[10px] text-amber-700 mt-1">Se convertirá automáticamente a USD
+                                        usando la tasa BCV actual.</p>
+                                </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Tipo de Cuota</label>
-                                    <select id="exp-type" onchange="toggleAptoBox(this.value)" class="w-full p-2.5 rounded-lg border text-sm">
+                                    <select id="exp-type" onchange="toggleAptoBox(this.value)"
+                                        class="w-full p-2.5 rounded-lg border text-sm">
                                         <option value="ordinaria">Gasto Común Ordinario</option>
                                         <option value="extraordinaria">Cuota Extraordinaria</option>
                                         <option value="no_comun">Gasto No Común (Apto Específico)</option>
@@ -207,11 +251,12 @@
                                     <label class="text-xs text-slate-600">Apartamento Afectado</label>
                                     <select id="exp-apto" class="w-full p-2.5 rounded-lg border text-sm"></select>
                                 </div>
-                            <div>
+                                <div>
                                     <label class="text-xs text-slate-600">Proveedor (Opcional)</label>
                                     <select id="exp-provider" class="w-full p-2.5 rounded-lg border text-sm"></select>
                                 </div>
-                                <button type="submit" class="w-full py-2.5 bg-emerald-500 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600">
+                                <button type="submit"
+                                    class="w-full py-2.5 bg-emerald-500 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600">
                                     Agregar Gasto
                                 </button>
                             </form>
@@ -238,12 +283,14 @@
                             <div class="flex justify-between items-center pt-2 border-t">
                                 <div>
                                     <span class="text-sm font-bold block">Total Mensual a Repartir:</span>
-                                    <button type="button" onclick="approveAndCloseNotice()" class="mt-2 px-3 py-1.5 bg-teal-600 text-white text-xs font-bold rounded-lg shadow hover:bg-teal-700 transition-colors">
+                                    <button type="button" onclick="approveAndCloseNotice()"
+                                        class="mt-2 px-3 py-1.5 bg-teal-600 text-white text-xs font-bold rounded-lg shadow hover:bg-teal-700 transition-colors">
                                         💾 Aprobar y Emitir Aviso
                                     </button>
                                 </div>
                                 <div class="text-right">
-                                    <span id="total-expenses-amount" class="text-lg font-extrabold text-teal-600">$0.00</span>
+                                    <span id="total-expenses-amount"
+                                        class="text-lg font-extrabold text-teal-600">$0.00</span>
                                     <span id="total-expenses-bs" class="text-xs text-slate-500 block">(Bs. 0.00)</span>
                                 </div>
                             </div>
@@ -252,16 +299,21 @@
                             <div class="bg-teal-50 p-4 rounded-xl border border-teal-200 space-y-3">
                                 <div class="flex justify-between items-center">
                                     <h4 class="font-bold text-xs text-teal-800">💬 Difusión de Avisos por WhatsApp</h4>
-                                    <select id="wa-fee-type" onchange="generateWhatsappGroupMsg()" class="text-xs p-1 rounded border border-teal-300 bg-white">
+                                    <select id="wa-fee-type" onchange="generateWhatsappGroupMsg()"
+                                        class="text-xs p-1 rounded border border-teal-300 bg-white">
                                         <option value="all">Todos los Gastos</option>
                                         <option value="ordinary">Solo Ordinarias</option>
                                         <option value="extraordinary">Solo Extraordinarias</option>
                                     </select>
                                 </div>
-                                <textarea id="whatsapp-preview" readonly class="w-full h-28 text-xs p-2 rounded-lg border bg-white font-mono"></textarea>
+                                <textarea id="whatsapp-preview" readonly
+                                    class="w-full h-28 text-xs p-2 rounded-lg border bg-white font-mono"></textarea>
                                 <div class="flex gap-2">
-                                    <button onclick="generateWhatsappGroupMsg()" class="px-3 py-1.5 bg-teal-600 text-white text-xs rounded-lg font-semibold hover:bg-teal-700">Regenerar Mensaje</button>
-                                    <a id="wa-group-btn" href="#" target="_blank" class="px-3 py-1.5 bg-emerald-500 text-white text-xs rounded-lg font-semibold hover:bg-emerald-600 flex items-center gap-1">
+                                    <button onclick="generateWhatsappGroupMsg()"
+                                        class="px-3 py-1.5 bg-teal-600 text-white text-xs rounded-lg font-semibold hover:bg-teal-700">Regenerar
+                                        Mensaje</button>
+                                    <a id="wa-group-btn" href="#" target="_blank"
+                                        class="px-3 py-1.5 bg-emerald-500 text-white text-xs rounded-lg font-semibold hover:bg-emerald-600 flex items-center gap-1">
                                         Abrir WhatsApp
                                     </a>
                                 </div>
@@ -274,41 +326,50 @@
                 <div id="tab-pagos" class="tab-content hidden space-y-6">
                     <div class="grid md:grid-cols-3 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 class="font-bold text-slate-800 mb-4 text-sm">💵 Registrar Pago Manual de Propietario</h3>
+                            <h3 class="font-bold text-slate-800 mb-4 text-sm">💵 Registrar Pago Manual de Propietario
+                            </h3>
                             <form id="admin-pay-form" onsubmit="registerAdminPayment(event)" class="space-y-3">
                                 <div>
                                     <label class="text-xs text-slate-600">Apartamento</label>
-                                    <select id="pay-apto" required class="w-full p-2.5 rounded-lg border text-sm"></select>
+                                    <select id="pay-apto" required
+                                        class="w-full p-2.5 rounded-lg border text-sm"></select>
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Concepto de Pago</label>
                                     <select id="pay-concept" class="w-full p-2.5 rounded-lg border text-sm">
                                         <option value="Cuota Ordinaria Mensual">Cuota Ordinaria Mensual</option>
                                         <option value="Cuota Extraordinaria">Cuota Extraordinaria</option>
-                                        <option value="Pago Total (Ordinaria + Extraordinaria)">Pago Total (Ordinaria + Extraordinaria)</option>
+                                        <option value="Pago Total (Ordinaria + Extraordinaria)">Pago Total (Ordinaria +
+                                            Extraordinaria)</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Fecha Real de Pago</label>
-                                    <input type="date" id="pay-date" required class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="date" id="pay-date" required
+                                        class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Método / Moneda de Pago</label>
                                     <select id="pay-method" class="w-full p-2.5 rounded-lg border text-sm">
-                                        <option value="Bs - Transferencia/Pago Movil">Bs - Pago Móvil / Transferencia</option>
+                                        <option value="Bs - Transferencia/Pago Movil">Bs - Pago Móvil / Transferencia
+                                        </option>
                                         <option value="USD - Efectivo">USD - Efectivo</option>
                                         <option value="USD - Zelle">USD - Zelle / Otro</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Monto Ingresado (Bs o USD)</label>
-                                    <input type="number" id="pay-amount" step="0.01" required class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 1800.00 en Bs o 50 en USD">
+                                    <input type="number" id="pay-amount" step="0.01" required
+                                        class="w-full p-2.5 rounded-lg border text-sm"
+                                        placeholder="Ej: 1800.00 en Bs o 50 en USD">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Referencia / Comprobante</label>
-                                    <input type="text" id="pay-ref" required class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="text" id="pay-ref" required
+                                        class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
-                                <button type="submit" class="w-full py-2.5 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600">
+                                <button type="submit"
+                                    class="w-full py-2.5 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600">
                                     Registrar y Aprobar Pago
                                 </button>
                             </form>
@@ -364,21 +425,27 @@
                             <form onsubmit="addProvider(event)" class="space-y-3">
                                 <div>
                                     <label class="text-xs text-slate-600">Nombre / Razón Social</label>
-                                    <input type="text" id="prov-name" required class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="text" id="prov-name" required
+                                        class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Servicio / Ramo</label>
-                                    <input type="text" id="prov-service" required class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: Plomería, Ascensores">
+                                    <input type="text" id="prov-service" required
+                                        class="w-full p-2.5 rounded-lg border text-sm"
+                                        placeholder="Ej: Plomería, Ascensores">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Teléfono / Contacto</label>
                                     <input type="text" id="prov-phone" class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
-                                <button type="submit" class="w-full py-2.5 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600">Guardar Proveedor</button>
+                                <button type="submit"
+                                    class="w-full py-2.5 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600">Guardar
+                                    Proveedor</button>
                             </form>
                         </div>
                         <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 class="font-bold text-slate-800 mb-4 text-sm">📜 Directorio de Proveedores Registrados</h3>
+                            <h3 class="font-bold text-slate-800 mb-4 text-sm">📜 Directorio de Proveedores Registrados
+                            </h3>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-xs">
                                     <thead>
@@ -399,7 +466,8 @@
                 <div id="tab-notices-history" class="tab-content hidden p-4 bg-white rounded-lg shadow mt-4">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-bold text-slate-700">Histórico de Avisos Emitidos</h3>
-                        <button onclick="saveCurrentNotice()" class="px-3 py-2 bg-teal-600 text-white text-xs font-bold rounded shadow hover:bg-teal-700">
+                        <button onclick="saveCurrentNotice()"
+                            class="px-3 py-2 bg-teal-600 text-white text-xs font-bold rounded shadow hover:bg-teal-700">
                             💾 Archivar Aviso de Cobro por Mes
                         </button>
                     </div>
@@ -408,11 +476,14 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 bg-slate-50 p-3 rounded">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Mes:</label>
-                            <input type="month" id="hist-filter-period" class="p-2 border rounded text-sm w-full" onchange="renderHistoryNotices()">
+                            <input type="month" id="hist-filter-period" class="p-2 border rounded text-sm w-full"
+                                onchange="renderHistoryNotices()">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Tipo de Cuota:</label>
-                            <select id="hist-filter-type" class="p-2 border rounded text-sm w-full" onchange="renderHistoryNotices()">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Tipo de
+                                Cuota:</label>
+                            <select id="hist-filter-type" class="p-2 border rounded text-sm w-full"
+                                onchange="renderHistoryNotices()">
                                 <option value="all">Todos (Comunes y Extraordinarios)</option>
                                 <option value="ordinary">Solo Ordinarios (Comunes)</option>
                                 <option value="extraordinary">Solo Extraordinarios</option>
@@ -444,10 +515,15 @@
                         <div class="flex flex-wrap items-end gap-4">
                             <div>
                                 <label class="text-xs text-slate-600 block">Mes a Consultar</label>
-                                <input type="month" id="rep-period" class="p-2 rounded-lg border text-sm" onchange="generateReports()">
+                                <input type="month" id="rep-period" class="p-2 rounded-lg border text-sm"
+                                    onchange="generateReports()">
                             </div>
-                            <button onclick="generateReports()" class="px-5 py-2.5 bg-teal-500 text-white font-semibold text-sm rounded-lg hover:bg-teal-600">Actualizar Reportes</button>
-                            <button onclick="window.print()" class="px-5 py-2.5 bg-slate-700 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 flex items-center gap-1">🖨 Imprimir / Guardar PDF</button>
+                            <button onclick="generateReports()"
+                                class="px-5 py-2.5 bg-teal-500 text-white font-semibold text-sm rounded-lg hover:bg-teal-600">Actualizar
+                                Reportes</button>
+                            <button onclick="window.print()"
+                                class="px-5 py-2.5 bg-slate-700 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 flex items-center gap-1">🖨
+                                Imprimir / Guardar PDF</button>
                         </div>
                     </div>
 
@@ -464,7 +540,8 @@
                             <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                                 📊 Estado Financiero - Cuota Mensual Ordinaria
                             </h3>
-                            <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold" id="rep-ord-period-label">Periodo: --</span>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold"
+                                id="rep-ord-period-label">Periodo: --</span>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-xs">
@@ -489,7 +566,8 @@
                             <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                                 📊 Estado Financiero - Cuotas Extraordinarias
                             </h3>
-                            <span class="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-bold">Detalle por Proyecto/Concepto</span>
+                            <span class="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-bold">Detalle
+                                por Proyecto/Concepto</span>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-xs">
@@ -534,7 +612,8 @@
                         <form onsubmit="saveBuildingConfig(event)" class="space-y-3">
                             <div>
                                 <label class="text-xs text-slate-600">Nombre del Edificio</label>
-                                <input type="text" id="cfg-name" required class="w-full p-2.5 rounded-lg border text-sm">
+                                <input type="text" id="cfg-name" required
+                                    class="w-full p-2.5 rounded-lg border text-sm">
                             </div>
                             <div>
                                 <label class="text-xs text-slate-600">Registro Fiscal (RIF)</label>
@@ -542,9 +621,12 @@
                             </div>
                             <div>
                                 <label class="text-xs text-slate-600">Dirección</label>
-                                <textarea id="cfg-address" required class="w-full p-2.5 rounded-lg border text-sm"></textarea>
+                                <textarea id="cfg-address" required
+                                    class="w-full p-2.5 rounded-lg border text-sm"></textarea>
                             </div>
-                            <button type="submit" class="w-full py-2.5 bg-teal-500 text-white font-semibold rounded-lg text-sm hover:bg-teal-600">Guardar Configuración</button>
+                            <button type="submit"
+                                class="w-full py-2.5 bg-teal-500 text-white font-semibold rounded-lg text-sm hover:bg-teal-600">Guardar
+                                Configuración</button>
                         </form>
                     </div>
                 </div>
@@ -557,7 +639,8 @@
                         <span class="text-xs text-slate-500 font-bold block">APARTAMENTO</span>
                         <h3 class="text-2xl font-black text-slate-800" id="owner-dash-apto">--</h3>
                         <p class="text-xs text-slate-600 mt-1" id="owner-dash-name">--</p>
-                        <span class="inline-block mt-2 px-2 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded">
+                        <span
+                            class="inline-block mt-2 px-2 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded">
                             Alícuota: <span id="owner-dash-alicuota">0</span>%
                         </span>
                     </div>
@@ -565,14 +648,18 @@
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                         <span class="text-xs text-slate-500 font-bold block">SALDO PENDIENTE ACTUAL</span>
                         <h3 class="text-3xl font-black text-rose-500" id="owner-dash-balance">$0.00</h3>
-                        <p class="text-xs text-slate-500 mt-1">Monto a pagar en Bolívares: <span id="owner-dash-balance-bs" class="font-bold text-slate-800">Bs. 0.00</span></p>
-                        <p class="text-[10px] text-amber-600 mt-0.5">Calculado a Tasa BCV: <span id="owner-bcv-rate">0.00</span> Bs/$</p>
+                        <p class="text-xs text-slate-500 mt-1">Monto a pagar en Bolívares: <span
+                                id="owner-dash-balance-bs" class="font-bold text-slate-800">Bs. 0.00</span></p>
+                        <p class="text-[10px] text-amber-600 mt-0.5">Calculado a Tasa BCV: <span
+                                id="owner-bcv-rate">0.00</span> Bs/$</p>
                     </div>
 
                     <div class="bg-gradient-to-br from-teal-500 to-emerald-600 p-6 rounded-2xl shadow-md text-white">
                         <h4 class="font-bold text-sm mb-2">📲 Reportar Nuevo Pago</h4>
-                        <p class="text-xs text-teal-100 mb-4">Envía los datos de tu transferencia en Bs o divisa para su conciliación.</p>
-                        <button onclick="document.getElementById('owner-pay-modal').classList.remove('hidden')" class="w-full py-2 bg-white text-teal-700 font-bold text-xs rounded-lg shadow hover:bg-teal-50">
+                        <p class="text-xs text-teal-100 mb-4">Envía los datos de tu transferencia en Bs o divisa para su
+                            conciliación.</p>
+                        <button onclick="document.getElementById('owner-pay-modal').classList.remove('hidden')"
+                            class="w-full py-2 bg-white text-teal-700 font-bold text-xs rounded-lg shadow hover:bg-teal-50">
                             Reportar Pago Ahora
                         </button>
                     </div>
@@ -581,7 +668,9 @@
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-slate-800 text-sm">🧾 Recibo de Cobro / Desglose de Gastos</h3>
-                        <button onclick="imprimirReciboPropietario()" class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-700 hover:bg-slate-200 no-print">🖨️ Imprimir Recibo</button>
+                        <button onclick="imprimirReciboPropietario()"
+                            class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-700 hover:bg-slate-200 no-print">🖨️
+                            Imprimir Recibo</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs">
@@ -623,7 +712,8 @@
     </div>
 
     <!-- MODAL DE REPORTAR PAGO -->
-    <div id="owner-pay-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div id="owner-pay-modal"
+        class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 class="font-bold text-slate-800 text-base mb-4">Reportar Pago de Condominio</h3>
             <form onsubmit="submitOwnerPayment(event)" class="space-y-3">
@@ -632,7 +722,8 @@
                     <select id="rep-concept" class="w-full p-2.5 rounded-lg border text-sm">
                         <option value="Cuota Ordinaria Mensual">Cuota Ordinaria Mensual</option>
                         <option value="Cuota Extraordinaria">Cuota Extraordinaria</option>
-                        <option value="Pago Total (Ordinaria + Extraordinaria)">Pago Total (Ordinaria + Extraordinaria)</option>
+                        <option value="Pago Total (Ordinaria + Extraordinaria)">Pago Total (Ordinaria + Extraordinaria)
+                        </option>
                     </select>
                 </div>
                 <div>
@@ -644,7 +735,8 @@
                 </div>
                 <div>
                     <label class="text-xs text-slate-600">Monto Cancelado</label>
-                    <input type="number" id="rep-amount" step="0.01" required class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 1800.00 en Bs o 50.00 en USD">
+                    <input type="number" id="rep-amount" step="0.01" required
+                        class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 1800.00 en Bs o 50.00 en USD">
                 </div>
                 <div>
                     <label class="text-xs text-slate-600">Número de Referencia / Comprobante</label>
@@ -655,8 +747,11 @@
                     <input type="date" id="rep-date" required class="w-full p-2.5 rounded-lg border text-sm">
                 </div>
                 <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="document.getElementById('owner-pay-modal').classList.add('hidden')" class="w-1/2 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold">Cancelar</button>
-                    <button type="submit" class="w-1/2 py-2 bg-teal-500 text-white rounded-lg text-xs font-semibold hover:bg-teal-600">Enviar Reporte</button>
+                    <button type="button" onclick="document.getElementById('owner-pay-modal').classList.add('hidden')"
+                        class="w-1/2 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold">Cancelar</button>
+                    <button type="submit"
+                        class="w-1/2 py-2 bg-teal-500 text-white rounded-lg text-xs font-semibold hover:bg-teal-600">Enviar
+                        Reporte</button>
                 </div>
             </form>
         </div>
@@ -746,97 +841,97 @@
                 // 2. PAGOS DE PROPIETARIOS
                 if (cloudPayments) {
                     state.payments = cloudPayments.map(p => ({
-                    id: p.id,
-                    apto: p.apto,
-                    concept: p.concept || 'Cuota Ordinaria Mensual',
-                    type: p.type || (p.concept && p.concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria'),
-                    method: p.method || 'Transferencia',
-                    amount: parseFloat(p.amount || 0),
-                    amount_usd: parseFloat(p.amount_usd || p.usd_equiv || p.amount || 0),
-                    usdEquiv: parseFloat(p.usd_equiv || p.amount_usd || 0),
-                    ref: p.ref || '',
-                    status: p.status || 'Pendiente',
-                    date: p.date
-                }));
+                        id: p.id,
+                        apto: p.apto,
+                        concept: p.concept || 'Cuota Ordinaria Mensual',
+                        type: p.type || (p.concept && p.concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria'),
+                        method: p.method || 'Transferencia',
+                        amount: parseFloat(p.amount || 0),
+                        amount_usd: parseFloat(p.amount_usd || p.usd_equiv || p.amount || 0),
+                        usdEquiv: parseFloat(p.usd_equiv || p.amount_usd || 0),
+                        ref: p.ref || '',
+                        status: p.status || 'Pendiente',
+                        date: p.date
+                    }));
+                }
+
+                // 3. GASTOS DEL EDIFICIO (Mapeo corregido para USD y Bs)
+                if (cloudExpenses) {
+                    state.expenses = cloudExpenses.map(e => ({
+                        id: e.id,
+                        period: e.period || new Date().toISOString().slice(0, 7),
+                        description: e.description || e.concept || 'Gasto de Condominio',
+                        concept: e.concept || e.description || 'Gasto de Condominio',
+                        amount: parseFloat(e.amount || e.amount_usd || 0),
+                        amount_usd: parseFloat(e.amount_usd || e.amount || 0),
+                        type: e.type || 'ordinaria',
+                        apto: e.apto || 'TODOS',
+                        provider: e.provider || null,
+                        status: e.status || 'pending',
+                        date: e.date
+                    }));
+                }
+
+                // 4. PROPIETARIOS Y ALÍCUOTAS
+                if (cloudOwners && cloudOwners.length > 0) {
+                    state.owners = cloudOwners.map(o => ({
+                        apto: o.apto,
+                        owner: o.owner_name || o.owner || `Propietario ${o.apto}`,
+                        alicuota: parseFloat(o.alicuota || 0),
+                        pass: o.pass || '1234'
+                    }));
+                }
+
+                // 5. PROVEEDORES
+                if (cloudProviders) {
+                    state.providers = cloudProviders.map(pr => ({
+                        id: pr.id,
+                        name: pr.name,
+                        service: pr.service_type || pr.service || '',
+                        phone: pr.phone || ''
+                    }));
+                }
+
+                // 6. DATOS DE CONFIGURACIÓN DEL EDIFICIO
+                if (cloudBuilding && cloudBuilding.length > 0) {
+                    const bldg = cloudBuilding[0];
+                    if (!state.building) state.building = {};
+                    state.building.name = bldg.name || state.building.name;
+                    state.building.rif = bldg.rif || state.building.rif;
+                    state.building.address = bldg.address || state.building.address;
+
+                    // Guardar en state.config para mantener compatibilidad
+                    state.config = {
+                        name: bldg.name,
+                        rif: bldg.rif,
+                        address: bldg.address,
+                        bcv_rate: state.building.bcv || 36.50
+                    };
+                }
+
+                // 7. AVISOS DE COBRO
+                if (cloudNotices) {
+                    state.billingNotices = cloudNotices;
+                }
+
+                console.log("Datos sincronizados desde la nube:", state);
+            } catch (e) {
+                console.error("Error al cargar datos desde la nube:", e);
             }
 
-            // 3. GASTOS DEL EDIFICIO (Mapeo corregido para USD y Bs)
-            if (cloudExpenses) {
-                state.expenses = cloudExpenses.map(e => ({
-                    id: e.id,
-                    period: e.period || new Date().toISOString().slice(0, 7),
-                    description: e.description || e.concept || 'Gasto de Condominio',
-                    concept: e.concept || e.description || 'Gasto de Condominio',
-                    amount: parseFloat(e.amount || e.amount_usd || 0),
-                    amount_usd: parseFloat(e.amount_usd || e.amount || 0),
-                    type: e.type || 'ordinaria',
-                    apto: e.apto || 'TODOS',
-                    provider: e.provider || null,
-                    status: e.status || 'pending',
-                    date: e.date
-                }));
+            updateBcvUI();
+            if (currentUser) {
+                if (currentUser.role === 'admin') renderAdminData();
+                else renderOwnerData();
             }
-
-            // 4. PROPIETARIOS Y ALÍCUOTAS
-            if (cloudOwners && cloudOwners.length > 0) {
-                state.owners = cloudOwners.map(o => ({
-                    apto: o.apto,
-                    owner: o.owner_name || o.owner || `Propietario ${o.apto}`,
-                    alicuota: parseFloat(o.alicuota || 0),
-                    pass: o.pass || '1234'
-                }));
-            }
-
-            // 5. PROVEEDORES
-            if (cloudProviders) {
-                state.providers = cloudProviders.map(pr => ({
-                    id: pr.id,
-                    name: pr.name,
-                    service: pr.service_type || pr.service || '',
-                    phone: pr.phone || ''
-                }));
-            }
-
-            // 6. DATOS DE CONFIGURACIÓN DEL EDIFICIO
-            if (cloudBuilding && cloudBuilding.length > 0) {
-                const bldg = cloudBuilding[0];
-                if (!state.building) state.building = {};
-                state.building.name = bldg.name || state.building.name;
-                state.building.rif = bldg.rif || state.building.rif;
-                state.building.address = bldg.address || state.building.address;
-            
-                // Guardar en state.config para mantener compatibilidad
-                state.config = {
-                    name: bldg.name,
-                    rif: bldg.rif,
-                    address: bldg.address,
-                    bcv_rate: state.building.bcv || 36.50
-                };
-            }
-
-            // 7. AVISOS DE COBRO
-            if (cloudNotices) {
-                state.billingNotices = cloudNotices;
-            }
-
-            console.log("Datos sincronizados desde la nube:", state);
-        } catch (e) {
-            console.error("Error al cargar datos desde la nube:", e);
         }
-    
-        updateBcvUI();
-        if (currentUser) {
-            if (currentUser.role === 'admin') renderAdminData();
-            else renderOwnerData();
-        }
-    } 
 
         // ==================== TASA BCV ====================
         function updateBcvUI() {
             const rate = parseFloat(state.building.bcv) || 1;
             const bcvDisplay = document.getElementById('current-bcv-display');
             const manualInput = document.getElementById('manual-bcv-input');
-            
+
             if (bcvDisplay) bcvDisplay.innerText = rate.toFixed(2);
             if (manualInput) manualInput.value = rate;
 
@@ -1122,7 +1217,7 @@
 
             if (currency === 'EUR') {
                 euroRateUsed = parseFloat(document.getElementById('exp-euro-rate')?.value) || 0;
-                
+
                 if (euroRateUsed <= 0) {
                     alert("Por favor ingresa una tasa válida para el Euro.");
                     return;
@@ -1151,7 +1246,7 @@
             document.getElementById('expense-form')?.reset();
             const euroBox = document.getElementById('euro-rate-box');
             if (euroBox) euroBox.classList.add('hidden');
-            
+
             await loadStorage();
             alert(`¡Gasto registrado con éxito! (Calculado usando la Tasa BCV del periodo: Bs. ${bcvRateForPeriod})`);
         }
@@ -1183,10 +1278,10 @@
 
             const bcvRate = Number(state.building?.bcv || 0);
             const totalBs = totalUsd * bcvRate;
-    
+
             document.getElementById('total-expenses-amount').innerText = `$${totalUsd.toFixed(2)}`;
             document.getElementById('total-expenses-bs').innerText = `(Bs. ${totalBs.toFixed(2)})`;
-    
+
             if (typeof generateWhatsappGroupMsg === 'function') generateWhatsappGroupMsg();
         }
 
@@ -1236,7 +1331,7 @@
                 msg += `*Cuota Extraordinaria - ${periodInput}*\n`;
                 msg += `----------------------------------------\n\n`;
                 msg += `Estimados propietarios se ha emitido una cuota extraordinaria con los siguientes detalles: \n`;
-        
+
                 if (activeExpenses.length > 0) {
                     const exp = activeExpenses[0];
                     const concepto = (exp.description || 'Cuota Extraordinaria').toUpperCase();
@@ -1249,7 +1344,7 @@
                 msg += `*RESUMEN DE GASTOS Y COBRANZA - ${periodInput}*\n`;
                 msg += `----------------------------------------\n\n`;
                 msg += `*DESGLOSE DE GASTOS DEL MES:*\n`;
-        
+
                 if (activeExpenses.length === 0) {
                     msg += `• No hay gastos registrados para este periodo.\n`;
                 } else {
@@ -1308,7 +1403,7 @@
             e.preventDefault();
             const apto = document.getElementById('pay-apto').value;
             const concept = document.getElementById('pay-concept').value;
-            
+
             // Evaluar tipo dinámicamente desde el concepto
             const type = concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria';
 
@@ -1442,9 +1537,9 @@
 
             // Crear una copia ordenada naturalmente por el número de apartamento (apto)
             const sortedOwners = [...(state.owners || [])].sort((a, b) => {
-                return (a.apto || '').localeCompare(b.apto || '', undefined, { 
-                    numeric: true, 
-                    sensitivity: 'base' 
+                return (a.apto || '').localeCompare(b.apto || '', undefined, {
+                    numeric: true,
+                    sensitivity: 'base'
                 });
             });
 
@@ -1515,8 +1610,8 @@
             const period = prompt("Ingresa el periodo del aviso a archivar (Formato YYYY-MM, ej: 2026-08):", new Date().toISOString().slice(0, 7));
             if (!period) return;
 
-            const filterType = document.getElementById('hist-filter-type')?.value || 
-                               document.getElementById('wa-fee-type')?.value || 'all';
+            const filterType = document.getElementById('hist-filter-type')?.value ||
+                document.getElementById('wa-fee-type')?.value || 'all';
 
             const isOrdinary = (t) => t === 'ordinaria' || t === 'ordinary';
             const isExtraordinary = (t) => t === 'extraordinaria' || t === 'extraordinary';
@@ -1638,9 +1733,9 @@
 
             // Normalizar el identificador del apartamento
             const myApto = String(currentUser.apto || currentUser.apartment || '').trim();
-    
+
             // Buscar al propietario dentro de state.owners o usar el usuario actual
-            const myOwnerObj = state.owners.find(o => 
+            const myOwnerObj = state.owners.find(o =>
                 String(o.apto || o.apartment || '').trim() === myApto
             ) || currentUser;
 
@@ -1660,7 +1755,7 @@
             // 1. Filtrar gastos pendientes del edificio
             const expensesList = Array.isArray(state.expenses) ? state.expenses : [];
             const pendingExpenses = expensesList.filter(e => e.status !== 'anulado' && e.status !== 'cancelled');
-    
+
             let myTotalUsd = 0;
             const rawAlicuota = Number(myOwnerObj.alicuota || 0);
             const factor = rawAlicuota > 1 ? rawAlicuota / 100 : rawAlicuota;
@@ -1705,9 +1800,9 @@
                     pendingExpenses.forEach(e => {
                         const totalBldg = Number(e.amount || e.amount_usd || 0);
                         const expenseApto = String(e.apto || e.apartment || '').trim();
-                
-                        const myUsd = e.type === 'no_comun' 
-                            ? (expenseApto === myApto ? totalBldg : 0) 
+
+                        const myUsd = e.type === 'no_comun'
+                            ? (expenseApto === myApto ? totalBldg : 0)
                             : totalBldg * factor;
                         const myBs = myUsd * bcvRate;
 
@@ -1724,11 +1819,11 @@
                 }
             }
 
-        // 4. Renderizar Historial de Pagos
+            // 4. Renderizar Historial de Pagos
             const historyBody = document.getElementById('owner-history-body');
             if (historyBody) {
                 historyBody.innerHTML = '';
-                const myPayments = paymentsList.filter(p => 
+                const myPayments = paymentsList.filter(p =>
                     String(p.apto || p.apartment || '').trim() === myApto
                 );
 
@@ -1765,7 +1860,7 @@
             if (!currentUser || currentUser.role !== 'owner') return;
 
             const myApto = String(currentUser.apto || currentUser.apartment || '').trim();
-            const myOwnerObj = state.owners.find(o => 
+            const myOwnerObj = state.owners.find(o =>
                 String(o.apto || o.apartment || '').trim() === myApto
             ) || currentUser;
 
@@ -1816,7 +1911,7 @@
 
             // Crear una ventana emergente limpia
             const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
-    
+
             ventanaImpresion.document.write(`
                 <!DOCTYPE html>
                 <html>
@@ -1884,19 +1979,19 @@
                 </body>
                 </html>
             `);
-    
+
             ventanaImpresion.document.close();
-            ventanaImpresion.onload = function() {
+            ventanaImpresion.onload = function () {
                 ventanaImpresion.focus();
                 ventanaImpresion.print();
             };
         }
-         // ==================== REPORTES Y CONFIGURACIÓN ====================
-         function generateReports() {
+        // ==================== REPORTES Y CONFIGURACIÓN ====================
+        function generateReports() {
             // 1. Obtener rango de fechas (Desde / Hasta)
             const fromInput = document.getElementById('rep-from-period')?.value || ''; // Formato: YYYY-MM
             const toInput = document.getElementById('rep-to-period')?.value || document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
-    
+
             const periodLabel = document.getElementById('rep-ord-period-label');
             if (periodLabel) {
                 periodLabel.innerText = fromInput ? `Periodo: ${fromInput} hasta ${toInput}` : `Periodo: Hasta ${toInput}`;
@@ -1921,7 +2016,7 @@
 
                 state.owners.forEach(o => {
                     const factor = o.alicuota > 1 ? o.alicuota / 100 : Number(o.alicuota || 0);
-            
+
                     let totalAsignado = 0;
                     let totalPagado = 0;
                     let mesesAdeudadosCount = 0;
@@ -1931,9 +2026,9 @@
                         const montoAsignadoItem = Number(exp.amount || 0) * factor;
                         totalAsignado += montoAsignadoItem;
 
-                        const approvedPayments = state.payments.filter(p => 
-                            p.apto === o.apto && 
-                            p.status === 'Aprobado' && 
+                        const approvedPayments = state.payments.filter(p =>
+                            p.apto === o.apto &&
+                            p.status === 'Aprobado' &&
                             (p.type === 'ordinaria' || p.type === 'ordinary') &&
                             (!p.period || p.period === exp.period)
                         );
@@ -1979,120 +2074,120 @@
                 });
             }
 
-          // ==========================================
-        // SECCIÓN 2: REPORTE DE CUOTAS EXTRAORDINARIAS (DINÁMICO POR COLUMNAS)
-        // ==========================================
-        const extraHead = document.getElementById('report-extraordinary-head'); // Asegúrate de tener este id en el <thead> de tu tabla
-        const extraBody = document.getElementById('report-extraordinary-body');
-        
-        if (extraBody) {
-            extraBody.innerHTML = '';
-            if (extraHead) extraHead.innerHTML = '';
+            // ==========================================
+            // SECCIÓN 2: REPORTE DE CUOTAS EXTRAORDINARIAS (DINÁMICO POR COLUMNAS)
+            // ==========================================
+            const extraHead = document.getElementById('report-extraordinary-head'); // Asegúrate de tener este id en el <thead> de tu tabla
+            const extraBody = document.getElementById('report-extraordinary-body');
 
-            // 1. Filtrar gastos extraordinarios en el rango seleccionado y ordenarlos
-            const extraordinaryExpenses = state.expenses.filter(e => {
-                const isExtra = e.type === 'extraordinaria' || e.type === 'extraordinary';
-                if (!isExtra) return false;
-                if (!e.period) return true;
-                if (fromInput && e.period < fromInput) return false;
-                if (toInput && e.period > toInput) return false;
-                return true;
-            });
+            if (extraBody) {
+                extraBody.innerHTML = '';
+                if (extraHead) extraHead.innerHTML = '';
 
-            if (extraordinaryExpenses.length === 0) {
-                if (extraHead) {
-                    extraHead.innerHTML = `<tr><th class="p-2 text-center">Propietario</th><th class="p-2 text-center">Apto</th><th class="p-2 text-center">Alícuota</th><th class="p-2 text-center">Sin cuotas extraordinarias</th></tr>`;
-                }
-                extraBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No hay cuotas extraordinarias registradas para este periodo.</td></tr>`;
-            } else {
-                // 2. Construir el Encabezado (Thead) dinámico con las columnas de cada cuota
-                let headCols = `
+                // 1. Filtrar gastos extraordinarios en el rango seleccionado y ordenarlos
+                const extraordinaryExpenses = state.expenses.filter(e => {
+                    const isExtra = e.type === 'extraordinaria' || e.type === 'extraordinary';
+                    if (!isExtra) return false;
+                    if (!e.period) return true;
+                    if (fromInput && e.period < fromInput) return false;
+                    if (toInput && e.period > toInput) return false;
+                    return true;
+                });
+
+                if (extraordinaryExpenses.length === 0) {
+                    if (extraHead) {
+                        extraHead.innerHTML = `<tr><th class="p-2 text-center">Propietario</th><th class="p-2 text-center">Apto</th><th class="p-2 text-center">Alícuota</th><th class="p-2 text-center">Sin cuotas extraordinarias</th></tr>`;
+                    }
+                    extraBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No hay cuotas extraordinarias registradas para este periodo.</td></tr>`;
+                } else {
+                    // 2. Construir el Encabezado (Thead) dinámico con las columnas de cada cuota
+                    let headCols = `
                     <th class="p-2 text-left border-b">Propietario</th>
                     <th class="p-2 text-center border-b">Apto</th>
                     <th class="p-2 text-center border-b">Alícuota (%)</th>
                 `;
 
-                extraordinaryExpenses.forEach((exp, index) => {
-                    headCols += `
+                    extraordinaryExpenses.forEach((exp, index) => {
+                        headCols += `
                         <th class="p-2 text-center border-b bg-slate-50" colspan="2">
                             Cuota ${index + 1}: ${exp.description || 'Extraordinaria'}<br>
                             <span class="text-xs font-normal text-slate-500">(Total: $${Number(exp.amount || 0).toFixed(2)})</span>
                         </th>
                     `;
-                });
-                headCols += `<th class="p-2 text-right border-b font-bold bg-slate-100">Deuda Total</th>`;
-                
-                if (extraHead) {
-                    extraHead.innerHTML = `<tr>${headCols}</tr>`;
-                }
+                    });
+                    headCols += `<th class="p-2 text-right border-b font-bold bg-slate-100">Deuda Total</th>`;
 
-                // Sub-encabezado opcional para aclarar "Monto a Pagar / Monto Pagado" debajo de cada cuota si lo deseas
-                let subHeadCols = `
+                    if (extraHead) {
+                        extraHead.innerHTML = `<tr>${headCols}</tr>`;
+                    }
+
+                    // Sub-encabezado opcional para aclarar "Monto a Pagar / Monto Pagado" debajo de cada cuota si lo deseas
+                    let subHeadCols = `
                     <th class="p-2 border-b"></th>
                     <th class="p-2 border-b"></th>
                     <th class="p-2 border-b"></th>
                 `;
-                extraordinaryExpenses.forEach(() => {
-                    subHeadCols += `
+                    extraordinaryExpenses.forEach(() => {
+                        subHeadCols += `
                         <th class="p-2 text-center border-b text-xs text-slate-600">Monto a Pagar</th>
                         <th class="p-2 text-center border-b text-xs text-slate-600">Monto Pagado</th>
                     `;
-                });
-                subHeadCols += `<th class="p-2 border-b"></th>`;
-
-                // 3. Ordenar propietarios de forma natural (1A, 1B, 2, 3A...)
-                const sortedOwners = [...(state.owners || [])].sort((a, b) => {
-                    return (a.apto || '').localeCompare(b.apto || '', undefined, { 
-                        numeric: true, 
-                        sensitivity: 'base' 
                     });
-                });
+                    subHeadCols += `<th class="p-2 border-b"></th>`;
 
-                // 4. Recorrer cada propietario para rellenar sus celdas por cada cuota
-                sortedOwners.forEach(o => {
-                    const factor = o.alicuota > 1 ? o.alicuota / 100 : Number(o.alicuota || 0);
-                    let rowHtml = `
+                    // 3. Ordenar propietarios de forma natural (1A, 1B, 2, 3A...)
+                    const sortedOwners = [...(state.owners || [])].sort((a, b) => {
+                        return (a.apto || '').localeCompare(b.apto || '', undefined, {
+                            numeric: true,
+                            sensitivity: 'base'
+                        });
+                    });
+
+                    // 4. Recorrer cada propietario para rellenar sus celdas por cada cuota
+                    sortedOwners.forEach(o => {
+                        const factor = o.alicuota > 1 ? o.alicuota / 100 : Number(o.alicuota || 0);
+                        let rowHtml = `
                         <tr class="border-b hover:bg-slate-50">
                             <td class="p-2 text-left font-medium">${o.owner || 'Sin registrar'}</td>
                             <td class="p-2 text-center font-bold">${o.apto}</td>
                             <td class="p-2 text-center">${(Number(o.alicuota || 0)).toFixed(2)}%</td>
                     `;
 
-                    let deudaTotalApto = 0;
+                        let deudaTotalApto = 0;
 
-                    extraordinaryExpenses.forEach(exp => {
-                        const montoAsignadoItem = Number(exp.amount || 0) * factor;
+                        extraordinaryExpenses.forEach(exp => {
+                            const montoAsignadoItem = Number(exp.amount || 0) * factor;
 
-                        // Buscar pagos aprobados para este apartamento y esta cuota específica
-                        const approvedExtraPayments = state.payments.filter(p => 
-                            p.apto === o.apto && 
-                            p.status === 'Aprobado' && 
-                            (p.type === 'extraordinaria' || p.type === 'extraordinary') &&
-                            (!p.expense_id || p.expense_id === exp.id)
-                        );
+                            // Buscar pagos aprobados para este apartamento y esta cuota específica
+                            const approvedExtraPayments = state.payments.filter(p =>
+                                p.apto === o.apto &&
+                                p.status === 'Aprobado' &&
+                                (p.type === 'extraordinaria' || p.type === 'extraordinary') &&
+                                (!p.expense_id || p.expense_id === exp.id)
+                            );
 
-                        const pagadoItem = approvedExtraPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
-                        const diferenciaItem = montoAsignadoItem - pagadoItem;
-                        
-                        deudaTotalApto += diferenciaItem;
+                            const pagadoItem = approvedExtraPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+                            const diferenciaItem = montoAsignadoItem - pagadoItem;
 
-                        rowHtml += `
+                            deudaTotalApto += diferenciaItem;
+
+                            rowHtml += `
                             <td class="p-2 text-right text-slate-700">$${montoAsignadoItem.toFixed(2)}</td>
                             <td class="p-2 text-right text-emerald-600 font-medium">$${pagadoItem.toFixed(2)}</td>
                         `;
-                    });
+                        });
 
-                    const claseDeudaTotal = deudaTotalApto > 0.01 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold';
+                        const claseDeudaTotal = deudaTotalApto > 0.01 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold';
 
-                    rowHtml += `
+                        rowHtml += `
                             <td class="p-2 text-right ${claseDeudaTotal}">$${deudaTotalApto.toFixed(2)}</td>
                         </tr>
                     `;
 
-                    extraBody.innerHTML += rowHtml;
-                });
+                        extraBody.innerHTML += rowHtml;
+                    });
+                }
             }
-        }
 
             // 3. Reporte Proveedores
             const provBody = document.getElementById('report-providers-body');
@@ -2107,34 +2202,34 @@
                         </tr>
                     `;
                 });
-    }
-
-        async function saveBuildingConfig(e) {
-            e.preventDefault();
-            const name = document.getElementById('cfg-name').value;
-            const rif = document.getElementById('cfg-rif').value;
-            const address = document.getElementById('cfg-address').value;
-
-            const { data, error } = await db.from('building_config').upsert([{ id: 1, name, rif, address }]);
-            if (error) {
-                alert('Error al guardar la configuración: ' + error.message);
-                return;
             }
 
-            await loadStorage();
-            alert('¡Configuración actualizada con éxito!');
-        }
+            async function saveBuildingConfig(e) {
+                e.preventDefault();
+                const name = document.getElementById('cfg-name').value;
+                const rif = document.getElementById('cfg-rif').value;
+                const address = document.getElementById('cfg-address').value;
 
-        // ==================== CONFIGURACIÓN DE TIEMPO REAL (OPCIONAL) ====================
-        function setupRealtimeSubscriptions() {
-            // Función de respaldo para evitar errores si no se usa Realtime
-            console.log("Suscripciones en tiempo real omitidas.");
-        } 
-        // ==================== INICIALIZACIÓN DE LA APP ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            loadStorage();
-            setupRealtimeSubscriptions();
-        });
+                const { data, error } = await db.from('building_config').upsert([{ id: 1, name, rif, address }]);
+                if (error) {
+                    alert('Error al guardar la configuración: ' + error.message);
+                    return;
+                }
+
+                await loadStorage();
+                alert('¡Configuración actualizada con éxito!');
+            }
+
+            // ==================== CONFIGURACIÓN DE TIEMPO REAL (OPCIONAL) ====================
+            function setupRealtimeSubscriptions() {
+                // Función de respaldo para evitar errores si no se usa Realtime
+                console.log("Suscripciones en tiempo real omitidas.");
+            }
+            // ==================== INICIALIZACIÓN DE LA APP ====================
+            document.addEventListener('DOMContentLoaded', () => {
+                loadStorage();
+                setupRealtimeSubscriptions();
+            });
     </script>
 </body>
 </html>
