@@ -2066,8 +2066,7 @@
                         <tr class="border-b hover:bg-slate-50">
                             <td class="p-2 font-bold text-center">${o.apto}</td>
                             <td class="p-2 text-center">${mesesAdeudadosCount > 0 ? mesesAdeudadosCount : '-'}</td>
-                            <td class="p-2 text-xs text-slate-700">${detalleTexto}</td>
-                            <td class="p-2 text-right font-semibold">$${totalAsignado.toFixed(2)}</td>
+                            <td class="p-2 text-xs text-slate-700">${detalleTexto}</td> <td class="p-2 text-right font-semibold">$${totalAsignado.toFixed(2)}</td>
                             <td class="p-2 text-right ${estadoClase}">${estadoTexto}</td>
                         </tr>
                     `;
@@ -2075,7 +2074,7 @@
             }
 
             // ==========================================
-            // SECCIÓN 2: REPORTE DE CUOTAS EXTRAORDINARIAS (DINÁMICO POR COLUMNAS)
+            // SECCIÓN 2: REPORTE DE CUOTAS EXTRAORDINARIAS (ESTRUCTURA TIPO MATRIZ/EXCEL)
             // ==========================================
             const extraHead = document.getElementById('report-extraordinary-head'); 
             const extraBody = document.getElementById('report-extraordinary-body');
@@ -2083,9 +2082,8 @@
             if (extraBody) {
                 extraBody.innerHTML = '';
                 if (extraHead) extraHead.innerHTML = '';
-                // ... (continúa el resto de tu código de la sección 2 con normalidad)
 
-                // 1. Filtrar gastos extraordinarios en el rango seleccionado y ordenarlos
+                // 1. Filtrar gastos extraordinarios en el rango seleccionado
                 const extraordinaryExpenses = state.expenses.filter(e => {
                     const isExtra = e.type === 'extraordinaria' || e.type === 'extraordinary';
                     if (!isExtra) return false;
@@ -2097,93 +2095,100 @@
 
                 if (extraordinaryExpenses.length === 0) {
                     if (extraHead) {
-                        extraHead.innerHTML = `<tr><th class="p-2 text-center">Propietario</th><th class="p-2 text-center">Apto</th><th class="p-2 text-center">Alícuota</th><th class="p-2 text-center">Sin cuotas extraordinarias</th></tr>`;
+                        extraHead.innerHTML = `<tr><th class="p-2 text-center" colspan="4">No hay cuotas extraordinarias registradas para este periodo.</th></tr>`;
                     }
-                    extraBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No hay cuotas extraordinarias registradas para este periodo.</td></tr>`;
+                    extraBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">Sin datos de cuotas extraordinarias.</td></tr>`;
                 } else {
-                    // 2. Construir el Encabezado (Thead) dinámico con las columnas de cada cuota
-                    let headCols = `
-                    <th class="p-2 text-left border-b">Propietario</th>
-                    <th class="p-2 text-center border-b">Apto</th>
-                    <th class="p-2 text-center border-b">Alícuota (%)</th>
-                `;
-
-                    extraordinaryExpenses.forEach((exp, index) => {
-                        headCols += `
-                        <th class="p-2 text-center border-b bg-slate-50" colspan="2">
-                            Cuota ${index + 1}: ${exp.description || 'Extraordinaria'}<br>
-                            <span class="text-xs font-normal text-slate-500">(Total: $${Number(exp.amount || 0).toFixed(2)})</span>
-                        </th>
+                    // 2. Construir Fila 1 del Encabezado (Nombres de los Proyectos / Obras)
+                    let headRow1 = `
+                        <th class="p-2 text-left border-b border-r bg-slate-100" rowspan="2">Propietario</th>
+                        <th class="p-2 text-center border-b border-r bg-slate-100" rowspan="2">Apto</th>
+                        <th class="p-2 text-center border-b border-r bg-slate-100" rowspan="2">Alícuota (%)</th>
                     `;
+
+                    // 3. Construir Fila 2 del Encabezado (Subcolumnas por cada Proyecto)
+                    let headRow2 = ``;
+
+                    extraordinaryExpenses.forEach((exp) => {
+                        const tituloProyecto = exp.description || exp.concept || 'Cuota Extraordinaria';
+                        headRow1 += `
+                            <th class="p-2 text-center border-b border-r bg-amber-50 font-bold text-amber-900" colspan="4">
+                                ${tituloProyecto.toUpperCase()} <br>
+                                <span class="text-[10px] font-normal text-amber-700">(Total: $${Number(exp.amount || 0).toFixed(2)})</span>
+                            </th>
+                        `;
+
+                        headRow2 += `
+                            <th class="p-1 text-center border-b border-r text-[11px] bg-slate-50">Cuota a Pagar</th>
+                            <th class="p-1 text-center border-b border-r text-[11px] bg-slate-50">Monto Pagado</th>
+                            <th class="p-1 text-center border-b border-r text-[11px] bg-slate-50">N° Ref.</th>
+                            <th class="p-1 text-center border-b border-r text-[11px] bg-slate-50 font-bold">Saldo $</th>
+                        `;
                     });
-                    headCols += `<th class="p-2 text-right border-b font-bold bg-slate-100">Deuda Total</th>`;
+
+                    // Columna final de Deuda Total Extraordinaria
+                    headRow1 += `<th class="p-2 text-right border-b bg-rose-50 text-rose-900 font-bold" rowspan="2">Deuda Total Extraordinaria</th>`;
 
                     if (extraHead) {
-                        extraHead.innerHTML = `<tr>${headCols}</tr>`;
+                        extraHead.innerHTML = `
+                            <tr>${headRow1}</tr>
+                            <tr>${headRow2}</tr>
+                        `;
                     }
 
-                    // Sub-encabezado opcional para aclarar "Monto a Pagar / Monto Pagado" debajo de cada cuota si lo deseas
-                    let subHeadCols = `
-                    <th class="p-2 border-b"></th>
-                    <th class="p-2 border-b"></th>
-                    <th class="p-2 border-b"></th>
-                `;
-                    extraordinaryExpenses.forEach(() => {
-                        subHeadCols += `
-                        <th class="p-2 text-center border-b text-xs text-slate-600">Monto a Pagar</th>
-                        <th class="p-2 text-center border-b text-xs text-slate-600">Monto Pagado</th>
-                    `;
-                    });
-                    subHeadCols += `<th class="p-2 border-b"></th>`;
-
-                    // 3. Ordenar propietarios de forma natural (1A, 1B, 2, 3A...)
+                    // 4. Ordenar propietarios de forma natural (1A, 1B, 2, 3A... PH)
                     const sortedOwners = [...(state.owners || [])].sort((a, b) => {
-                        return (a.apto || '').localeCompare(b.apto || '', undefined, {
-                            numeric: true,
-                            sensitivity: 'base'
+                        return (a.apto || '').localeCompare(b.apto || '', undefined, { 
+                            numeric: true, 
+                            sensitivity: 'base' 
                         });
                     });
 
-                    // 4. Recorrer cada propietario para rellenar sus celdas por cada cuota
+                    // 5. Generar las filas por apartamento
                     sortedOwners.forEach(o => {
                         const factor = o.alicuota > 1 ? o.alicuota / 100 : Number(o.alicuota || 0);
                         let rowHtml = `
-                        <tr class="border-b hover:bg-slate-50">
-                            <td class="p-2 text-left font-medium">${o.owner || 'Sin registrar'}</td>
-                            <td class="p-2 text-center font-bold">${o.apto}</td>
-                            <td class="p-2 text-center">${(Number(o.alicuota || 0)).toFixed(2)}%</td>
-                    `;
+                            <tr class="border-b hover:bg-slate-50">
+                                <td class="p-2 text-left font-medium border-r">${o.owner || 'Sin registrar'}</td>
+                                <td class="p-2 text-center font-bold border-r">${o.apto}</td>
+                                <td class="p-2 text-center border-r">${(Number(o.alicuota || 0)).toFixed(2)}%</td>
+                        `;
 
                         let deudaTotalApto = 0;
 
                         extraordinaryExpenses.forEach(exp => {
-                            const montoAsignadoItem = Number(exp.amount || 0) * factor;
+                            const cuotaAPagar = Number(exp.amount || 0) * factor;
 
-                            // Buscar pagos aprobados para este apartamento y esta cuota específica
-                            const approvedExtraPayments = state.payments.filter(p =>
-                                p.apto === o.apto &&
-                                p.status === 'Aprobado' &&
+                            // Buscar pagos aprobados para esta cuota y apto
+                            const approvedExtraPayments = state.payments.filter(p => 
+                                p.apto === o.apto && 
+                                p.status === 'Aprobado' && 
                                 (p.type === 'extraordinaria' || p.type === 'extraordinary') &&
                                 (!p.expense_id || p.expense_id === exp.id)
                             );
 
-                            const pagadoItem = approvedExtraPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
-                            const diferenciaItem = montoAsignadoItem - pagadoItem;
+                            const montoPagado = approvedExtraPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+                            const numRef = approvedExtraPayments.map(p => p.ref).filter(Boolean).join(', ') || '-';
+                            const saldo = Math.max(0, cuotaAPagar - montoPagado);
 
-                            deudaTotalApto += diferenciaItem;
+                            deudaTotalApto += saldo;
+
+                            const claseSaldoItem = saldo > 0.01 ? 'text-rose-600 font-bold' : 'text-emerald-600';
 
                             rowHtml += `
-                            <td class="p-2 text-right text-slate-700">$${montoAsignadoItem.toFixed(2)}</td>
-                            <td class="p-2 text-right text-emerald-600 font-medium">$${pagadoItem.toFixed(2)}</td>
-                        `;
+                                <td class="p-2 text-right border-r text-slate-700">$${cuotaAPagar.toFixed(2)}</td>
+                                <td class="p-2 text-right border-r text-emerald-600 font-medium">$${montoPagado.toFixed(2)}</td>
+                                <td class="p-2 text-center border-r text-[10px] text-slate-500">${numRef}</td>
+                                <td class="p-2 text-right border-r ${claseSaldoItem}">$${saldo.toFixed(2)}</td>
+                            `;
                         });
 
-                        const claseDeudaTotal = deudaTotalApto > 0.01 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold';
+                        const claseDeudaTotal = deudaTotalApto > 0.01 ? 'text-rose-600 font-black bg-rose-50/50' : 'text-emerald-600 font-bold';
 
                         rowHtml += `
-                            <td class="p-2 text-right ${claseDeudaTotal}">$${deudaTotalApto.toFixed(2)}</td>
-                        </tr>
-                    `;
+                                <td class="p-2 text-right ${claseDeudaTotal}">$${deudaTotalApto.toFixed(2)}</td>
+                            </tr>
+                        `;
 
                         extraBody.innerHTML += rowHtml;
                     });
