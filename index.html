@@ -1997,7 +1997,7 @@
                 periodLabel.innerText = fromInput ? `Periodo: ${fromInput} hasta ${toInput}` : `Periodo: Hasta ${toInput}`;
             }
 
-            // ==========================================
+/           // ==========================================
             // SECCIÓN 1: REPORTE DE CUOTAS MENSUALES (ORDINARIO)
             // ==========================================
             const ordBody = document.getElementById('report-ordinary-body');
@@ -2077,12 +2077,13 @@
             // ==========================================
             // SECCIÓN 2: REPORTE DE CUOTAS EXTRAORDINARIAS (DINÁMICO POR COLUMNAS)
             // ==========================================
-            const extraHead = document.getElementById('report-extraordinary-head'); // Asegúrate de tener este id en el <thead> de tu tabla
+            const extraHead = document.getElementById('report-extraordinary-head'); 
             const extraBody = document.getElementById('report-extraordinary-body');
 
             if (extraBody) {
                 extraBody.innerHTML = '';
                 if (extraHead) extraHead.innerHTML = '';
+                // ... (continúa el resto de tu código de la sección 2 con normalidad)
 
                 // 1. Filtrar gastos extraordinarios en el rango seleccionado y ordenarlos
                 const extraordinaryExpenses = state.expenses.filter(e => {
