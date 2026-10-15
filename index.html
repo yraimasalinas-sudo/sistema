@@ -2074,14 +2074,13 @@
             }
 
             // ==========================================
-            // SECCIÓN 2: REPORTE DE CUOTAS EXTRAORDINARIAS (ESTRUCTURA TIPO MATRIZ/EXCEL)
+            // SECCIÓN 2: REPORTE INDIVIDUAL POR CADA CUOTA EXTRAORDINARIA
             // ==========================================
-            const extraHead = document.getElementById('report-extraordinary-head'); 
-            const extraBody = document.getElementById('report-extraordinary-body');
-
-            if (extraBody) {
-                extraBody.innerHTML = '';
-                if (extraHead) extraHead.innerHTML = '';
+            // Usamos el contenedor principal de la sección de extraordinarias
+            const extraContainer = document.getElementById('report-extraordinary-container') || document.getElementById('report-extraordinary-body').parentElement.parentElement; 
+            
+            if (extraContainer) {
+                extraContainer.innerHTML = ''; // Limpiar contenedor
 
                 // 1. Filtrar gastos extraordinarios en el rango seleccionado
                 const extraordinaryExpenses = state.expenses.filter(e => {
@@ -2094,49 +2093,13 @@
                 });
 
                 if (extraordinaryExpenses.length === 0) {
-                    if (extraHead) {
-                        extraHead.innerHTML = `<tr><th class="p-2 text-center" colspan="4">No hay cuotas extraordinarias registradas para este periodo.</th></tr>`;
-                    }
-                    extraBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">Sin datos de cuotas extraordinarias.</td></tr>`;
-                } else {
-                    // 2. Construir Fila 1 del Encabezado (Nombres de los Proyectos / Obras)
-                    let headRow1 = `
-                        <th class="p-2 text-left border-b border-r bg-slate-100" rowspan="2">Propietario</th>
-                        <th class="p-2 text-center border-b border-r bg-slate-100" rowspan="2">Apto</th>
-                        <th class="p-2 text-center border-b border-r bg-slate-100" rowspan="2">Alícuota (%)</th>
+                    extraContainer.innerHTML = `
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 text-center text-slate-400">
+                            No hay cuotas extraordinarias registradas para este periodo.
+                        </div>
                     `;
-
-                    // 3. Construir Fila 2 del Encabezado (Subcolumnas por cada Proyecto)
-                    let headRow2 = ``;
-
-                    extraordinaryExpenses.forEach((exp) => {
-                        const tituloProyecto = exp.description || exp.concept || 'Cuota Extraordinaria';
-                        headRow1 += `
-                            <th class="p-2 text-center border-b border-r bg-amber-50 font-bold text-amber-900" colspan="4">
-                                ${tituloProyecto.toUpperCase()} <br>
-                                <span class="text-[10px] font-normal text-amber-700">(Total: $${Number(exp.amount || 0).toFixed(2)})</span>
-                            </th>
-                        `;
-
-                        headRow2 += `
-                            <th class="p-1 text-center border-b border-r text-[11px] bg-slate-50">Cuota a Pagar</th>
-                            <th class="p-1 text-center border-b border-r text-[11px] bg-slate-50">Monto Pagado</th>
-                            <th class="p-1 text-center border-b border-r text-[11px] bg-slate-50">N° Ref.</th>
-                            <th class="p-1 text-center border-b border-r text-[11px] bg-slate-50 font-bold">Saldo $</th>
-                        `;
-                    });
-
-                    // Columna final de Deuda Total Extraordinaria
-                    headRow1 += `<th class="p-2 text-right border-b bg-rose-50 text-rose-900 font-bold" rowspan="2">Deuda Total Extraordinaria</th>`;
-
-                    if (extraHead) {
-                        extraHead.innerHTML = `
-                            <tr>${headRow1}</tr>
-                            <tr>${headRow2}</tr>
-                        `;
-                    }
-
-                    // 4. Ordenar propietarios de forma natural (1A, 1B, 2, 3A... PH)
+                } else {
+                    // Ordenar propietarios de forma natural (1A, 1B, 2, 3A... PH)
                     const sortedOwners = [...(state.owners || [])].sort((a, b) => {
                         return (a.apto || '').localeCompare(b.apto || '', undefined, { 
                             numeric: true, 
@@ -2144,22 +2107,40 @@
                         });
                     });
 
-                    // 5. Generar las filas por apartamento
-                    sortedOwners.forEach(o => {
-                        const factor = o.alicuota > 1 ? o.alicuota / 100 : Number(o.alicuota || 0);
-                        let rowHtml = `
-                            <tr class="border-b hover:bg-slate-50">
-                                <td class="p-2 text-left font-medium border-r">${o.owner || 'Sin registrar'}</td>
-                                <td class="p-2 text-center font-bold border-r">${o.apto}</td>
-                                <td class="p-2 text-center border-r">${(Number(o.alicuota || 0)).toFixed(2)}%</td>
+                    // 2. Generar una tabla independiente por cada cuota/proyecto extraordinario
+                    extraordinaryExpenses.forEach((exp, index) => {
+                        const tituloProyecto = exp.description || exp.concept || `Cuota Extraordinaria ${index + 1}`;
+                        const montoTotalProyecto = Number(exp.amount || 0);
+
+                        let proyectoHtml = `
+                            <div class="mb-8 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+                                <div class="bg-amber-50 p-4 border-b border-amber-100 flex justify-between items-center">
+                                    <div>
+                                        <h3 class="font-bold text-amber-900 text-lg">📌 Proyecto: ${tituloProyecto.toUpperCase()}</h3>
+                                        <p class="text-xs text-amber-700">Período: ${exp.period || 'General'} | Monto Total del Edificio: $${montoTotalProyecto.toFixed(2)}</p>
+                                    </div>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr class="bg-slate-100 text-slate-700 text-xs uppercase">
+                                                <th class="p-3 border-b">Propietario</th>
+                                                <th class="p-3 border-b text-center">Apto</th>
+                                                <th class="p-3 border-b text-center">Alícuota</th>
+                                                <th class="p-3 border-b text-right">Cuota a Pagar</th>
+                                                <th class="p-3 border-b text-right">Monto Pagado</th>
+                                                <th class="p-3 border-b text-center">N° Ref.</th>
+                                                <th class="p-3 border-b text-right">Saldo Pendiente</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100 text-sm">
                         `;
 
-                        let deudaTotalApto = 0;
+                        sortedOwners.forEach(o => {
+                            const factor = o.alicuota > 1 ? o.alicuota / 100 : Number(o.alicuota || 0);
+                            const cuotaAPagar = montoTotalProyecto * factor;
 
-                        extraordinaryExpenses.forEach(exp => {
-                            const cuotaAPagar = Number(exp.amount || 0) * factor;
-
-                            // Buscar pagos aprobados para esta cuota y apto
+                            // Buscar pagos aprobados para este apartamento y esta cuota específica
                             const approvedExtraPayments = state.payments.filter(p => 
                                 p.apto === o.apto && 
                                 p.status === 'Aprobado' && 
@@ -2171,30 +2152,32 @@
                             const numRef = approvedExtraPayments.map(p => p.ref).filter(Boolean).join(', ') || '-';
                             const saldo = Math.max(0, cuotaAPagar - montoPagado);
 
-                            deudaTotalApto += saldo;
+                            const claseSaldo = saldo > 0.01 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-semibold';
 
-                            const claseSaldoItem = saldo > 0.01 ? 'text-rose-600 font-bold' : 'text-emerald-600';
-
-                            rowHtml += `
-                                <td class="p-2 text-right border-r text-slate-700">$${cuotaAPagar.toFixed(2)}</td>
-                                <td class="p-2 text-right border-r text-emerald-600 font-medium">$${montoPagado.toFixed(2)}</td>
-                                <td class="p-2 text-center border-r text-[10px] text-slate-500">${numRef}</td>
-                                <td class="p-2 text-right border-r ${claseSaldoItem}">$${saldo.toFixed(2)}</td>
+                            proyectoHtml += `
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-3 font-medium text-slate-800">${o.owner || 'Sin registrar'}</td>
+                                    <td class="p-3 text-center font-bold text-slate-900">${o.apto}</td>
+                                    <td class="p-3 text-center text-slate-600">${(Number(o.alicuota || 0)).toFixed(2)}%</td>
+                                    <td class="p-3 text-right text-slate-700 font-medium">$${cuotaAPagar.toFixed(2)}</td>
+                                    <td class="p-3 text-right text-emerald-600 font-medium">$${montoPagado.toFixed(2)}</td>
+                                    <td class="p-3 text-center text-xs text-slate-500">${numRef}</td>
+                                    <td class="p-3 text-right ${claseSaldo}">$${saldo.toFixed(2)}</td>
+                                </tr>
                             `;
                         });
 
-                        const claseDeudaTotal = deudaTotalApto > 0.01 ? 'text-rose-600 font-black bg-rose-50/50' : 'text-emerald-600 font-bold';
-
-                        rowHtml += `
-                                <td class="p-2 text-right ${claseDeudaTotal}">$${deudaTotalApto.toFixed(2)}</td>
-                            </tr>
+                        proyectoHtml += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         `;
 
-                        extraBody.innerHTML += rowHtml;
+                        extraContainer.innerHTML += proyectoHtml;
                     });
                 }
             }
-
             // 3. Reporte Proveedores
             const provBody = document.getElementById('report-providers-body');
             if (provBody) {
