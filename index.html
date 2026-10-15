@@ -1705,7 +1705,123 @@
 
         function imprimirReciboPropietario() {
             if (!currentUser || currentUser.role !== 'owner') return;
-            window.print();
+
+            const myApto = String(currentUser.apto || '').trim();
+            const myOwnerObj = state.owners.find(o => String(o.apto || '').trim() === myApto) || currentUser;
+            const alicuotaVal = Number(myOwnerObj.alicuota || 0);
+            const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+
+            const bcvRate = Number(state.building?.bcv || 1);
+
+            // Obtener los gastos del último aviso histórico o los activos
+            let activeExpenses = [];
+            let periodStr = 'Actual';
+            if (state.billingNotices && state.billingNotices.length > 0) {
+                const lastNotice = state.billingNotices[state.billingNotices.length - 1];
+                periodStr = lastNotice.period || 'Actual';
+                let details = lastNotice.details;
+                if (typeof details === 'string') {
+                    try { details = JSON.parse(details); } catch (e) { details = {}; }
+                }
+                activeExpenses = details.expenses || [];
+            } else {
+                activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
+            }
+
+            let totalPagarUsd = 0;
+            let filasGastosHtml = '';
+
+            activeExpenses.forEach(e => {
+                const montoTotalEdificio = Number(e.amount || 0);
+                const montoAlicuotaUsd = montoTotalEdificio * factor;
+                const montoAlicuotaBs = montoAlicuotaUsd * bcvRate;
+                totalPagarUsd += montoAlicuotaUsd;
+
+                filasGastosHtml += `
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">${e.description || 'Gasto'}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: center;"><span style="background:#f1f5f9; padding: 2px 6px; border-radius:4px; font-size:11px;">${(e.type || 'ordinaria').toUpperCase()}</span></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right;">$${montoTotalEdificio.toFixed(2)}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #0d9488;">$${montoAlicuotaUsd.toFixed(2)}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right;">Bs. ${montoAlicuotaBs.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            const totalPagarBs = totalPagarUsd * bcvRate;
+
+            // Abrir ventana emergente para impresión formal
+            const ventanaImpresion = window.open('', '_blank', 'width=850,height=750');
+            ventanaImpresion.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Recibo de Cobro - Apto ${myApto}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; color: #1e293b; margin: 30px; }
+                        .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px; }
+                        .building-name { font-size: 20px; font-weight: bold; color: #0f172a; margin: 0; }
+                        .building-rif { font-size: 12px; color: #64748b; margin: 2px 0; }
+                        .info-grid { display: flex; justify-content: space-between; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; }
+                        .info-grid div { line-height: 1.5; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                        th { background: #f1f5f9; border-bottom: 2px solid #cbd5e1; padding: 8px; text-align: left; font-size: 12px; color: #334155; }
+                        td { font-size: 12px; }
+                        .totals-box { text-align: right; margin-top: 15px; border-top: 2px solid #0f172a; padding-top: 10px; }
+                        .totals-box p { margin: 4px 0; font-size: 14px; }
+                        @media print {
+                            body { margin: 10px; }
+                            button { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <p class="building-name">${state.building?.name || 'Residencias El Parque'}</p>
+                        <p class="building-rif">RIF: ${state.building?.rif || 'J-00000000-0'} | ${state.building?.address || ''}</p>
+                        <p style="margin: 5px 0 0 0; font-size: 14px; font-weight: bold; color: #0284c7;">AVISO DE COBRO - PERÍODO: ${periodStr}</p>
+                    </div>
+
+                    <div class="info-grid">
+                        <div>
+                            <strong>Apartamento:</strong> ${myApto}<br>
+                            <strong>Propietario:</strong> ${myOwnerObj.owner || '-'}<br>
+                            <strong>Alícuota:</strong> ${alicuotaVal}%
+                        </div>
+                        <div style="text-align: right;">
+                            <strong>Tasa BCV Oficial:</strong> Bs. ${bcvRate.toFixed(2)}<br>
+                            <strong>Fecha de Emisión:</strong> ${new Date().toLocaleDateString()}
+                        </div>
+                    </div>
+
+                    <h3>📋 Desglose de Gastos y Cuotas del Período</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Concepto / Descripción</th>
+                                <th style="text-align: center;">Tipo</th>
+                                <th style="text-align: right;">Total Edificio ($)</th>
+                                <th style="text-align: right;">Su Alícuota ($)</th>
+                                <th style="text-align: right;">Su Alícuota (Bs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filasGastosHtml || '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 15px;">No hay gastos registrados para este período.</td></tr>'}
+                        </tbody>
+                    </table>
+
+                    <div class="totals-box">
+                        <p><strong>Total a Pagar en Dólares:</strong> <span style="color: #0d9488; font-size: 16px;">$${totalPagarUsd.toFixed(2)}</span></p>
+                        <p><strong>Total Equivalente en Bolívares:</strong> Bs. ${totalPagarBs.toFixed(2)}</p>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 40px;">
+                        <button onclick="window.print()" style="background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 14px; cursor: pointer;">🖨️ Imprimir Recibo Formal</button>
+                    </div>
+                </body>
+                </html>
+            `);
+            ventanaImpresion.document.close();
         }
 
         // ==================== REPORTES Y CONFIGURACIÓN ====================
