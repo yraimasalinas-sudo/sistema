@@ -1291,33 +1291,41 @@
             else await loadStorage();
         }
 
-        function renderPendingPayments() {
+function renderPendingPayments() {
             const body = document.getElementById('payments-pending-body');
             if (!body) return;
             body.innerHTML = '';
 
-            state.payments.forEach(p => {
+            const payments = state.payments || [];
+
+            if (payments.length === 0) {
+                body.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">No hay pagos registrados o por conciliar.</td></tr>`;
+                return;
+            }
+
+            payments.forEach(p => {
                 const isBs = p.method && p.method.includes('Bs');
-                const montoOriginalText = isBs ? `Bs. ${Number(p.amount).toFixed(2)}` : `$${Number(p.amount).toFixed(2)}`;
+                const montoOriginalText = isBs ? `Bs. ${Number(p.amount || 0).toFixed(2)}` : `$${Number(p.amount || 0).toFixed(2)}`;
+                const refText = p.ref || p.reference || 'S/N';
+                const statusVal = p.status || 'Pendiente';
 
                 body.innerHTML += `
-                    <tr class="border-b">
-                        <td class="p-2 font-bold">${p.apto}</td>
-                        <td class="p-2">${p.date}</td>
-                        <td class="p-2">${p.method}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref}</span></td>
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-2 font-bold">${p.apto || '-'}</td>
+                        <td class="p-2">${p.date || '-'}</td>
+                        <td class="p-2">${p.method || 'Pago'}<br><span class="text-[10px] text-slate-400">Ref: ${refText}</span></td>
                         <td class="p-2 text-right font-semibold">${montoOriginalText}</td>
-                        <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv).toFixed(2)}</td>
+                        <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv || p.amount || 0).toFixed(2)}</td>
                         <td class="p-2 text-center space-x-1">
-                            ${p.status === 'Pendiente' ? `
-                                <button onclick="approvePayment(${p.id})" class="px-2 py-1 bg-emerald-500 text-white rounded text-[10px]">Aprobar</button>
+                            ${statusVal === 'Pendiente' ? `
+                                <button onclick="approvePayment(${p.id})" class="px-2 py-1 bg-emerald-500 text-white rounded text-[10px] hover:bg-emerald-600">Aprobar</button>
                             ` : `<span class="text-emerald-600 font-bold text-[10px]">✓ Aprobado</span>`}
-                            <button onclick="deletePayment(${p.id})" class="px-2 py-1 bg-rose-500 text-white rounded text-[10px]">Eliminar</button>
+                            <button onclick="deletePayment(${p.id})" class="px-2 py-1 bg-rose-500 text-white rounded text-[10px] hover:bg-rose-600">Eliminar</button>
                         </td>
                     </tr>
                 `;
             });
         }
-
         // ==================== PROPIETARIOS Y PROVEEDORES ====================
         function renderOwnersTable() {
             const body = document.getElementById('owners-table-body');
