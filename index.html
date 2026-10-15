@@ -1618,17 +1618,30 @@
             const bcvRate = Number(state.building?.bcv || 1);
             document.getElementById('owner-bcv-rate').innerText = bcvRate.toFixed(2);
 
-            const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
+            // Tomamos los gastos del último aviso histórico o los pendientes si aún no se archiva
+            let activeExpenses = [];
+            if (state.billingNotices && state.billingNotices.length > 0) {
+                // Ordenar por ID o fecha para obtener el más reciente
+                const lastNotice = state.billingNotices[state.billingNotices.length - 1];
+                let details = lastNotice.details;
+                if (typeof details === 'string') {
+                    try { details = JSON.parse(details); } catch (e) { details = {}; }
+                }
+                activeExpenses = details.expenses || [];
+            } else {
+                activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
+            }
+
             let myTotalUsd = 0;
             const factor = myOwnerObj.alicuota > 1 ? myOwnerObj.alicuota / 100 : myOwnerObj.alicuota;
 
-            pendingExpenses.forEach(e => {
+            activeExpenses.forEach(e => {
                 const amt = Number(e.amount || e.amount_usd || 0);
                 myTotalUsd += amt * factor;
             });
 
             const myApprovedPayments = (state.payments || []).filter(p => p.apto === myApto && p.status === 'Aprobado');
-            const totalPaidUsd = myApprovedPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
+            const totalPaidUsd = myApprovedPayments.reduce((acc, p) => acc + Number(p.usdEquiv || p.amount || 0), 0);
 
             const netBalanceUsd = Math.max(0, myTotalUsd - totalPaidUsd);
             const netBalanceBs = netBalanceUsd * bcvRate;
@@ -1639,13 +1652,13 @@
             const receiptBody = document.getElementById('owner-receipt-body');
             if (receiptBody) {
                 receiptBody.innerHTML = '';
-                pendingExpenses.forEach(e => {
+                activeExpenses.forEach(e => {
                     const totalBldg = Number(e.amount || 0);
                     const myUsd = totalBldg * factor;
                     const myBs = myUsd * bcvRate;
                     receiptBody.innerHTML += `
                         <tr class="border-b">
-                            <td class="p-2 font-bold">${e.description}</td>
+                            <td class="p-2 font-bold">${e.description || 'Gasto'}</td>
                             <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(e.type || 'ordinaria').toUpperCase()}</span></td>
                             <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
                             <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
@@ -1654,6 +1667,24 @@
                     `;
                 });
             }
+
+            const historyBody = document.getElementById('owner-history-body');
+            if (historyBody) {
+                historyBody.innerHTML = '';
+                const myPayments = (state.payments || []).filter(p => p.apto === myApto);
+                myPayments.forEach(p => {
+                    historyBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2">${p.date || '-'}</td>
+                            <td class="p-2">${p.concept || 'Pago'}<br><span class="text-[10px] text-slate-400">Ref: ${p.reference || p.ref || 'S/N'}</span></td>
+                            <td class="p-2 text-right font-semibold">$${Number(p.amount || 0).toFixed(2)}</td>
+                            <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv || p.amount || 0).toFixed(2)}</td>
+                            <td class="p-2 text-center"><span class="px-2 py-1 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">${p.status || 'Registrado'}</span></td>
+                        </tr>
+                    `;
+                });
+            }
+        }
 
             const historyBody = document.getElementById('owner-history-body');
             if (historyBody) {
