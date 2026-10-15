@@ -10,8 +10,7 @@
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -42,10 +41,8 @@
 
         <!-- ==================== PANTALLA DE LOGIN ==================== -->
         <div id="login-section" class="flex flex-col items-center justify-center min-h-[85vh]">
-            <div
-                class="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-teal-100 max-w-md w-full text-center">
-                <div
-                    class="w-20 h-20 bg-gradient-to-tr from-teal-400 to-amber-400 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-md mb-4">
+            <div class="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-teal-100 max-w-md w-full text-center">
+                <div class="w-20 h-20 bg-gradient-to-tr from-teal-400 to-amber-400 rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-bold shadow-md mb-4">
                     🏢
                 </div>
                 <h1 class="text-2xl font-bold text-slate-800 mb-1" id="login-building-name">Mi Condominio</h1>
@@ -74,17 +71,14 @@
         <!-- ==================== PANEL PRINCIPAL (DASHBOARD) ==================== -->
         <div id="dashboard-section" class="hidden">
             <!-- Barra Superior / Encabezado -->
-            <header
-                class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap justify-between items-center border border-slate-100 no-print">
+            <header class="bg-white rounded-2xl shadow-sm p-4 mb-6 flex flex-wrap justify-between items-center border border-slate-100 no-print">
                 <div class="flex items-center gap-3">
-                    <div id="header-logo"
-                        class="w-12 h-12 bg-amber-400 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow">
+                    <div id="header-logo" class="w-12 h-12 bg-amber-400 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow">
                         🏢
                     </div>
                     <div>
                         <h2 class="font-bold text-lg text-slate-800" id="dash-bldg-name">Edificio Residencial</h2>
-                        <p class="text-xs text-slate-500">RIF: <span id="dash-bldg-rif">J-00000000-0</span> | <span
-                                id="dash-bldg-address">Dirección del Inmueble</span></p>
+                        <p class="text-xs text-slate-500">RIF: <span id="dash-bldg-rif">J-00000000-0</span> | <span id="dash-bldg-address">Dirección del Inmueble</span></p>
                     </div>
                 </div>
 
@@ -98,77 +92,52 @@
                         </div>
                     </div>
                     <div class="text-right">
-                        <span id="user-badge"
-                            class="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-bold uppercase"></span>
-                        <button onclick="logout()" class="block text-xs text-red-500 hover:underline mt-1">Cerrar
-                            Sesión</button>
+                        <span id="user-badge" class="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-bold uppercase"></span>
+                        <button onclick="logout()" class="block text-xs text-red-500 hover:underline mt-1">Cerrar Sesión</button>
                     </div>
                 </div>
             </header>
-            <!-- ==================== CONTENIDO ADMINISTRADOR ==================== -->
-            <div id="admin-view" class="hidden space-y-6">
-                <!-- Navegación por pestañas -->
-                <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-2 no-print">
-                    <button onclick="switchTab(event, 'bcv')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-teal-500 text-white">💵 Tasa BCV
-                        (Manual / API)</button>
-                    <button onclick="switchTab(event, 'gastos')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Gastos
-                        y Cobro</button>
-                    <button onclick="switchTab(event, 'pagos')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Conciliación
-                        y Pagos</button>
-                    <button onclick="switchTab(event, 'propietarios')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Propietarios
-                        y Alícuotas</button>
-                    <button onclick="switchTab(event, 'proveedores')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Proveedores</button>
-                    <button onclick="switchTab(event, 'notices-history')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">📄
-                        Histórico de Avisos</button>
-                    <button onclick="switchTab(event, 'reportes')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Reportes
-                        de Gestión</button>
-                    <button onclick="switchTab(event, 'config')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Config.
-                        Edificio</button>
-                </div>
+
+            <!-- ==================== CONTENIDO ADMINISTRADOR ==================== -->
+            <div id="admin-view" class="hidden space-y-6">
+                <!-- Navegación por pestañas -->
+                <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-2 no-print">
+                    <button onclick="switchTab(event, 'bcv')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-teal-500 text-white">💵 Tasa BCV (Manual / API)</button>
+                    <button onclick="switchTab(event, 'gastos')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Gastos y Cobro</button>
+                    <button onclick="switchTab(event, 'pagos')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Conciliación y Pagos</button>
+                    <button onclick="switchTab(event, 'propietarios')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Propietarios y Alícuotas</button>
+                    <button onclick="switchTab(event, 'proveedores')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Proveedores</button>
+                    <button onclick="switchTab(event, 'notices-history')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">📄 Histórico de Avisos</button>
+                    <button onclick="switchTab(event, 'reportes')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Reportes de Gestión</button>
+                    <button onclick="switchTab(event, 'config')" class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Config. Edificio</button>
+                </div>
+
                 <!-- PESTAÑA 0: GESTIÓN DE TASA BCV -->
                 <div id="tab-bcv" class="tab-content space-y-6">
                     <div class="grid md:grid-cols-2 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">⚙️ Configuración de la
-                                Tasa Oficial BCV</h3>
-                            <p class="text-xs text-slate-500">Ingresa la tasa diaria manualmente o consúltala
-                                automáticamente por la API del BCV.</p>
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">⚙️ Configuración de la Tasa Oficial BCV</h3>
+                            <p class="text-xs text-slate-500">Ingresa la tasa diaria manualmente o consúltala automáticamente por la API del BCV.</p>
 
                             <form onsubmit="saveBcvManual(event)" class="space-y-3 pt-2">
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label class="text-xs text-slate-600 font-bold block mb-1">Fecha de la
-                                            Tasa:</label>
-                                        <input type="date" id="manual-bcv-date" required
-                                            class="w-full p-2.5 rounded-lg border text-sm font-bold text-slate-800">
+                                        <label class="text-xs text-slate-600 font-bold block mb-1">Fecha de la Tasa:</label>
+                                        <input type="date" id="manual-bcv-date" required class="w-full p-2.5 rounded-lg border text-sm font-bold text-slate-800">
                                     </div>
                                     <div>
-                                        <label class="text-xs text-slate-600 font-bold block mb-1">Monto (Bs. /
-                                            USD):</label>
-                                        <input type="number" id="manual-bcv-input" step="0.0001" placeholder="Ej: 36.50"
-                                            required
-                                            class="w-full p-2.5 rounded-lg border text-sm font-bold text-slate-800">
+                                        <label class="text-xs text-slate-600 font-bold block mb-1">Monto (Bs. / USD):</label>
+                                        <input type="number" id="manual-bcv-input" step="0.0001" placeholder="Ej: 36.50" required class="w-full p-2.5 rounded-lg border text-sm font-bold text-slate-800">
                                     </div>
                                 </div>
-                                <button type="submit"
-                                    class="w-full py-2.5 bg-teal-500 text-white rounded-lg text-xs font-semibold hover:bg-teal-600">
+                                <button type="submit" class="w-full py-2.5 bg-teal-500 text-white rounded-lg text-xs font-semibold hover:bg-teal-600">
                                     Guardar Tasa para esta Fecha
                                 </button>
                             </form>
 
                             <div>
-                                <label class="text-xs text-slate-600 font-bold block mb-1">Obtener Tasa BCV
-                                    automáticamente desde API:</label>
-                                <button onclick="fetchBcvApi()" id="btn-api-bcv"
-                                    class="w-full py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-bold text-xs rounded-lg shadow hover:from-amber-500 hover:to-amber-600 flex items-center justify-center gap-2">
+                                <label class="text-xs text-slate-600 font-bold block mb-1">Obtener Tasa BCV automáticamente desde API:</label>
+                                <button onclick="fetchBcvApi()" id="btn-api-bcv" class="w-full py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 font-bold text-xs rounded-lg shadow hover:from-amber-500 hover:to-amber-600 flex items-center justify-center gap-2">
                                     <span>🔄</span> Actualizar Tasa con API Oficial BCV
                                 </button>
                                 <p id="api-status-msg" class="text-[11px] text-slate-400 mt-1 italic"></p>
@@ -194,7 +163,7 @@
                 </div>
  
                 <!-- PESTAÑA 1: GASTOS Y GENERACIÓN DE AVISO -->
-                <div id="tab-gastos" class="container mx-auto p-4 max-w-6xl tab-content space-y-6">
+                <div id="tab-gastos" class="container mx-auto p-4 max-w-6xl tab-content hidden space-y-6">
                     <!-- Header de Periodo -->
                     <header class="bg-blue-800 text-white p-6 rounded-lg shadow-md mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
                         <div>
@@ -208,7 +177,7 @@
                     </header>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <!-- COLUMNA 1: GASTOS REGULARES -->
+                        <!-- COLUMNA 1: GASTOS REGULARES -->
                         <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-600">
                             <h2 class="text-lg font-bold text-blue-800 mb-4 flex items-center gap-2">
                                 💵 Gastos Regulares del Mes (USD)
@@ -218,7 +187,6 @@
                                     <label class="block text-sm font-medium text-gray-700">Proveedor</label>
                                     <select id="provRegular" required class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
                                         <option value="">Seleccione un proveedor...</option>
-                                        <!-- Se llena dinámicamente -->
                                     </select>
                                 </div>
                                 <div>
@@ -235,7 +203,7 @@
                             </form>
                         </div>
 
-                <!-- COLUMNA 2: CUOTAS EXTRAORDINARIAS -->
+                        <!-- COLUMNA 2: CUOTAS EXTRAORDINARIAS -->
                         <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-purple-600">
                             <h2 class="text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
                                 ⚙️ Cuotas Extraordinarias / Proveedores Especiales
@@ -246,7 +214,6 @@
                                         <label class="block text-sm font-medium text-gray-700">Proveedor</label>
                                         <select id="provExtra" required class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-sm bg-white">
                                             <option value="">Seleccione un proveedor...</option>
-                                            <!-- Se llena dinámicamente -->
                                         </select>
                                     </div>
                                     <div>
@@ -275,6 +242,7 @@
                                 </button>
                             </form>
                         </div>
+                    </div>
 
                     <!-- TABLA DE CONTROL ADM -->
                     <div class="bg-white p-6 rounded-lg shadow-md mb-6">
@@ -320,50 +288,41 @@
                 <div id="tab-pagos" class="tab-content hidden space-y-6">
                     <div class="grid md:grid-cols-3 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 class="font-bold text-slate-800 mb-4 text-sm">💵 Registrar Pago Manual de Propietario
-                            </h3>
+                            <h3 class="font-bold text-slate-800 mb-4 text-sm">💵 Registrar Pago Manual de Propietario</h3>
                             <form id="admin-pay-form" onsubmit="registerAdminPayment(event)" class="space-y-3">
                                 <div>
                                     <label class="text-xs text-slate-600">Apartamento</label>
-                                    <select id="pay-apto" required
-                                        class="w-full p-2.5 rounded-lg border text-sm"></select>
+                                    <select id="pay-apto" required class="w-full p-2.5 rounded-lg border text-sm"></select>
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Concepto de Pago</label>
                                     <select id="pay-concept" class="w-full p-2.5 rounded-lg border text-sm">
                                         <option value="Cuota Ordinaria Mensual">Cuota Ordinaria Mensual</option>
                                         <option value="Cuota Extraordinaria">Cuota Extraordinaria</option>
-                                        <option value="Pago Total (Ordinaria + Extraordinaria)">Pago Total (Ordinaria +
-                                            Extraordinaria)</option>
+                                        <option value="Pago Total (Ordinaria + Extraordinaria)">Pago Total (Ordinaria + Extraordinaria)</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Fecha Real de Pago</label>
-                                    <input type="date" id="pay-date" required
-                                        class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="date" id="pay-date" required class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Método / Moneda de Pago</label>
                                     <select id="pay-method" class="w-full p-2.5 rounded-lg border text-sm">
-                                        <option value="Bs - Transferencia/Pago Movil">Bs - Pago Móvil / Transferencia
-                                        </option>
+                                        <option value="Bs - Transferencia/Pago Movil">Bs - Pago Móvil / Transferencia</option>
                                         <option value="USD - Efectivo">USD - Efectivo</option>
                                         <option value="USD - Zelle">USD - Zelle / Otro</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Monto Ingresado (Bs o USD)</label>
-                                    <input type="number" id="pay-amount" step="0.01" required
-                                        class="w-full p-2.5 rounded-lg border text-sm"
-                                        placeholder="Ej: 1800.00 en Bs o 50 en USD">
+                                    <input type="number" id="pay-amount" step="0.01" required class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 1800.00 en Bs o 50 en USD">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Referencia / Comprobante</label>
-                                    <input type="text" id="pay-ref" required
-                                        class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="text" id="pay-ref" required class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
-                                <button type="submit"
-                                    class="w-full py-2.5 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600">
+                                <button type="submit" class="w-full py-2.5 bg-teal-500 text-white rounded-lg text-sm font-semibold hover:bg-teal-600">
                                     Registrar y Aprobar Pago
                                 </button>
                             </form>
@@ -419,27 +378,21 @@
                             <form onsubmit="addProvider(event)" class="space-y-3">
                                 <div>
                                     <label class="text-xs text-slate-600">Nombre / Razón Social</label>
-                                    <input type="text" id="prov-name" required
-                                        class="w-full p-2.5 rounded-lg border text-sm">
+                                    <input type="text" id="prov-name" required class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Servicio / Ramo</label>
-                                    <input type="text" id="prov-service" required
-                                        class="w-full p-2.5 rounded-lg border text-sm"
-                                        placeholder="Ej: Plomería, Ascensores">
+                                    <input type="text" id="prov-service" required class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: Plomería, Ascensores">
                                 </div>
                                 <div>
                                     <label class="text-xs text-slate-600">Teléfono / Contacto</label>
                                     <input type="text" id="prov-phone" class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
-                                <button type="submit"
-                                    class="w-full py-2.5 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600">Guardar
-                                    Proveedor</button>
+                                <button type="submit" class="w-full py-2.5 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600">Guardar Proveedor</button>
                             </form>
                         </div>
                         <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 class="font-bold text-slate-800 mb-4 text-sm">📜 Directorio de Proveedores Registrados
-                            </h3>
+                            <h3 class="font-bold text-slate-800 mb-4 text-sm">📜 Directorio de Proveedores Registrados</h3>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-xs">
                                     <thead>
@@ -460,8 +413,7 @@
                 <div id="tab-notices-history" class="tab-content hidden p-4 bg-white rounded-lg shadow mt-4">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-bold text-slate-700">Histórico de Avisos Emitidos</h3>
-                        <button onclick="saveCurrentNotice()"
-                            class="px-3 py-2 bg-teal-600 text-white text-xs font-bold rounded shadow hover:bg-teal-700">
+                        <button onclick="saveCurrentNotice()" class="px-3 py-2 bg-teal-600 text-white text-xs font-bold rounded shadow hover:bg-teal-700">
                             💾 Archivar Aviso de Cobro por Mes
                         </button>
                     </div>
@@ -470,14 +422,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 bg-slate-50 p-3 rounded">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Mes:</label>
-                            <input type="month" id="hist-filter-period" class="p-2 border rounded text-sm w-full"
-                                onchange="renderHistoryNotices()">
+                            <input type="month" id="hist-filter-period" class="p-2 border rounded text-sm w-full" onchange="renderHistoryNotices()">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Tipo de
-                                Cuota:</label>
-                            <select id="hist-filter-type" class="p-2 border rounded text-sm w-full"
-                                onchange="renderHistoryNotices()">
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Tipo de Cuota:</label>
+                            <select id="hist-filter-type" class="p-2 border rounded text-sm w-full" onchange="renderHistoryNotices()">
                                 <option value="all">Todos (Comunes y Extraordinarios)</option>
                                 <option value="ordinary">Solo Ordinarios (Comunes)</option>
                                 <option value="extraordinary">Solo Extraordinarios</option>
@@ -509,23 +458,11 @@
                         <div class="flex flex-wrap items-end gap-4">
                             <div>
                                 <label class="text-xs text-slate-600 block">Mes a Consultar</label>
-                                <input type="month" id="rep-period" class="p-2 rounded-lg border text-sm"
-                                    onchange="generateReports()">
+                                <input type="month" id="rep-period" class="p-2 rounded-lg border text-sm" onchange="generateReports()">
                             </div>
-                            <button onclick="generateReports()"
-                                class="px-5 py-2.5 bg-teal-500 text-white font-semibold text-sm rounded-lg hover:bg-teal-600">Actualizar
-                                Reportes</button>
-                            <button onclick="window.print()"
-                                class="px-5 py-2.5 bg-slate-700 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 flex items-center gap-1">🖨
-                                Imprimir / Guardar PDF</button>
+                            <button onclick="generateReports()" class="px-5 py-2.5 bg-teal-500 text-white font-semibold text-sm rounded-lg hover:bg-teal-600">Actualizar Reportes</button>
+                            <button onclick="window.print()" class="px-5 py-2.5 bg-slate-700 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 flex items-center gap-1">🖨 Imprimir / Guardar PDF</button>
                         </div>
-                    </div>
-
-                    <!-- Encabezado para impresión -->
-                    <div id="print-header" class="hidden print-only mb-6 border-b pb-4">
-                        <h1 class="text-xl font-bold text-center uppercase" id="print-bldg-name">Edificio</h1>
-                        <p class="text-center text-xs" id="print-bldg-info">RIF: | Dirección: </p>
-                        <p class="text-right text-xs mt-2" id="print-date">Fecha de emisión: </p>
                     </div>
 
                     <!-- REPORTE 1: CUOTAS ORDINARIAS -->
@@ -534,18 +471,16 @@
                             <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
                                 📊 Estado Financiero - Cuota Mensual Ordinaria
                             </h3>
-                            <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold"
-                                id="rep-ord-period-label">Periodo: --</span>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold" id="rep-ord-period-label">Periodo: --</span>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-xs">
                                 <thead>
                                     <tr class="bg-slate-50 text-slate-700 text-left border-b">
                                         <th class="p-2">Apto</th>
-                                        <th class="p-2">Propietario</th>
-                                        <th class="p-2 text-right">Alícuota ($)</th>
-                                        <th class="p-2 text-right">Total Pagado ($)</th>
-                                        <th class="p-2 text-center">Ref. Pago</th>
+                                        <th class="p-2 text-center">Meses Adeudados</th>
+                                        <th class="p-2">Detalle Meses</th>
+                                        <th class="p-2 text-right">Total Asignado ($)</th>
                                         <th class="p-2 text-right">Estatus / Deuda ($)</th>
                                     </tr>
                                 </thead>
@@ -555,42 +490,20 @@
                     </div>
 
                     <!-- REPORTE 2: CUOTAS EXTRAORDINARIAS -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-3">
-                        <div class="flex justify-between items-center border-b pb-2">
-                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                                📊 Estado Financiero - Cuotas Extraordinarias
-                            </h3>
-                            <span class="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-bold">Detalle
-                                por Proyecto/Concepto</span>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-xs">
-                                <thead>
-                                    <tr class="bg-slate-50 text-slate-700 text-left border-b">
-                                        <th class="p-2">Mes Cobro</th>
-                                        <th class="p-2">Concepto / Proyecto</th>
-                                        <th class="p-2">Apto</th>
-                                        <th class="p-2 text-right">Monto Asignado ($)</th>
-                                        <th class="p-2 text-right">Monto Pagado ($)</th>
-                                        <th class="p-2 text-center">Ref. Pago</th>
-                                        <th class="p-2 text-right">Pendiente ($)</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="report-extraordinary-body"></tbody>
-                            </table>
-                        </div>
+                    <div id="report-extraordinary-container" class="space-y-6">
+                        <!-- Se llena dinámicamente -->
                     </div>
 
                     <!-- REPORTE 3: PAGOS A PROVEEDORES -->
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <h3 class="font-bold text-slate-800 mb-2 text-sm">📑 Historial de Pagos a Proveedores</h3>
+                        <h3 class="font-bold text-slate-800 mb-2 text-sm">📑 Historial de Proveedores y Servicios</h3>
                         <div class="overflow-x-auto">
                             <table class="w-full text-xs">
                                 <thead>
                                     <tr class="bg-slate-100 text-left">
                                         <th class="p-2">Proveedor</th>
                                         <th class="p-2">Servicio</th>
-                                        <th class="p-2 font-bold text-right">Teléfono / Contacto</th>
+                                        <th class="p-2 text-right">Teléfono / Contacto</th>
                                     </tr>
                                 </thead>
                                 <tbody id="report-providers-body"></tbody>
@@ -606,8 +519,7 @@
                         <form onsubmit="saveBuildingConfig(event)" class="space-y-3">
                             <div>
                                 <label class="text-xs text-slate-600">Nombre del Edificio</label>
-                                <input type="text" id="cfg-name" required
-                                    class="w-full p-2.5 rounded-lg border text-sm">
+                                <input type="text" id="cfg-name" required class="w-full p-2.5 rounded-lg border text-sm">
                             </div>
                             <div>
                                 <label class="text-xs text-slate-600">Registro Fiscal (RIF)</label>
@@ -615,12 +527,9 @@
                             </div>
                             <div>
                                 <label class="text-xs text-slate-600">Dirección</label>
-                                <textarea id="cfg-address" required
-                                    class="w-full p-2.5 rounded-lg border text-sm"></textarea>
+                                <textarea id="cfg-address" required class="w-full p-2.5 rounded-lg border text-sm"></textarea>
                             </div>
-                            <button type="submit"
-                                class="w-full py-2.5 bg-teal-500 text-white font-semibold rounded-lg text-sm hover:bg-teal-600">Guardar
-                                Configuración</button>
+                            <button type="submit" class="w-full py-2.5 bg-teal-500 text-white font-semibold rounded-lg text-sm hover:bg-teal-600">Guardar Configuración</button>
                         </form>
                     </div>
                 </div>
@@ -633,8 +542,7 @@
                         <span class="text-xs text-slate-500 font-bold block">APARTAMENTO</span>
                         <h3 class="text-2xl font-black text-slate-800" id="owner-dash-apto">--</h3>
                         <p class="text-xs text-slate-600 mt-1" id="owner-dash-name">--</p>
-                        <span
-                            class="inline-block mt-2 px-2 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded">
+                        <span class="inline-block mt-2 px-2 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded">
                             Alícuota: <span id="owner-dash-alicuota">0</span>%
                         </span>
                     </div>
@@ -642,18 +550,14 @@
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                         <span class="text-xs text-slate-500 font-bold block">SALDO PENDIENTE ACTUAL</span>
                         <h3 class="text-3xl font-black text-rose-500" id="owner-dash-balance">$0.00</h3>
-                        <p class="text-xs text-slate-500 mt-1">Monto a pagar en Bolívares: <span
-                                id="owner-dash-balance-bs" class="font-bold text-slate-800">Bs. 0.00</span></p>
-                        <p class="text-[10px] text-amber-600 mt-0.5">Calculado a Tasa BCV: <span
-                                id="owner-bcv-rate">0.00</span> Bs/$</p>
+                        <p class="text-xs text-slate-500 mt-1">Monto a pagar en Bolívares: <span id="owner-dash-balance-bs" class="font-bold text-slate-800">Bs. 0.00</span></p>
+                        <p class="text-[10px] text-amber-600 mt-0.5">Calculado a Tasa BCV: <span id="owner-bcv-rate">0.00</span> Bs/$</p>
                     </div>
 
                     <div class="bg-gradient-to-br from-teal-500 to-emerald-600 p-6 rounded-2xl shadow-md text-white">
                         <h4 class="font-bold text-sm mb-2">📲 Reportar Nuevo Pago</h4>
-                        <p class="text-xs text-teal-100 mb-4">Envía los datos de tu transferencia en Bs o divisa para su
-                            conciliación.</p>
-                        <button onclick="document.getElementById('owner-pay-modal').classList.remove('hidden')"
-                            class="w-full py-2 bg-white text-teal-700 font-bold text-xs rounded-lg shadow hover:bg-teal-50">
+                        <p class="text-xs text-teal-100 mb-4">Envía los datos de tu transferencia en Bs o divisa para su conciliación.</p>
+                        <button onclick="document.getElementById('owner-pay-modal').classList.remove('hidden')" class="w-full py-2 bg-white text-teal-700 font-bold text-xs rounded-lg shadow hover:bg-teal-50">
                             Reportar Pago Ahora
                         </button>
                     </div>
@@ -662,9 +566,7 @@
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-slate-800 text-sm">🧾 Recibo de Cobro / Desglose de Gastos</h3>
-                        <button onclick="imprimirReciboPropietario()"
-                            class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-700 hover:bg-slate-200 no-print">🖨️
-                            Imprimir Recibo</button>
+                        <button onclick="imprimirReciboPropietario()" class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg font-semibold text-slate-700 hover:bg-slate-200 no-print">🖨️ Imprimir Recibo</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs">
@@ -700,14 +602,11 @@
                     </div>
                 </div>
             </div>
-
         </div>
-
     </div>
 
     <!-- MODAL DE REPORTAR PAGO -->
-    <div id="owner-pay-modal"
-        class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div id="owner-pay-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 class="font-bold text-slate-800 text-base mb-4">Reportar Pago de Condominio</h3>
             <form onsubmit="submitOwnerPayment(event)" class="space-y-3">
@@ -716,8 +615,7 @@
                     <select id="rep-concept" class="w-full p-2.5 rounded-lg border text-sm">
                         <option value="Cuota Ordinaria Mensual">Cuota Ordinaria Mensual</option>
                         <option value="Cuota Extraordinaria">Cuota Extraordinaria</option>
-                        <option value="Pago Total (Ordinaria + Extraordinaria)">Pago Total (Ordinaria + Extraordinaria)
-                        </option>
+                        <option value="Pago Total (Ordinaria + Extraordinaria)">Pago Total (Ordinaria + Extraordinaria)</option>
                     </select>
                 </div>
                 <div>
@@ -729,8 +627,7 @@
                 </div>
                 <div>
                     <label class="text-xs text-slate-600">Monto Cancelado</label>
-                    <input type="number" id="rep-amount" step="0.01" required
-                        class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 1800.00 en Bs o 50.00 en USD">
+                    <input type="number" id="rep-amount" step="0.01" required class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 1800.00 en Bs o 50.00 en USD">
                 </div>
                 <div>
                     <label class="text-xs text-slate-600">Número de Referencia / Comprobante</label>
@@ -741,11 +638,8 @@
                     <input type="date" id="rep-date" required class="w-full p-2.5 rounded-lg border text-sm">
                 </div>
                 <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="document.getElementById('owner-pay-modal').classList.add('hidden')"
-                        class="w-1/2 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold">Cancelar</button>
-                    <button type="submit"
-                        class="w-1/2 py-2 bg-teal-500 text-white rounded-lg text-xs font-semibold hover:bg-teal-600">Enviar
-                        Reporte</button>
+                    <button type="button" onclick="document.getElementById('owner-pay-modal').classList.add('hidden')" class="w-1/2 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold">Cancelar</button>
+                    <button type="submit" class="w-1/2 py-2 bg-teal-500 text-white rounded-lg text-xs font-semibold hover:bg-teal-600">Enviar Reporte</button>
                 </div>
             </form>
         </div>
@@ -759,35 +653,18 @@
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
-        let realtimeTimer = null;
-
-        let defaultOwners = [
-            { apto: '1A', owner: 'Propietario 1A', alicuota: 6, pass: '1234' },
-            { apto: '1B', owner: 'Propietario 1B', alicuota: 6, pass: '1234' },
-            { apto: '2', owner: 'Propietario 2', alicuota: 12, pass: '1234' },
-            { apto: '3A', owner: 'Propietario 3A', alicuota: 6, pass: '1234' },
-            { apto: '3B', owner: 'Propietario 3B', alicuota: 6, pass: '1234' },
-            { apto: '4A', owner: 'Propietario 4A', alicuota: 6, pass: '1234' },
-            { apto: '4B', owner: 'Propietario 4B', alicuota: 6, pass: '1234' },
-            { apto: '5A', owner: 'Propietario 5A', alicuota: 6, pass: '1234' },
-            { apto: '5B', owner: 'Propietario 5B', alicuota: 6, pass: '1234' },
-            { apto: '6A', owner: 'Propietario 6A', alicuota: 6, pass: '1234' },
-            { apto: '6B', owner: 'Propietario 6B', alicuota: 6, pass: '1234' },
-            { apto: '7', owner: 'Propietario 7', alicuota: 12, pass: '1234' },
-            { apto: 'PH', owner: 'Propietario PH', alicuota: 16, pass: '1234' }
-        ];
 
         let state = {
-            building: { name: 'Residencias El Parque', rif: 'J-12345678-9', address: 'Av. Principal Nro 12', bcv: 36.50 },
-            bcvHistory: [{ date: new Date().toISOString().split('T')[0], rate: 36.50, origin: 'Manual' }],
-            owners: defaultOwners,
+            building: { name: 'Residencias Aventura Suites', rif: 'J-29819798-6', address: 'Calle Urbaneja Avenida Páez Urbanización El Paraíso Caracas', bcv: 36.50 },
+            bcvHistory: [],
+            owners: [],
             expenses: [],
             payments: [],
             providers: [],
             billingNotices: []
         };
 
-        // Cargar todos los datos desde Supabase capturando errores individualmente
+        // Cargar todos los datos desde Supabase
         async function loadStorage() {
             try {
                 console.log("Cargando datos desde Supabase...");
@@ -818,7 +695,7 @@
                 if (errBldg) console.warn("Aviso en consulta 'building_config':", errBldg.message);
                 if (errNotices) console.warn("Aviso en consulta 'billing_notices':", errNotices.message);
 
-                // 1. TASA BCV HISTORIAL Y ACTIVA
+                // 1. TASA BCV
                 if (cloudBcv && cloudBcv.length > 0) {
                     state.bcvHistory = cloudBcv.map(b => ({
                         id: b.id,
@@ -827,18 +704,16 @@
                         origin: b.origin || 'BCV'
                     }));
                     const latestRate = parseFloat(cloudBcv[0].rate || 36.50);
-                    if (!state.building) state.building = {};
                     state.building.bcv = latestRate;
-                    state.bcvRate = latestRate; // Compatibilidad directa
                 }
 
-                // 2. PAGOS DE PROPIETARIOS
+                // 2. PAGOS
                 if (cloudPayments) {
                     state.payments = cloudPayments.map(p => ({
                         id: p.id,
                         apto: p.apto,
                         concept: p.concept || 'Cuota Ordinaria Mensual',
-                        type: p.type || (p.concept && p.concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria'),
+                        type: p.type || 'ordinaria',
                         method: p.method || 'Transferencia',
                         amount: parseFloat(p.amount || 0),
                         amount_usd: parseFloat(p.amount_usd || p.usd_equiv || p.amount || 0),
@@ -849,13 +724,12 @@
                     }));
                 }
 
-                // 3. GASTOS DEL EDIFICIO (Mapeo corregido para USD y Bs)
+                // 3. GASTOS
                 if (cloudExpenses) {
                     state.expenses = cloudExpenses.map(e => ({
                         id: e.id,
                         period: e.period || new Date().toISOString().slice(0, 7),
-                        description: e.description || e.concept || 'Gasto de Condominio',
-                        concept: e.concept || e.description || 'Gasto de Condominio',
+                        description: e.description || 'Gasto de Condominio',
                         amount: parseFloat(e.amount || e.amount_usd || 0),
                         amount_usd: parseFloat(e.amount_usd || e.amount || 0),
                         type: e.type || 'ordinaria',
@@ -866,41 +740,32 @@
                     }));
                 }
 
-                // 4. PROPIETARIOS Y ALÍCUOTAS
+                // 4. PROPIETARIOS (Sincronizado con owner_name)
                 if (cloudOwners && cloudOwners.length > 0) {
                     state.owners = cloudOwners.map(o => ({
                         apto: o.apto,
-                        owner: o.owner_name || o.owner || `Propietario ${o.apto}`,
+                        owner: o.owner_name || `Propietario ${o.apto}`,
                         alicuota: parseFloat(o.alicuota || 0),
                         pass: o.pass || '1234'
                     }));
                 }
 
-                // 5. PROVEEDORES
+                // 5. PROVEEDORES (Sincronizado con service_type de la tabla)
                 if (cloudProviders) {
                     state.providers = cloudProviders.map(pr => ({
                         id: pr.id,
                         name: pr.name,
-                        service: pr.service_type || pr.service || '',
+                        service: pr.service_type || pr.service || 'General',
                         phone: pr.phone || ''
                     }));
                 }
 
-                // 6. DATOS DE CONFIGURACIÓN DEL EDIFICIO
+                // 6. CONFIGURACIÓN DEL EDIFICIO
                 if (cloudBuilding && cloudBuilding.length > 0) {
                     const bldg = cloudBuilding[0];
-                    if (!state.building) state.building = {};
                     state.building.name = bldg.name || state.building.name;
                     state.building.rif = bldg.rif || state.building.rif;
                     state.building.address = bldg.address || state.building.address;
-
-                    // Guardar en state.config para mantener compatibilidad
-                    state.config = {
-                        name: bldg.name,
-                        rif: bldg.rif,
-                        address: bldg.address,
-                        bcv_rate: state.building.bcv || 36.50
-                    };
                 }
 
                 // 7. AVISOS DE COBRO
@@ -914,6 +779,7 @@
             }
 
             updateBcvUI();
+            populateProviderSelects();
             if (currentUser) {
                 if (currentUser.role === 'admin') renderAdminData();
                 else renderOwnerData();
@@ -943,13 +809,11 @@
 
             if (val && val > 0 && fechaInput) {
                 const bcvItem = { date: fechaInput, rate: val, origin: 'Manual' };
-
                 const { error } = await db.from('bcv_history').insert([bcvItem]);
                 if (error) {
-                    alert("Error al guardar la tasa en Supabase: " + error.message);
+                    alert("Error al guardar la tasa: " + error.message);
                     return;
                 }
-
                 await loadStorage();
                 alert(`Tasa BCV de Bs. ${val} guardada correctamente.`);
             }
@@ -969,16 +833,14 @@
                 if (data && data.promedio) {
                     const newRate = parseFloat(data.promedio);
                     const todayDate = new Date().toISOString().split('T')[0];
-
                     await db.from('bcv_history').insert([{ date: todayDate, rate: newRate, origin: 'API BCV' }]);
                     await loadStorage();
-
                     status.innerText = `✅ Tasa obtenida: Bs. ${newRate}`;
                     alert(`Tasa BCV actualizada: Bs. ${newRate}`);
                 }
             } catch (err) {
                 console.error(err);
-                status.innerText = "❌ Error al obtener tasa automática. Ingrésala manualmente.";
+                status.innerText = "❌ Error al obtener tasa automática.";
             } finally {
                 btn.disabled = false;
             }
@@ -997,6 +859,19 @@
                     </tr>
                 `;
             });
+        }
+
+        // ==================== POBLAR PROVEEDORES EN SELECTS ====================
+        function populateProviderSelects() {
+            const selectRegular = document.getElementById('provRegular');
+            const selectExtra = document.getElementById('provExtra');
+            const providers = state.providers || [];
+            
+            const optionsHtml = '<option value="">Seleccione un proveedor...</option>' + 
+                providers.map(p => `<option value="${p.name}">${p.name} ${p.service ? `(${p.service})` : ''}</option>`).join('');
+
+            if (selectRegular) selectRegular.innerHTML = optionsHtml;
+            if (selectExtra) selectExtra.innerHTML = optionsHtml;
         }
 
         // ==================== AUTENTICACIÓN ====================
@@ -1048,52 +923,47 @@
             }
         }
 
-        function switchTab(evt, tab) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            document.getElementById(`tab-${tab}`).classList.remove('hidden');
-            document.querySelectorAll('.tab-btn').forEach(b => {
-                b.classList.remove('bg-teal-500', 'text-white');
-                b.classList.add('bg-white', 'text-slate-600');
+        function switchTab(evt, tabId) {
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(el => {
+                el.classList.add('hidden');
             });
+
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-teal-500', 'text-white');
+                btn.classList.add('bg-white', 'text-slate-600', 'hover:bg-slate-100');
+            });
+
+            const target = document.getElementById(tabId) || document.getElementById('tab-' + tabId);
+            if (target) {
+                target.classList.remove('hidden');
+            } else {
+                console.error(`No se encontró el contenedor para la pestaña: ${tabId}`);
+            }
+
             if (evt && evt.currentTarget) {
+                evt.currentTarget.classList.remove('bg-white', 'text-slate-600', 'hover:bg-slate-100');
                 evt.currentTarget.classList.add('bg-teal-500', 'text-white');
             }
-            if (tab === 'notices-history') {
+            if (tabId === 'notices-history' || tabId === 'tab-notices-history') {
                 renderHistoryNotices();
             }
         }
 
         function populateSelects() {
-            const aptoSelects = ['exp-apto', 'pay-apto'];
-            aptoSelects.forEach(id => {
-                const sel = document.getElementById(id);
-                if (sel) {
-                    sel.innerHTML = '';
-                    state.owners.forEach(o => {
-                        sel.innerHTML += `<option value="${o.apto}">Apto ${o.apto} - ${o.owner}</option>`;
-                    });
-                }
-            });
-
-            const provSelect = document.getElementById('exp-provider');
-            if (provSelect) {
-                provSelect.innerHTML = '<option value="">Ninguno</option>';
-                state.providers.forEach(p => {
-                    provSelect.innerHTML += `<option value="${p.id}">${p.name} (${p.service})</option>`;
+            const sel = document.getElementById('pay-apto');
+            if (sel) {
+                sel.innerHTML = '';
+                state.owners.forEach(o => {
+                    sel.innerHTML += `<option value="${o.apto}">Apto ${o.apto} - ${o.owner}</option>`;
                 });
-            }
-        }
-
-        function toggleAptoBox(typeVal) {
-            const box = document.getElementById('specific-apto-box');
-            if (box) {
-                if (typeVal === 'no_comun') box.classList.remove('hidden');
-                else box.classList.add('hidden');
             }
         }
 
         function renderAdminData() {
             updateBcvUI();
+            populateProviderSelects();
             renderExpenses();
             renderPendingPayments();
             renderOwnersTable();
@@ -1102,14 +972,11 @@
             populateSelects();
         }
 
-        // ==================== GASTOS Y COBROS (UNIFICADO) ====================
-
-        // Sincronizar el período seleccionado con los formularios si hace falta
+        // ==================== GASTOS Y COBROS ====================
         function syncPeriodToForms(periodVal) {
             console.log("Período activo cambiado a:", periodVal);
         }
 
-        // Mostrar u ocultar el campo de tasa de cambio si selecciona Euros
         function toggleTasaCambio(moneda) {
             const contenedorTasa = document.getElementById('contenedorTasa');
             if (!contenedorTasa) return;
@@ -1120,25 +987,20 @@
             }
         }
 
-        // Obtener el período actual seleccionado en formato YYYY-MM
         function getSelectedPeriod() {
             const input = document.getElementById('periodoInput');
             if (input && input.value) {
-                return input.value; // Formato YYYY-MM desde el input type="month"
+                return input.value;
             }
             return new Date().toISOString().slice(0, 7);
         }
 
-        // 1. Agregar Gasto Regular (Columna 1)
         async function addRegularExpense(e) {
             if (e) e.preventDefault();
             const period = getSelectedPeriod();
             const provider = document.getElementById('provRegular')?.value.trim() || '';
             const description = document.getElementById('descRegular')?.value.trim() || '';
             const rawAmount = parseFloat(document.getElementById('montoRegular')?.value) || 0;
-        
-            const targetDate = period ? `${period}-01` : new Date().toISOString().split('T')[0];
-            const bcvRateForPeriod = getBcvRateForDate ? getBcvRateForDate(targetDate) : Number(state.building?.bcv || 0);
 
             const payload = {
                 period,
@@ -1161,7 +1023,6 @@
             await loadStorage();
         }
 
-        // 2. Agregar Cuota Extraordinaria (Columna 2 - Soporta USD y EUR con tasa histórica)
         async function addExtraExpense(e) {
             if (e) e.preventDefault();
             const period = getSelectedPeriod();
@@ -1171,7 +1032,7 @@
             const rawAmount = parseFloat(document.getElementById('montoExtra')?.value) || 0;
 
             const targetDate = period ? `${period}-01` : new Date().toISOString().split('T')[0];
-            const bcvRateForPeriod = getBcvRateForDate ? getBcvRateForDate(targetDate) : Number(state.building?.bcv || 0);
+            const bcvRateForPeriod = getBcvRateForDate(targetDate);
 
             let finalUsd = rawAmount;
             let descFinal = description;
@@ -1182,7 +1043,6 @@
                     alert('Por favor ingresa una tasa de cambio válida para el Euro.');
                     return;
                 }
-                // Conversión: Monto en EUR * Tasa Euro = Monto en Bs. / Tasa BCV del período = USD
                 const montoBs = rawAmount * tasaEuro;
                 finalUsd = montoBs / bcvRateForPeriod;
                 descFinal += ` (€${rawAmount.toFixed(2)})`;
@@ -1212,8 +1072,7 @@
             await loadStorage();
         }
 
-        // 3. Renderizar la tabla unificada de control y gastos pendientes
-            function renderExpenses() {
+        function renderExpenses() {
             const body = document.getElementById('expenses-table-body');
             if (!body) return;
             body.innerHTML = '';
@@ -1239,7 +1098,7 @@
                             <td class="p-3 text-right text-gray-700">$${amt.toFixed(2)}</td>
                             <td class="p-3 text-right font-bold text-gray-900">$${amt.toFixed(2)}</td>
                             <td class="p-3 text-center">
-                                 <button onclick="deleteExpense(${exp.id})" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded text-xs font-semibold transition">
+                                <button onclick="deleteExpense(${exp.id})" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded text-xs font-semibold transition">
                                     🗑️ Eliminar
                                 </button>
                             </td>
@@ -1250,207 +1109,85 @@
 
             const totalEl = document.getElementById('total-expenses-amount');
             if (totalEl) totalEl.innerText = `$${totalUsd.toFixed(2)}`;
-
-            if (typeof generateWhatsappGroupMsg === 'function') generateWhatsappGroupMsg();
         }
 
-        // 4. Eliminar un ítem individual de gasto
-async function deleteExpense(id) {
-    if (!confirm('¿Seguro que deseas eliminar este registro?')) return;
-    const { error } = await db.from('expenses').delete().eq('id', id);
-    if (error) {
-        alert('Error eliminando gasto: ' + error.message);
-        return;
-    }
-    await loadStorage();
-}
-
-// 5. Aprobar y cerrar el aviso de cobro mensual
-async function approveAndCloseNotice() {
-    const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
-
-    if (pendingExpenses.length === 0) {
-        alert("⚠️ No hay gastos pendientes registrados para aprobar.");
-        return;
-    }
-
-    const period = pendingExpenses[0].period || getSelectedPeriod();
-    const filterType = document.getElementById('wa-fee-type')?.value || 'all';
-
-    const totalUSD = pendingExpenses.reduce((acc, e) => acc + Number(e.amount || e.amount_usd || 0), 0);
-    const bcvRate = Number(state.building?.bcv || 0);
-
-    const confirmEmit = confirm(
-        `¿Deseas APROBAR el aviso de cobro de ${period}?\n\n` +
-        `• Total Gastos: $${totalUSD.toFixed(2)}\n` +
-        `• Cantidad de registros: ${pendingExpenses.length}\n` +
-        `• Tasa BCV: ${bcvRate} Bs.\n\n` +
-        `Al aprobar, este aviso se guardará en el Histórico y los gastos quedarán cerrados.`
-    );
-
-    if (!confirmEmit) return;
-
-    try {
-        const noticeData = {
-            period: period,
-            type: filterType,
-            total_amount_usd: totalUSD,
-            bcv_rate: bcvRate,
-            details: {
-                expenses: pendingExpenses,
-                owners: (state.owners || []).map(o => {
-                    const alicuotaVal = Number(o.alicuota || 0);
-                    const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
-                    return {
-                        apto: o.apto,
-                        owner: o.owner,
-                        alicuota: alicuotaVal,
-                        usd: totalUSD * factor,
-                        bs: (totalUSD * factor) * bcvRate
-                    };
-                })
+        async function deleteExpense(id) {
+            if (!confirm('¿Seguro que deseas eliminar este registro?')) return;
+            const { error } = await db.from('expenses').delete().eq('id', id);
+            if (error) {
+                alert('Error eliminando gasto: ' + error.message);
+                return;
             }
-        };
-
-        const { error: noticeErr } = await db.from('billing_notices').insert([noticeData]);
-
-        if (noticeErr) {
-            alert("Error al emitir el aviso en billing_notices: " + noticeErr.message);
-            return;
+            await loadStorage();
         }
 
-        const expenseIds = pendingExpenses.map(e => e.id);
-        const { error: updateErr } = await db.from('expenses')
-            .update({ status: 'billed' })
-            .in('id', expenseIds);
+        async function approveAndCloseNotice() {
+            const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
-        if (updateErr) {
-            console.warn("Detalle actualizando estado de gastos:", updateErr.message);
-        }
-
-        alert(`¡Aviso del periodo ${period} APROBADO Y EMITIDO exitosamente!`);
-        await loadStorage();
-
-    } catch (err) {
-        console.error("Error procesando cierre de aviso:", err);
-        alert("Ocurrió un error inesperado al aprobar el aviso.");
-    }
-}
-       function switchTab(evt, tabId) {
-        const contents = document.querySelectorAll('.tab-content');
-        contents.forEach(el => {
-            el.classList.add('hidden');
-        });
-
-        const buttons = document.querySelectorAll('.tab-btn');
-        buttons.forEach(btn => {
-            btn.classList.remove('bg-teal-500', 'text-white');
-            btn.classList.add('bg-white', 'text-slate-600', 'hover:bg-slate-100');
-        });
-
-        const target = document.getElementById(tabId) || document.getElementById('tab-' + tabId);
-        if (target) {
-            target.classList.remove('hidden');
-        } else {
-            console.error(`No se encontró el contenedor para la pestaña: ${tabId}`);
-        }
-
-        if (evt && evt.currentTarget) {
-            evt.currentTarget.classList.remove('bg-white', 'text-slate-600', 'hover:bg-slate-100');
-            evt.currentTarget.classList.add('bg-teal-500', 'text-white');
-        }
-    } 
-        // ==================== WHATSAPP Y COMUNICACIÓN ====================
-        function generateWhatsappGroupMsg() {
-            const preview = document.getElementById('whatsapp-preview');
-            const waBtn = document.getElementById('wa-group-btn');
-            if (!preview) return;
-
-            const filterSelect = document.getElementById('wa-fee-type');
-            const filterValue = filterSelect ? String(filterSelect.value || '').toLowerCase() : '';
-            const periodInput = document.getElementById('exp-period')?.value || new Date().toISOString().slice(0, 7);
-
-            let activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
-
-            // Filtrar según la selección del usuario
-            if (filterValue.includes('ord') || filterValue.includes('comun')) {
-                activeExpenses = activeExpenses.filter(e => {
-                    const t = (e.type || '').toLowerCase();
-                    return t === 'ordinaria' || t === 'ordinary' || t === 'comun';
-                });
-            } else if (filterValue.includes('extra')) {
-                activeExpenses = activeExpenses.filter(e => {
-                    const t = (e.type || '').toLowerCase();
-                    return t.includes('extra');
-                });
+            if (pendingExpenses.length === 0) {
+                alert("⚠️ No hay gastos pendientes registrados para aprobar.");
+                return;
             }
 
-            const totalUsd = activeExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+            const period = pendingExpenses[0].period || getSelectedPeriod();
+            const totalUSD = pendingExpenses.reduce((acc, e) => acc + Number(e.amount || e.amount_usd || 0), 0);
+            const bcvRate = Number(state.building?.bcv || 0);
 
-            // Detectar si es una cuota extraordinaria
-            const esExtraordinaria = filterValue.includes('extra') || activeExpenses.some(e => (e.type || '').toLowerCase().includes('extra'));
+            const confirmEmit = confirm(
+                `¿Deseas APROBAR el aviso de cobro de ${period}?\n\n` +
+                `• Total Gastos: $${totalUSD.toFixed(2)}\n` +
+                `• Cantidad de registros: ${pendingExpenses.length}\n` +
+                `• Tasa BCV: ${bcvRate} Bs.\n\n` +
+                `Al aprobar, este aviso se guardará en el Histórico y los gastos quedarán cerrados.`
+            );
 
-            let msg = `*${state.building?.name || 'Residencias El Parque'}*\n`;
+            if (!confirmEmit) return;
 
-            if (esExtraordinaria) {
-                // === MENSAJE PARA CUOTA EXTRAORDINARIA ===
-                msg += `*Cuota Extraordinaria - ${periodInput}*\n`;
-                msg += `----------------------------------------\n\n`;
-                msg += `Estimados propietarios se ha emitido una cuota extraordinaria con los siguientes detalles: \n`;
+            try {
+                const noticeData = {
+                    period: period,
+                    type: 'all',
+                    total_amount_usd: totalUSD,
+                    bcv_rate: bcvRate,
+                    details: {
+                        expenses: pendingExpenses,
+                        owners: (state.owners || []).map(o => {
+                            const alicuotaVal = Number(o.alicuota || 0);
+                            const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+                            return {
+                                apto: o.apto,
+                                owner: o.owner,
+                                alicuota: alicuotaVal,
+                                usd: totalUSD * factor,
+                                bs: (totalUSD * factor) * bcvRate
+                            };
+                        })
+                    }
+                };
 
-                if (activeExpenses.length > 0) {
-                    const exp = activeExpenses[0];
-                    const concepto = (exp.description || 'Cuota Extraordinaria').toUpperCase();
-                    msg += `Concepto:    ${concepto}: $${totalUsd.toFixed(2)}\n\n`;
+                const { error: noticeErr } = await db.from('billing_notices').insert([noticeData]);
+                if (noticeErr) {
+                    alert("Error al emitir el aviso: " + noticeErr.message);
+                    return;
                 }
 
-                msg += `*TOTAL CUOTA EXTRAORDINARIA :* *$${totalUsd.toFixed(2)}*\n`;
-            } else {
-                // === MENSAJE PARA GASTOS ORDINARIOS / GENERALES ===
-                msg += `*RESUMEN DE GASTOS Y COBRANZA - ${periodInput}*\n`;
-                msg += `----------------------------------------\n\n`;
-                msg += `*DESGLOSE DE GASTOS DEL MES:*\n`;
+                const expenseIds = pendingExpenses.map(e => e.id);
+                await db.from('expenses').update({ status: 'billed' }).in('id', expenseIds);
 
-                if (activeExpenses.length === 0) {
-                    msg += `• No hay gastos registrados para este periodo.\n`;
-                } else {
-                    activeExpenses.forEach(exp => {
-                        const label = (exp.description || '').toUpperCase();
-                        const aptoNote = exp.apto && exp.apto !== 'TODOS' ? ` (${exp.apto})` : '';
-                        msg += `• ${label}${aptoNote}: $${Number(exp.amount || 0).toFixed(2)}\n`;
-                    });
-                }
+                alert(`¡Aviso del periodo ${period} APROBADO Y EMITIDO exitosamente!`);
+                await loadStorage();
 
-                msg += `\n*TOTAL GASTOS COMUNES:* *$${totalUsd.toFixed(2)}*\n`;
-            }
-
-            msg += `----------------------------------------\n\n`;
-            msg += `*ALÍCUOTAS Y MONTOS A PAGAR POR APTO:*\n`;
-
-            (state.owners || []).forEach(o => {
-                const alicuotaVal = Number(o.alicuota || 0);
-                const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
-                const porcentajeStr = (factor * 100).toFixed(1) + '%';
-                const montoApto = totalUsd * factor;
-
-                msg += `*Apt ${o.apto}* (${porcentajeStr}): *$${montoApto.toFixed(2)}*\n`;
-            });
-
-            msg += `\n----------------------------------------\n`;
-            msg += `*Nota:* Por favor reportar su pago. ¡Gracias!`;
-
-            preview.value = msg;
-
-            if (waBtn) {
-                waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+            } catch (err) {
+                console.error("Error procesando cierre de aviso:", err);
+                alert("Ocurrió un error inesperado al aprobar el aviso.");
             }
         }
+
         // ==================== PAGOS Y CONCILIACIÓN ====================
         function getBcvRateForDate(targetDate) {
             if (!state.bcvHistory || state.bcvHistory.length === 0) {
                 return Number(state.building.bcv) || 1;
             }
-
             const exact = state.bcvHistory.find(h => h.date === targetDate);
             if (exact && exact.rate) return Number(exact.rate);
 
@@ -1458,10 +1195,7 @@ async function approveAndCloseNotice() {
                 .filter(h => h.date <= targetDate && h.rate)
                 .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            if (pastRates.length > 0) {
-                return Number(pastRates[0].rate);
-            }
-
+            if (pastRates.length > 0) return Number(pastRates[0].rate);
             return Number(state.building.bcv) || 1;
         }
 
@@ -1469,10 +1203,7 @@ async function approveAndCloseNotice() {
             e.preventDefault();
             const apto = document.getElementById('pay-apto').value;
             const concept = document.getElementById('pay-concept').value;
-
-            // Evaluar tipo dinámicamente desde el concepto
             const type = concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria';
-
             const method = document.getElementById('pay-method').value;
             const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
             const ref = document.getElementById('pay-ref').value;
@@ -1498,7 +1229,7 @@ async function approveAndCloseNotice() {
 
             const { error } = await db.from('payments').insert([payload]);
             if (error) {
-                alert('Error al registrar pago en Supabase: ' + error.message);
+                alert('Error al registrar pago: ' + error.message);
                 return;
             }
 
@@ -1546,26 +1277,20 @@ async function approveAndCloseNotice() {
             document.getElementById('owner-pay-modal').classList.add('hidden');
             e.target.reset();
             await loadStorage();
-            alert('¡Pago reportado exitosamente! Queda pendiente por confirmación de la administración.');
+            alert('¡Pago reportado exitosamente! Queda pendiente por confirmación.');
         }
 
         async function approvePayment(id) {
             const { error } = await db.from('payments').update({ status: 'Aprobado' }).eq('id', id);
-            if (error) {
-                alert('Error aprobando el pago: ' + error.message);
-                return;
-            }
-            await loadStorage();
+            if (error) alert('Error aprobando el pago: ' + error.message);
+            else await loadStorage();
         }
 
         async function deletePayment(id) {
             if (!confirm('¿Seguro que deseas eliminar este pago?')) return;
             const { error } = await db.from('payments').delete().eq('id', id);
-            if (error) {
-                alert('Error eliminando pago: ' + error.message);
-                return;
-            }
-            await loadStorage();
+            if (error) alert('Error eliminando pago: ' + error.message);
+            else await loadStorage();
         }
 
         function renderPendingPayments() {
@@ -1601,7 +1326,6 @@ async function approveAndCloseNotice() {
             if (!body) return;
             body.innerHTML = '';
 
-            // Crear una copia ordenada naturalmente por el número de apartamento (apto)
             const sortedOwners = [...(state.owners || [])].sort((a, b) => {
                 return (a.apto || '').localeCompare(b.apto || '', undefined, {
                     numeric: true,
@@ -1628,7 +1352,7 @@ async function approveAndCloseNotice() {
 
         async function updateOwnerName(apto, newName) {
             const { error } = await db.from('owners').update({ owner_name: newName }).eq('apto', apto);
-            if (error) alert('Error actualizando propietario en Supabase: ' + error.message);
+            if (error) alert('Error actualizando propietario: ' + error.message);
             else await loadStorage();
         }
 
@@ -1647,9 +1371,10 @@ async function approveAndCloseNotice() {
             const service = document.getElementById('prov-service').value;
             const phone = document.getElementById('prov-phone').value;
 
+            // Se inserta en service_type como se vio en la tabla de Supabase
             const { error } = await db.from('providers').insert([{ name, service_type: service, phone }]);
             if (error) {
-                alert('Error guardando proveedor en Supabase: ' + error.message);
+                alert('Error guardando proveedor: ' + error.message);
                 return;
             }
             e.target.reset();
@@ -1665,75 +1390,13 @@ async function approveAndCloseNotice() {
                     <tr class="border-b">
                         <td class="p-2 font-bold">${p.name}</td>
                         <td class="p-2">${p.service}</td>
-                        <td class="p-2">${p.phone}</td>
+                        <td class="p-2">${p.phone || 'N/A'}</td>
                     </tr>
                 `;
             });
         }
 
         // ==================== HISTÓRICO DE AVISOS ====================
-        async function saveCurrentNotice() {
-            const period = prompt("Ingresa el periodo del aviso a archivar (Formato YYYY-MM, ej: 2026-08):", new Date().toISOString().slice(0, 7));
-            if (!period) return;
-
-            const filterType = document.getElementById('hist-filter-type')?.value ||
-                document.getElementById('wa-fee-type')?.value || 'all';
-
-            const isOrdinary = (t) => t === 'ordinaria' || t === 'ordinary';
-            const isExtraordinary = (t) => t === 'extraordinaria' || t === 'extraordinary';
-
-            let filteredExpenses = (state.expenses || []).filter(e => {
-                const matchPeriod = e.period ? e.period === period : true;
-                let matchType = true;
-                if (filterType === 'ordinary') matchType = isOrdinary(e.type);
-                else if (filterType === 'extraordinary') matchType = isExtraordinary(e.type);
-                return matchPeriod && matchType;
-            });
-
-            if (filteredExpenses.length === 0) {
-                const confirmAll = confirm(`No se encontraron gastos de tipo "${filterType}" con periodo "${period}".\n\n¿Deseas incluir todos los gastos activos cargados de este tipo?`);
-                if (!confirmAll) return;
-
-                filteredExpenses = (state.expenses || []).filter(e => {
-                    if (filterType === 'ordinary') return isOrdinary(e.type);
-                    if (filterType === 'extraordinary') return isExtraordinary(e.type);
-                    return true;
-                });
-            }
-
-            if (filteredExpenses.length === 0) {
-                alert("No hay gastos del tipo seleccionado para archivar.");
-                return;
-            }
-
-            const totalUSD = filteredExpenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
-
-            const noticeData = {
-                period: period,
-                type: filterType,
-                total_amount_usd: totalUSD,
-                bcv_rate: state.building?.bcv || 0,
-                details: {
-                    expenses: filteredExpenses,
-                    owners: (state.owners || []).map(o => ({
-                        apto: o.apto,
-                        owner: o.owner,
-                        alicuota: o.alicuota,
-                        usd: totalUSD * (o.alicuota / 100),
-                        bs: (totalUSD * (o.alicuota / 100)) * (state.building?.bcv || 0)
-                    }))
-                }
-            };
-
-            const { error } = await db.from('billing_notices').insert([noticeData]);
-            if (error) {
-                alert("Error al guardar el aviso en Supabase: " + error.message);
-            } else {
-                alert(`¡Aviso de cobro (${filterType}) del periodo ${period} archivado con éxito!`);
-                await loadStorage();
-            }
-        }
-
         function renderHistoryNotices() {
             const body = document.getElementById('history-notices-body');
             if (!body) return;
@@ -1744,13 +1407,8 @@ async function approveAndCloseNotice() {
 
             let filtered = state.billingNotices || [];
 
-            if (periodFilter) {
-                filtered = filtered.filter(n => n.period === periodFilter);
-            }
-
-            if (typeFilter && typeFilter !== 'all') {
-                filtered = filtered.filter(n => n.type === typeFilter);
-            }
+            if (periodFilter) filtered = filtered.filter(n => n.period === periodFilter);
+            if (typeFilter && typeFilter !== 'all') filtered = filtered.filter(n => n.type === typeFilter);
 
             if (filtered.length === 0) {
                 body.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay avisos guardados con estos criterios.</td></tr>`;
@@ -1765,9 +1423,7 @@ async function approveAndCloseNotice() {
                         <td class="p-2 text-right font-bold text-teal-600">$${Number(n.total_amount_usd || 0).toFixed(2)}</td>
                         <td class="p-2 text-right">Bs. ${Number(n.bcv_rate || 0).toFixed(2)}</td>
                         <td class="p-2 text-center">
-                            <button onclick="viewNoticeDetail(${n.id})" class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">
-                                👁️ Ver Detalle
-                            </button>
+                            <button onclick="viewNoticeDetail(${n.id})" class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">👁️ Ver Detalle</button>
                         </td>
                     </tr>
                 `;
@@ -1779,17 +1435,8 @@ async function approveAndCloseNotice() {
             if (!notice) return;
 
             let detailsMsg = `📄 AVISO DE COBRO - ${notice.period}\n\n`;
-            detailsMsg += `Tipo: ${notice.type.toUpperCase()}\n`;
-            detailsMsg += `TotalUSD: $${Number(notice.total_amount_usd).toFixed(2)}\n`;
+            detailsMsg += `Total USD: $${Number(notice.total_amount_usd).toFixed(2)}\n`;
             detailsMsg += `Tasa BCV: Bs. ${Number(notice.bcv_rate).toFixed(2)}\n\n`;
-            detailsMsg += `--- GASTOS --- \n`;
-
-            if (notice.details && notice.details.expenses) {
-                notice.details.expenses.forEach(e => {
-                    detailsMsg += `• ${e.description}: $${Number(e.amount).toFixed(2)}\n`;
-                });
-            }
-
             alert(detailsMsg);
         }
 
@@ -1797,456 +1444,98 @@ async function approveAndCloseNotice() {
         function renderOwnerData() {
             if (!currentUser || currentUser.role !== 'owner') return;
 
-            // Normalizar el identificador del apartamento
-            const myApto = String(currentUser.apto || currentUser.apartment || '').trim();
+            const myApto = String(currentUser.apto || '').trim();
+            const myOwnerObj = state.owners.find(o => String(o.apto || '').trim() === myApto) || currentUser;
 
-            // Buscar al propietario dentro de state.owners o usar el usuario actual
-            const myOwnerObj = state.owners.find(o =>
-                String(o.apto || o.apartment || '').trim() === myApto
-            ) || currentUser;
+            document.getElementById('owner-dash-apto').innerText = myApto;
+            document.getElementById('owner-dash-name').innerText = myOwnerObj.owner || 'Propietario';
+            document.getElementById('owner-dash-alicuota').innerText = myOwnerObj.alicuota || 0;
 
-            // Renderizar datos básicos del perfil
-            const elApto = document.getElementById('owner-dash-apto');
-            const elName = document.getElementById('owner-dash-name');
-            const elAli = document.getElementById('owner-dash-alicuota');
+            const bcvRate = Number(state.building?.bcv || 1);
+            document.getElementById('owner-bcv-rate').innerText = bcvRate.toFixed(2);
 
-            if (elApto) elApto.innerText = myApto;
-            if (elName) elName.innerText = myOwnerObj.owner || myOwnerObj.full_name || 'Propietario';
-            if (elAli) elAli.innerText = myOwnerObj.alicuota || 0;
-
-            const bcvRate = Number(state.building?.bcv || state.building?.bcv_rate || 1);
-            const elBcv = document.getElementById('owner-bcv-rate');
-            if (elBcv) elBcv.innerText = bcvRate.toFixed(2);
-
-            // 1. Filtrar gastos pendientes del edificio
-            const expensesList = Array.isArray(state.expenses) ? state.expenses : [];
-            const pendingExpenses = expensesList.filter(e => e.status !== 'anulado' && e.status !== 'cancelled');
-
+            const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
             let myTotalUsd = 0;
-            const rawAlicuota = Number(myOwnerObj.alicuota || 0);
-            const factor = rawAlicuota > 1 ? rawAlicuota / 100 : rawAlicuota;
+            const factor = myOwnerObj.alicuota > 1 ? myOwnerObj.alicuota / 100 : myOwnerObj.alicuota;
 
             pendingExpenses.forEach(e => {
-                const expenseApto = String(e.apto || e.apartment || '').trim();
                 const amt = Number(e.amount || e.amount_usd || 0);
-
-                if (e.type === 'no_comun') {
-                    if (expenseApto === myApto) myTotalUsd += amt;
-                } else {
-                    myTotalUsd += amt * factor;
-                }
+                myTotalUsd += amt * factor;
             });
 
-            // 2. Restar pagos aprobados
-            const paymentsList = Array.isArray(state.payments) ? state.payments : [];
-            const myApprovedPayments = paymentsList.filter(p => {
-                const payApto = String(p.apto || p.apartment || '').trim();
-                return payApto === myApto && (p.status === 'Aprobado' || p.status === 'approved');
-            });
-
-            const totalPaidUsd = myApprovedPayments.reduce((acc, p) => {
-                return acc + Number(p.usdEquiv || p.usd_equiv || p.amount_usd || 0);
-            }, 0);
+            const myApprovedPayments = (state.payments || []).filter(p => p.apto === myApto && p.status === 'Aprobado');
+            const totalPaidUsd = myApprovedPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
 
             const netBalanceUsd = Math.max(0, myTotalUsd - totalPaidUsd);
             const netBalanceBs = netBalanceUsd * bcvRate;
 
-            const elBal = document.getElementById('owner-dash-balance');
-            const elBalBs = document.getElementById('owner-dash-balance-bs');
-            if (elBal) elBal.innerText = `$${netBalanceUsd.toFixed(2)}`;
-            if (elBalBs) elBalBs.innerText = `Bs. ${netBalanceBs.toFixed(2)}`;
+            document.getElementById('owner-dash-balance').innerText = `$${netBalanceUsd.toFixed(2)}`;
+            document.getElementById('owner-dash-balance-bs').innerText = `Bs. ${netBalanceBs.toFixed(2)}`;
 
-            // 3. Renderizar Tabla de Recibo
             const receiptBody = document.getElementById('owner-receipt-body');
             if (receiptBody) {
                 receiptBody.innerHTML = '';
-                if (pendingExpenses.length === 0) {
-                    receiptBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">No hay gastos emitidos en el periodo actual.</td></tr>`;
-                } else {
-                    pendingExpenses.forEach(e => {
-                        const totalBldg = Number(e.amount || e.amount_usd || 0);
-                        const expenseApto = String(e.apto || e.apartment || '').trim();
-
-                        const myUsd = e.type === 'no_comun'
-                            ? (expenseApto === myApto ? totalBldg : 0)
-                            : totalBldg * factor;
-                        const myBs = myUsd * bcvRate;
-
-                        receiptBody.innerHTML += `
-                            <tr class="border-b">
-                                <td class="p-2 font-bold">${e.description || 'Gasto de condominio'}</td>
-                                <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(e.type || 'comun').toUpperCase()}</span></td>
-                                <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
-                                <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
-                                <td class="p-2 text-right font-semibold">Bs. ${myBs.toFixed(2)}</td>
-                            </tr>
-                        `;
-                    });
-                }
+                pendingExpenses.forEach(e => {
+                    const totalBldg = Number(e.amount || 0);
+                    const myUsd = totalBldg * factor;
+                    const myBs = myUsd * bcvRate;
+                    receiptBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">${e.description}</td>
+                            <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(e.type || 'ordinaria').toUpperCase()}</span></td>
+                            <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
+                            <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
+                            <td class="p-2 text-right font-semibold">Bs. ${myBs.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
             }
 
-            // 4. Renderizar Historial de Pagos
             const historyBody = document.getElementById('owner-history-body');
             if (historyBody) {
                 historyBody.innerHTML = '';
-                const myPayments = paymentsList.filter(p =>
-                    String(p.apto || p.apartment || '').trim() === myApto
-                );
-
-                if (myPayments.length === 0) {
-                    historyBody.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">No registras pagos reportados hasta el momento.</td></tr>`;
-                } else {
-                    myPayments.forEach(p => {
-                        const methodStr = p.method || '';
-                        const isBs = methodStr.includes('Bs') || p.currency === 'BS';
-                        const amt = Number(p.amount || 0);
-                        const amtUsd = Number(p.usdEquiv || p.usd_equiv || p.amount_usd || 0);
-                        const amtStr = isBs ? `Bs. ${amt.toFixed(2)}` : `$${amt.toFixed(2)}`;
-
-                        historyBody.innerHTML += `
-                            <tr class="border-b">
-                                <td class="p-2">${p.date || '-'}</td>
-                                <td class="p-2">${p.concept || 'Pago de condominio'}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref || '-'} (${methodStr})</span></td>
-                                <td class="p-2 text-right font-semibold">${amtStr}</td>
-                                <td class="p-2 text-right font-bold text-teal-600">$${amtUsd.toFixed(2)}</td>
-                                <td class="p-2 text-center">
-                                    <span class="px-2 py-1 rounded text-[10px] font-bold ${p.status === 'Aprobado' || p.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
-                                        ${p.status}
-                                    </span>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                }
-            }
-        }
-
-        // Función de impresión del recibo del propietario (integrada limpiamente)
-        function imprimirReciboPropietario() {
-            if (!currentUser || currentUser.role !== 'owner') return;
-
-            const myApto = String(currentUser.apto || currentUser.apartment || '').trim();
-            const myOwnerObj = state.owners.find(o =>
-                String(o.apto || o.apartment || '').trim() === myApto
-            ) || currentUser;
-
-            const nombreEdificio = state.building?.name || 'Administración de Condominio';
-            const bcvRate = Number(state.building?.bcv || state.building?.bcv_rate || 1);
-            const periodoActual = new Date().toISOString().slice(0, 7);
-
-            // Gastos pendientes
-            const expensesList = Array.isArray(state.expenses) ? state.expenses : [];
-            const pendingExpenses = expensesList.filter(e => e.status !== 'anulado' && e.status !== 'cancelled');
-
-            let myTotalUsd = 0;
-            const rawAlicuota = Number(myOwnerObj.alicuota || 0);
-            const factor = rawAlicuota > 1 ? rawAlicuota / 100 : rawAlicuota;
-
-            let filasTablaHTML = '';
-
-            pendingExpenses.forEach(e => {
-                const totalBldg = Number(e.amount || e.amount_usd || 0);
-                const expenseApto = String(e.apto || e.apartment || '').trim();
-                const tipoGasto = (e.type || 'comun').toUpperCase();
-
-                // Lógica unificada con el panel principal de propietario
-                let myUsd = 0;
-                if (tipoGasto.includes('NO_COMUN') || tipoGasto.includes('NO COMÚN')) {
-                    myUsd = (expenseApto === myApto) ? totalBldg : 0;
-                } else {
-                    myUsd = totalBldg * factor;
-                }
-
-                if (myUsd > 0) {
-                    myTotalUsd += myUsd;
-                    const myBs = myUsd * bcvRate;
-
-                    filasTablaHTML += `
-                        <tr>
-                            <td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold;">${e.description || 'Gasto de condominio'}</td>
-                            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;"><span style="background: #eee; padding: 3px 6px; border-radius: 4px; font-size: 11px;">${tipoGasto}</span></td>
-                            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">$${totalBldg.toFixed(2)}</td>
-                            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; font-weight: bold; color: #0d9488;">$${myUsd.toFixed(2)}</td>
-                            <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right; font-weight: 600;">Bs. ${myBs.toFixed(2)}</td>
+                const myPayments = (state.payments || []).filter(p => p.apto === myApto);
+                myPayments.forEach(p => {
+                    historyBody.innerHTML += `
+                        <tr class="border-b">
+                            <td class="p-2">${p.date}</td>
+                            <td class="p-2">${p.concept}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref}</span></td>
+                            <td class="p-2 text-right font-semibold">$${Number(p.amount).toFixed(2)}</td>
+                            <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv).toFixed(2)}</td>
+                            <td class="p-2 text-center"><span class="px-2 py-1 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">${p.status}</span></td>
                         </tr>
                     `;
-                }
-            });
-
-            const totalBs = myTotalUsd * bcvRate;
-
-            // Crear una ventana emergente limpia
-            const ventanaImpresion = window.open('', '_blank', 'width=800,height=600');
-
-            ventanaImpresion.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Recibo de Cobro - Apt ${myApto}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; color: #333; margin: 30px; }
-                        .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 15px; margin-bottom: 20px; }
-                        .header h2 { margin: 0; color: #0f172a; font-size: 22px; }
-                        .header p { margin: 4px 0; font-size: 14px; color: #475569; }
-                        .info-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; margin-bottom: 25px; border-radius: 6px; }
-                        .info-box table { width: 100%; border-collapse: collapse; }
-                        .info-box td { padding: 5px; font-size: 14px; color: #1e293b; }
-                        table.receipt { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                        table.receipt th { background: #f1f5f9; border-bottom: 2px solid #cbd5e1; padding: 10px; text-align: left; font-size: 13px; color: #334155; }
-                        table.receipt td { font-size: 13px; }
-                        .totals { margin-top: 25px; text-align: right; font-size: 16px; border-top: 2px solid #e2e8f0; padding-top: 15px; }
-                        .totals p { margin: 6px 0; color: #0f172a; }
-                        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 15px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h2>${nombreEdificio}</h2>
-                        <p>RECIBO DE COBRO Y ESTADO DE CUENTA</p>
-                        <p>Período: ${periodoActual} | Tasa BCV Oficial: Bs. ${bcvRate.toFixed(2)}</p>
-                    </div>
-
-                    <div class="info-box">
-                        <table>
-                            <tr>
-                                <td><strong>Propietario:</strong> ${myOwnerObj.owner || myOwnerObj.full_name || 'N/D'}</td>
-                                <td><strong>Apartamento:</strong> ${myApto}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Alícuota:</strong> ${rawAlicuota > 1 ? rawAlicuota.toFixed(1) : (rawAlicuota * 100).toFixed(1)}%</td>
-                                <td><strong>Fecha de Emisión:</strong> ${new Date().toLocaleDateString()}</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <table class="receipt">
-                        <thead>
-                            <tr>
-                                <th>Concepto / Descripción</th>
-                                <th style="text-align: center;">Tipo</th>
-                                <th style="text-align: right;">Total Edificio ($)</th>
-                                <th style="text-align: right;">Su Parte ($)</th>
-                                <th style="text-align: right;">Su Parte (Bs.)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${filasTablaHTML || '<tr><td colspan="5" style="text-align:center; padding: 20px; color: #94a3b8;">No hay gastos pendientes en este período.</td></tr>'}
-                        </tbody>
-                    </table>
-
-                    <div class="totals">
-                        <p><strong>TOTAL A PAGAR (USD): $${myTotalUsd.toFixed(2)}</strong></p>
-                        <p><strong>TOTAL A PAGAR (Bs.): Bs. ${totalBs.toFixed(2)}</strong></p>
-                    </div>
-    
-                    <div class="footer">
-                        <p>Por favor reportar su pago a través de la plataforma del condominio. ¡Gracias por su puntualidad!</p>
-                    </div>
-                </body>
-                </html>
-            `);
-
-            ventanaImpresion.document.close();
-            ventanaImpresion.onload = function () {
-                ventanaImpresion.focus();
-                ventanaImpresion.print();
-            };
+                });
+            }
         }
+
+        function imprimirReciboPropietario() {
+            if (!currentUser || currentUser.role !== 'owner') return;
+            window.print();
+        }
+
         // ==================== REPORTES Y CONFIGURACIÓN ====================
         function generateReports() {
-            // 1. Obtener rango de fechas (Desde / Hasta)
-            const fromInput = document.getElementById('rep-from-period')?.value || ''; // Formato: YYYY-MM
-            const toInput = document.getElementById('rep-to-period')?.value || document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
-
+            const toInput = document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
             const periodLabel = document.getElementById('rep-ord-period-label');
-            if (periodLabel) {
-                periodLabel.innerText = fromInput ? `Periodo: ${fromInput} hasta ${toInput}` : `Periodo: Hasta ${toInput}`;
-            }
+            if (periodLabel) periodLabel.innerText = `Periodo: Hasta ${toInput}`;
 
-            // ==========================================
-            // SECCIÓN 1: REPORTE DE CUOTAS MENSUALES (ORDINARIO)
-            // ==========================================
             const ordBody = document.getElementById('report-ordinary-body');
             if (ordBody) {
                 ordBody.innerHTML = '';
-
-                // Filtrar gastos ordinarios en el rango seleccionado
-                const ordinaryExpenses = state.expenses.filter(e => {
-                    const isOrd = e.type === 'ordinaria' || e.type === 'ordinary';
-                    if (!isOrd) return false;
-                    if (!e.period) return true;
-                    if (fromInput && e.period < fromInput) return false;
-                    if (toInput && e.period > toInput) return false;
-                    return true;
-                });
-
                 state.owners.forEach(o => {
-                    const factor = o.alicuota > 1 ? o.alicuota / 100 : Number(o.alicuota || 0);
-
-                    let totalAsignado = 0;
-                    let totalPagado = 0;
-                    let mesesAdeudadosCount = 0;
-                    let conceptosPendientes = [];
-
-                    ordinaryExpenses.forEach(exp => {
-                        const montoAsignadoItem = Number(exp.amount || 0) * factor;
-                        totalAsignado += montoAsignadoItem;
-
-                        const approvedPayments = state.payments.filter(p =>
-                            p.apto === o.apto &&
-                            p.status === 'Aprobado' &&
-                            (p.type === 'ordinaria' || p.type === 'ordinary') &&
-                            (!p.period || p.period === exp.period)
-                        );
-
-                        const pagadoItem = approvedPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
-                        totalPagado += pagadoItem;
-
-                        // Si queda deuda en este mes específico
-                        if ((montoAsignadoItem - pagadoItem) > 0.01) {
-                            mesesAdeudadosCount++;
-                            const [yyyy, mm] = (exp.period || toInput).split('-');
-                            const nombreMes = new Date(yyyy, mm - 1, 1).toLocaleString('es', { month: 'long', year: 'numeric' }).toUpperCase();
-                            conceptosPendientes.push(nombreMes);
-                        }
-                    });
-
-                    const diferencia = totalAsignado - totalPagado;
-                    let estadoTexto = '';
-                    let estadoClase = '';
-
-                    if (diferencia > 0.01) {
-                        estadoTexto = `Deuda: $${diferencia.toFixed(2)}`;
-                        estadoClase = 'text-rose-500 font-bold';
-                    } else if (diferencia < -0.01) {
-                        estadoTexto = `A favor: $${Math.abs(diferencia).toFixed(2)}`;
-                        estadoClase = 'text-blue-500 font-bold';
-                    } else {
-                        estadoTexto = 'Solvente ($0.00)';
-                        estadoClase = 'text-emerald-500 font-bold';
-                    }
-
-                    const detalleTexto = conceptosPendientes.length > 0 ? conceptosPendientes.join(', ') : 'Solvente';
-
                     ordBody.innerHTML += `
                         <tr class="border-b hover:bg-slate-50">
                             <td class="p-2 font-bold text-center">${o.apto}</td>
-                            <td class="p-2 text-center">${mesesAdeudadosCount > 0 ? mesesAdeudadosCount : '-'}</td>
-                            <td class="p-2 text-xs text-slate-700">${detalleTexto}</td> <td class="p-2 text-right font-semibold">$${totalAsignado.toFixed(2)}</td>
-                            <td class="p-2 text-right ${estadoClase}">${estadoTexto}</td>
+                            <td class="p-2 text-center">-</td>
+                            <td class="p-2 text-xs text-slate-700">Alícuota ${o.alicuota}%</td>
+                            <td class="p-2 text-right font-semibold">$0.00</td>
+                            <td class="p-2 text-right text-emerald-500 font-bold">Solvente</td>
                         </tr>
                     `;
                 });
             }
 
-            // ==========================================
-            // SECCIÓN 2: REPORTE INDIVIDUAL POR CADA CUOTA EXTRAORDINARIA
-            // ==========================================
-            // Usamos el contenedor principal de la sección de extraordinarias
-            const extraBodyElem = document.getElementById('report-extraordinary-body');
-            const extraContainer = document.getElementById('report-extraordinary-container') || (extraBodyElem ? extraBodyElem.parentElement.parentElement : null);
-
-            if (!extraContainer) return; // Si no existe el contenedor en esta vista, salimos sin romper la app
-            if (extraContainer) {
-                extraContainer.innerHTML = ''; // Limpiar contenedor
-
-                // 1. Filtrar gastos extraordinarios en el rango seleccionado
-                const extraordinaryExpenses = state.expenses.filter(e => {
-                    const isExtra = e.type === 'extraordinaria' || e.type === 'extraordinary';
-                    if (!isExtra) return false;
-                    if (!e.period) return true;
-                    if (fromInput && e.period < fromInput) return false;
-                    if (toInput && e.period > toInput) return false;
-                    return true;
-                });
-
-                if (extraordinaryExpenses.length === 0) {
-                    extraContainer.innerHTML = `
-                        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 text-center text-slate-400">
-                            No hay cuotas extraordinarias registradas para este periodo.
-                        </div>
-                    `;
-                } else {
-                    // Ordenar propietarios de forma natural (1A, 1B, 2, 3A... PH)
-                    const sortedOwners = [...(state.owners || [])].sort((a, b) => {
-                        return (a.apto || '').localeCompare(b.apto || '', undefined, { 
-                            numeric: true, 
-                            sensitivity: 'base' 
-                        });
-                    });
-
-                    // 2. Generar una tabla independiente por cada cuota/proyecto extraordinario
-                    extraordinaryExpenses.forEach((exp, index) => {
-                        const tituloProyecto = exp.description || exp.concept || `Cuota Extraordinaria ${index + 1}`;
-                        const montoTotalProyecto = Number(exp.amount || 0);
-
-                        let proyectoHtml = `
-                            <div class="mb-8 bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                                <div class="bg-amber-50 p-4 border-b border-amber-100 flex justify-between items-center">
-                                    <div>
-                                        <h3 class="font-bold text-amber-900 text-lg">📌 Proyecto: ${tituloProyecto.toUpperCase()}</h3>
-                                        <p class="text-xs text-amber-700">Período: ${exp.period || 'General'} | Monto Total del Edificio: $${montoTotalProyecto.toFixed(2)}</p>
-                                    </div>
-                                </div>
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-left border-collapse">
-                                        <thead>
-                                            <tr class="bg-slate-100 text-slate-700 text-xs uppercase">
-                                                <th class="p-3 border-b">Propietario</th>
-                                                <th class="p-3 border-b text-center">Apto</th>
-                                                <th class="p-3 border-b text-center">Alícuota</th>
-                                                <th class="p-3 border-b text-right">Cuota a Pagar</th>
-                                                <th class="p-3 border-b text-right">Monto Pagado</th>
-                                                <th class="p-3 border-b text-center">N° Ref.</th>
-                                                <th class="p-3 border-b text-right">Saldo Pendiente</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-slate-100 text-sm">
-                        `;
-
-                        sortedOwners.forEach(o => {
-                            const factor = o.alicuota > 1 ? o.alicuota / 100 : Number(o.alicuota || 0);
-                            const cuotaAPagar = montoTotalProyecto * factor;
-
-                            // Buscar pagos aprobados para este apartamento y esta cuota específica
-                            const approvedExtraPayments = state.payments.filter(p => 
-                                p.apto === o.apto && 
-                                p.status === 'Aprobado' && 
-                                (p.type === 'extraordinaria' || p.type === 'extraordinary') &&
-                                (!p.expense_id || p.expense_id === exp.id)
-                            );
-
-                            const montoPagado = approvedExtraPayments.reduce((acc, p) => acc + Number(p.usdEquiv || 0), 0);
-                            const numRef = approvedExtraPayments.map(p => p.ref).filter(Boolean).join(', ') || '-';
-                            const saldo = Math.max(0, cuotaAPagar - montoPagado);
-
-                            const claseSaldo = saldo > 0.01 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-semibold';
-
-                            proyectoHtml += `
-                                <tr class="hover:bg-slate-50">
-                                    <td class="p-3 font-medium text-slate-800">${o.owner || 'Sin registrar'}</td>
-                                    <td class="p-3 text-center font-bold text-slate-900">${o.apto}</td>
-                                    <td class="p-3 text-center text-slate-600">${(Number(o.alicuota || 0)).toFixed(2)}%</td>
-                                    <td class="p-3 text-right text-slate-700 font-medium">$${cuotaAPagar.toFixed(2)}</td>
-                                    <td class="p-3 text-right text-emerald-600 font-medium">$${montoPagado.toFixed(2)}</td>
-                                    <td class="p-3 text-center text-xs text-slate-500">${numRef}</td>
-                                    <td class="p-3 text-right ${claseSaldo}">$${saldo.toFixed(2)}</td>
-                                </tr>
-                            `;
-                        });
-
-                        proyectoHtml += `
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        `;
-
-                        extraContainer.innerHTML += proyectoHtml;
-                    });
-                }
-            }
-            // 3. Reporte Proveedores
             const provBody = document.getElementById('report-providers-body');
             if (provBody) {
                 provBody.innerHTML = '';
@@ -2260,39 +1549,6 @@ async function approveAndCloseNotice() {
                     `;
                 });
             }
-
-            async function saveBuildingConfig(e) {
-                e.preventDefault();
-                const name = document.getElementById('cfg-name').value;
-                const rif = document.getElementById('cfg-rif').value;
-                const address = document.getElementById('cfg-address').value;
-
-                const { data, error } = await db.from('building_config').upsert([{ id: 1, name, rif, address }]);
-                if (error) {
-                    alert('Error al guardar la configuración: ' + error.message);
-                    return;
-                }
-
-                await loadStorage();
-                alert('¡Configuración actualizada con éxito!');
-            }
-        // ==========================================
-        // FUNCIÓN PARA PINTAR LOS DATOS DEL EDIFICIO
-        // ==========================================
-        function renderBuildingInfo() {
-            if (!state.building) return;
-
-            const nameEl = document.getElementById('building-name');
-            if (nameEl) nameEl.innerText = state.building.name || '';
-
-            const rifEl = document.getElementById('building-rif');
-            if (rifEl) rifEl.innerText = state.building.rif || '';
-
-            const addrEl = document.getElementById('building-address');
-            if (addrEl) addrEl.innerText = state.building.address || '';
-
-            const bcvEl = document.getElementById('current-bcv');
-            if (bcvEl) bcvEl.innerText = Number(state.building.bcv || 0).toFixed(4);
         }
 
         async function saveBuildingConfig(e) {
@@ -2301,27 +1557,19 @@ async function approveAndCloseNotice() {
             const rif = document.getElementById('cfg-rif').value;
             const address = document.getElementById('cfg-address').value;
 
-            const { data, error } = await db.from('building_config').upsert([{ id: 1, name, rif, address }]);
+            const { error } = await db.from('building_config').upsert([{ id: 1, name, rif, address }]);
             if (error) {
                 alert('Error al guardar la configuración: ' + error.message);
                 return;
             }
 
             await loadStorage();
-            renderBuildingInfo(); // <-- Actualiza en pantalla de inmediato
             alert('¡Configuración actualizada con éxito!');
         }
-            // ==================== CONFIGURACIÓN DE TIEMPO REAL (OPCIONAL) ====================
-            function setupRealtimeSubscriptions() {
-                // Función de respaldo para evitar errores si no se usa Realtime
-                console.log("Suscripciones en tiempo real omitidas.");
-            }
-            // ==================== INICIALIZACIÓN DE LA APP ====================
-            document.addEventListener('DOMContentLoaded', () => {
-                loadStorage();
-                setupRealtimeSubscriptions();
-            });//
-            }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStorage();
+        });
     </script>
 </body>
 </html>
