@@ -1251,26 +1251,31 @@
             alert(`¡Gasto registrado con éxito! (Calculado usando la Tasa BCV del periodo: Bs. ${bcvRateForPeriod})`);
         }
 
-        function renderExpenses() {
+            function renderExpenses() {
             const body = document.getElementById('expenses-table-body');
             if (!body) return;
             body.innerHTML = '';
             let totalUsd = 0;
 
+            // Filtrar solo los gastos que aún no han sido aprobados/emitidos en un aviso final
             const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
             if (pendingExpenses.length === 0) {
-                body.innerHTML = `<tr><td colspan="4" class="p-2 text-center text-slate-400">No hay gastos pendientes por aprobar.</td></tr>`;
+                body.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No hay gastos o ítems agregados para el aviso actual.</td></tr>`;
             } else {
                 pendingExpenses.forEach(exp => {
                     const amt = Number(exp.amount || 0);
                     totalUsd += amt;
                     body.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-1 font-semibold text-slate-500">${(exp.type || '').toUpperCase()}</td>
-                            <td class="p-1">${exp.description} ${exp.apto && exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
-                            <td class="p-1 font-bold text-slate-700">$${amt.toFixed(2)}</td>
-                            <td class="p-1"><button onclick="deleteExpense(${exp.id})" class="text-red-500 font-bold hover:text-red-700">✕</button></td>
+                        <tr class="border-b hover:bg-slate-50 transition-colors">
+                            <td class="p-2 font-semibold text-slate-600 text-xs">${(exp.type || 'ordinaria').toUpperCase()}</td>
+                            <td class="p-2 text-sm text-slate-800">${exp.description} ${exp.apto && exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
+                            <td class="p-2 text-sm font-bold text-slate-900 text-right">$${amt.toFixed(2)}</td>
+                            <td class="p-2 text-center">
+                                <button onclick="deleteExpense(${exp.id})" title="Eliminar ítem" class="text-red-500 font-bold hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition-all text-xs">
+                                    ✕ Eliminar
+                                </button>
+                            </td>
                         </tr>
                     `;
                 });
@@ -1279,8 +1284,11 @@
             const bcvRate = Number(state.building?.bcv || 0);
             const totalBs = totalUsd * bcvRate;
 
-            document.getElementById('total-expenses-amount').innerText = `$${totalUsd.toFixed(2)}`;
-            document.getElementById('total-expenses-bs').innerText = `(Bs. ${totalBs.toFixed(2)})`;
+            const amountEl = document.getElementById('total-expenses-amount');
+            const bsEl = document.getElementById('total-expenses-bs');
+            
+            if (amountEl) amountEl.innerText = `$${totalUsd.toFixed(2)}`;
+            if (bsEl) bsEl.innerText = `(Bs. ${totalBs.toFixed(2)})`;
 
             if (typeof generateWhatsappGroupMsg === 'function') generateWhatsappGroupMsg();
         }
