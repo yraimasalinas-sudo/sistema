@@ -2210,7 +2210,41 @@
                 await loadStorage();
                 alert('¡Configuración actualizada con éxito!');
             }
+        // ==========================================
+        // FUNCIÓN PARA PINTAR LOS DATOS DEL EDIFICIO
+        // ==========================================
+        function renderBuildingInfo() {
+            if (!state.building) return;
 
+            const nameEl = document.getElementById('building-name');
+            if (nameEl) nameEl.innerText = state.building.name || '';
+
+            const rifEl = document.getElementById('building-rif');
+            if (rifEl) rifEl.innerText = state.building.rif || '';
+
+            const addrEl = document.getElementById('building-address');
+            if (addrEl) addrEl.innerText = state.building.address || '';
+
+            const bcvEl = document.getElementById('current-bcv');
+            if (bcvEl) bcvEl.innerText = Number(state.building.bcv || 0).toFixed(4);
+        }
+
+        async function saveBuildingConfig(e) {
+            e.preventDefault();
+            const name = document.getElementById('cfg-name').value;
+            const rif = document.getElementById('cfg-rif').value;
+            const address = document.getElementById('cfg-address').value;
+
+            const { data, error } = await db.from('building_config').upsert([{ id: 1, name, rif, address }]);
+            if (error) {
+                alert('Error al guardar la configuración: ' + error.message);
+                return;
+            }
+
+            await loadStorage();
+            renderBuildingInfo(); // <-- Actualiza en pantalla de inmediato
+            alert('¡Configuración actualizada con éxito!');
+        }
             // ==================== CONFIGURACIÓN DE TIEMPO REAL (OPCIONAL) ====================
             function setupRealtimeSubscriptions() {
                 // Función de respaldo para evitar errores si no se usa Realtime
