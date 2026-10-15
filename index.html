@@ -194,124 +194,129 @@
                         </div>
                     </div>
                 </div>
+ 
+                <!-- PESTAÑA 1: GASTOS Y GENERACIÓN DE AVISO -->
+                <div id="tab-gastos" class="container mx-auto p-4 max-w-6xl tab-content space-y-6">
+                    <!-- Header de Periodo -->
+                    <header class="bg-blue-800 text-white p-6 rounded-lg shadow-md mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div>
+                            <h1 class="text-2xl font-bold">Residencias Aventura Suites</h1>
+                            <p class="text-blue-200">Panel de Control Financiero y Avisos de Cobro</p>
+                        </div>
+                        <div class="flex items-center gap-2 bg-blue-900 p-2 rounded">
+                            <label for="periodoInput" class="font-semibold text-sm">Periodo (MM/AAAA):</label>
+                            <input type="month" id="periodoInput" onchange="syncPeriodToForms(this.value)" class="bg-white text-gray-800 px-2 py-1 rounded w-36 text-center font-bold text-sm">
+                        </div>
+                    </header>
 
- <!-- PESTAÑA 1: GASTOS Y GENERACIÓN DE AVISO -->
-<div id="tab-gastos" class="container mx-auto p-4 max-w-6xl tab-content space-y-6">
-    <!-- Header de Periodo -->
-    <header class="bg-blue-800 text-white p-6 rounded-lg shadow-md mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-            <h1 class="text-2xl font-bold">Residencias Aventura Suites</h1>
-            <p class="text-blue-200">Panel de Control Financiero y Avisos de Cobro</p>
-        </div>
-        <div class="flex items-center gap-2 bg-blue-900 p-2 rounded">
-            <label for="periodoInput" class="font-semibold text-sm">Periodo (MM/AAAA):</label>
-            <input type="month" id="periodoInput" onchange="syncPeriodToForms(this.value)" class="bg-white text-gray-800 px-2 py-1 rounded w-36 text-center font-bold text-sm">
-        </div>
-    </header>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- COLUMNA 1: GASTOS REGULARES -->
+                        <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-600">
+                            <h2 class="text-lg font-bold text-blue-800 mb-4 flex items-center gap-2">
+                                💵 Gastos Regulares del Mes (USD)
+                            </h2>
+                            <form id="formGastoRegular" onsubmit="addRegularExpense(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Proveedor</label>
+                                    <select id="provRegular" required class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
+                                        <option value="">Seleccione un proveedor...</option>
+                                        <!-- Se llena dinámicamente -->
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Descripción del Gasto</label>
+                                    <input type="text" id="descRegular" required placeholder="Ej. Consumo eléctrico áreas comunes" class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Monto ($ USD)</label>
+                                    <input type="number" id="montoRegular" step="0.01" min="0.01" required placeholder="0.00" class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                                </div>
+                                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 font-semibold transition text-sm">
+                                    + Agregar Gasto Regular
+                                </button>
+                            </form>
+                        </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <!-- COLUMNA 1: GASTOS REGULARES -->
-        <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-600">
-            <h2 class="text-lg font-bold text-blue-800 mb-4 flex items-center gap-2">
-                💵 Gastos Regulares del Mes (USD)
-            </h2>
-            <form id="formGastoRegular" onsubmit="addRegularExpense(event)" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Proveedor</label>
-                    <input type="text" id="provRegular" required placeholder="Ej. Corpoelec, Vigilancia, etc." class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Descripción del Gasto</label>
-                    <input type="text" id="descRegular" required placeholder="Ej. Consumo eléctrico áreas comunes" class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Monto ($ USD)</label>
-                    <input type="number" id="montoRegular" step="0.01" min="0.01" required placeholder="0.00" class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                </div>
-                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 font-semibold transition text-sm">
-                    + Agregar Gasto Regular
-                </button>
-            </form>
-        </div>
+                <!-- COLUMNA 2: CUOTAS EXTRAORDINARIAS -->
+                        <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-purple-600">
+                            <h2 class="text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
+                                ⚙️ Cuotas Extraordinarias / Proveedores Especiales
+                            </h2>
+                            <form id="formGastoExtra" onsubmit="addExtraExpense(event)" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Proveedor</label>
+                                        <select id="provExtra" required class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-sm bg-white">
+                                            <option value="">Seleccione un proveedor...</option>
+                                            <!-- Se llena dinámicamente -->
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Moneda</label>
+                                        <select id="monedaExtra" class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-sm" onchange="toggleTasaCambio(this.value)">
+                                            <option value="USD">Dólares ($)</option>
+                                            <option value="EUR">Euros (€)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div id="contenedorTasa" class="hidden bg-purple-50 p-2 rounded border border-purple-200">
+                                    <label class="block text-xs font-semibold text-purple-700">Tasa de Cambio del Euro (Bs. por €)</label>
+                                    <input type="number" id="tasaCambio" step="0.0001" placeholder="Ej: 92.50" class="mt-1 block w-full p-1 border border-purple-300 rounded text-sm text-center font-bold">
+                                    <p class="text-[11px] text-purple-600 mt-1">* Se convertirá automáticamente a USD usando la tasa BCV del periodo.</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Descripción del Trabajo / Cuota</label>
+                                    <input type="text" id="descExtra" required placeholder="Ej. Reparación de tarjeta de control" class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Monto Facturado</label>
+                                    <input type="number" id="montoExtra" step="0.01" min="0.01" required placeholder="0.00" class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-sm">
+                                </div>
+                                <button type="submit" class="w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700 font-semibold transition text-sm">
+                                    + Agregar Cuota Extraordinaria
+                                </button>
+                            </form>
+                        </div>
 
-        <!-- COLUMNA 2: CUOTAS EXTRAORDINARIAS -->
-        <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-purple-600">
-            <h2 class="text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
-                ⚙️ Cuotas Extraordinarias / Proveedores Especiales
-            </h2>
-            <form id="formGastoExtra" onsubmit="addExtraExpense(event)" class="space-y-4">
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Proveedor</label>
-                        <input type="text" id="provExtra" required placeholder="Ej. Ascensores Express" class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Moneda</label>
-                        <select id="monedaExtra" class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-sm" onchange="toggleTasaCambio(this.value)">
-                            <option value="USD">Dólares ($)</option>
-                            <option value="EUR">Euros (€)</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="contenedorTasa" class="hidden bg-purple-50 p-2 rounded border border-purple-200">
-                    <label class="block text-xs font-semibold text-purple-700">Tasa de Cambio del Euro (Bs. por €)</label>
-                    <input type="number" id="tasaCambio" step="0.0001" placeholder="Ej: 92.50" class="mt-1 block w-full p-1 border border-purple-300 rounded text-sm text-center font-bold">
-                    <p class="text-[11px] text-purple-600 mt-1">* Se convertirá automáticamente a USD usando la tasa BCV del periodo.</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Descripción del Trabajo / Cuota</label>
-                    <input type="text" id="descExtra" required placeholder="Ej. Reparación de tarjeta de control" class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Monto Facturado</label>
-                    <input type="number" id="montoExtra" step="0.01" min="0.01" required placeholder="0.00" class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-sm">
-                </div>
-                <button type="submit" class="w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700 font-semibold transition text-sm">
-                    + Agregar Cuota Extraordinaria
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- TABLA DE CONTROL ADM -->
-    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-bold text-gray-700">Resumen y Control de Registros cargados</h2>
-            <span id="total-expenses-amount" class="text-lg font-extrabold text-emerald-600">$0.00</span>
-        </div>
+                    <!-- TABLA DE CONTROL ADM -->
+                    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-bold text-gray-700">Resumen y Control de Registros cargados</h2>
+                            <span id="total-expenses-amount" class="text-lg font-extrabold text-emerald-600">$0.00</span>
+                        </div>
         
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-100 text-xs uppercase text-gray-600 border-b border-gray-200">
-                        <th class="p-3">Tipo</th>
-                        <th class="p-3">Proveedor</th>
-                        <th class="p-3">Descripción</th>
-                        <th class="p-3 text-right">Monto Original</th>
-                        <th class="p-3 text-right">Monto ($ USD)</th>
-                        <th class="p-3 text-center">Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="expenses-table-body" class="divide-y divide-gray-200 text-sm">
-                    <!-- Se llena dinámicamente con renderExpenses() -->
-                </tbody>
-            </table>
-        </div>
-    </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-100 text-xs uppercase text-gray-600 border-b border-gray-200">
+                                        <th class="p-3">Tipo</th>
+                                        <th class="p-3">Proveedor</th>
+                                        <th class="p-3">Descripción</th>
+                                        <th class="p-3 text-right">Monto Original</th>
+                                        <th class="p-3 text-right">Monto ($ USD)</th>
+                                        <th class="p-3 text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expenses-table-body" class="divide-y divide-gray-200 text-sm">
+                                    <!-- Se llena dinámicamente con renderExpenses() -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-    <!-- BOTONES DE ACCIÓN PRINCIPALES -->
-    <div class="flex flex-wrap gap-4 justify-center bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-inner">
-        <button onclick="approveAndCloseNotice()" class="bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg shadow hover:bg-emerald-700 transition flex items-center gap-2 cursor-pointer text-sm">
-            ⚙️ Generar y Actualizar Avisos de Cobro
-        </button>
-        <button onclick="copiarWhatsApp()" class="bg-teal-600 text-white font-bold py-3 px-6 rounded-lg shadow hover:bg-teal-700 transition flex items-center gap-2 cursor-pointer text-sm">
-            💬 Copiar Resumen WhatsApp
-        </button>
-        <button onclick="window.print()" class="bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow hover:bg-gray-800 transition flex items-center gap-2 cursor-pointer text-sm">
-            🖨️ Imprimir / Guardar PDF
-        </button>
-    </div>
-</div>
+                    <!-- BOTONES DE ACCIÓN PRINCIPALES -->
+                    <div class="flex flex-wrap gap-4 justify-center bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-inner">
+                        <button onclick="approveAndCloseNotice()" class="bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg shadow hover:bg-emerald-700 transition flex items-center gap-2 cursor-pointer text-sm">
+                            ⚙️ Generar y Actualizar Avisos de Cobro
+                        </button>
+                        <button onclick="copiarWhatsApp()" class="bg-teal-600 text-white font-bold py-3 px-6 rounded-lg shadow hover:bg-teal-700 transition flex items-center gap-2 cursor-pointer text-sm">
+                            💬 Copiar Resumen WhatsApp
+                        </button>
+                        <button onclick="window.print()" class="bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow hover:bg-gray-800 transition flex items-center gap-2 cursor-pointer text-sm">
+                            🖨️ Imprimir / Guardar PDF
+                        </button>
+                    </div>
+                </div>
 
                 <!-- PESTAÑA 2: CONCILIACIÓN Y PAGO MANUAL -->
                 <div id="tab-pagos" class="tab-content hidden space-y-6">
