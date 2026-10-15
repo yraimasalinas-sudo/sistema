@@ -195,26 +195,27 @@
                     </div>
                 </div>
 
-               <!-- PESTAÑA 1: GASTOS Y GENERACIÓN DE AVISO -->
+                <!-- PESTAÑA 1: GASTOS Y GENERACIÓN DE AVISO -->
                 <div id="tab-gastos" class="tab-content hidden space-y-6">
                     <div class="grid md:grid-cols-3 gap-6">
-                        <!-- Formulario para agregar ítems de gastos al mes -->
+                        <!-- Formulario para agregar gastos -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 class="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2">📝 Registrar Ítem de Gasto (Desglose)</h3>
+                            <h3 class="font-bold text-slate-800 mb-4 text-sm flex items-center gap-2">📝 Registrar Nuevo
+                                Gasto</h3>
                             <form id="expense-form" onsubmit="addExpense(event)" class="space-y-3">
                                 <div>
-                                    <label class="text-xs text-slate-600 font-semibold">Mes a Cobrar / Período</label>
+                                    <label class="text-xs text-slate-600">Mes a Cobrar / Período</label>
                                     <input type="month" id="exp-period" required
                                         class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
                                 <div>
-                                    <label class="text-xs text-slate-600 font-semibold">Concepto / Descripción del Gasto</label>
+                                    <label class="text-xs text-slate-600">Concepto / Descripción</label>
                                     <input type="text" id="exp-desc" required
-                                        class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: Pago Hidrocapital / Limpieza / Vigilancia">
+                                        class="w-full p-2.5 rounded-lg border text-sm">
                                 </div>
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label class="text-xs text-slate-600 font-semibold">Moneda</label>
+                                        <label class="text-xs text-slate-600">Moneda</label>
                                         <select id="exp-currency" onchange="toggleEuroRateInput(this.value)"
                                             class="w-full p-2.5 rounded-lg border text-sm">
                                             <option value="USD">Dólares ($)</option>
@@ -222,19 +223,23 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="text-xs text-slate-600 font-semibold">Monto ($)</label>
+                                        <label class="text-xs text-slate-600">Monto</label>
                                         <input type="number" id="exp-amount" step="0.01" required
                                             class="w-full p-2.5 rounded-lg border text-sm" placeholder="Ej: 150">
                                     </div>
                                 </div>
-                                <!-- Campo oculto para Euros -->
-                                <div id="euro-rate-box" class="hidden bg-amber-50 p-2.5 rounded-lg border border-amber-200">
-                                    <label class="text-xs text-amber-800 font-bold block mb-1">Tasa de Cambio del Euro (Bs. por €):</label>
+                                <!-- Campo oculto por defecto que aparece solo si selecciona Euros -->
+                                <div id="euro-rate-box"
+                                    class="hidden bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                                    <label class="text-xs text-amber-800 font-bold block mb-1">Tasa de Cambio del Euro
+                                        (Bs. por €):</label>
                                     <input type="number" id="exp-euro-rate" step="0.0001" placeholder="Ej: 92.50"
                                         class="w-full p-2 rounded border text-sm bg-white">
+                                    <p class="text-[10px] text-amber-700 mt-1">Se convertirá automáticamente a USD
+                                        usando la tasa BCV actual.</p>
                                 </div>
                                 <div>
-                                    <label class="text-xs text-slate-600 font-semibold">Tipo de Cuota</label>
+                                    <label class="text-xs text-slate-600">Tipo de Cuota</label>
                                     <select id="exp-type" onchange="toggleAptoBox(this.value)"
                                         class="w-full p-2.5 rounded-lg border text-sm">
                                         <option value="ordinaria">Gasto Común Ordinario</option>
@@ -243,19 +248,53 @@
                                     </select>
                                 </div>
                                 <div id="specific-apto-box" class="hidden">
-                                    <label class="text-xs text-slate-600 font-semibold">Apartamento Afectado</label>
+                                    <label class="text-xs text-slate-600">Apartamento Afectado</label>
                                     <select id="exp-apto" class="w-full p-2.5 rounded-lg border text-sm"></select>
                                 </div>
                                 <div>
-                                    <label class="text-xs text-slate-600 font-semibold">Proveedor (Opcional)</label>
+                                    <label class="text-xs text-slate-600">Proveedor (Opcional)</label>
                                     <select id="exp-provider" class="w-full p-2.5 rounded-lg border text-sm"></select>
                                 </div>
                                 <button type="submit"
-                                    class="w-full py-2.5 bg-emerald-500 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600 transition-all">
-                                    Agregar Gasto al Desglose
+                                    class="w-full py-2.5 bg-emerald-500 text-white rounded-lg text-sm font-semibold hover:bg-emerald-600">
+                                    Agregar Gasto
                                 </button>
                             </form>
                         </div>
+
+                        <!-- Tabla de gastos y resumen -->
+                        <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+                            <h3 class="font-bold text-slate-800 text-sm">📋 Gastos Registrados del Periodo Actual</h3>
+                            <div class="max-h-48 overflow-y-auto border rounded-xl p-2">
+                                <table class="w-full text-xs">
+                                    <thead>
+                                        <tr class="text-left border-b">
+                                            <th class="p-1">Tipo</th>
+                                            <th class="p-1">Concepto</th>
+                                            <th class="p-1">Monto ($)</th>
+                                            <th class="p-1">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="expenses-table-body"></tbody>
+                                </table>
+                            </div>
+
+                            <!-- Resumen Total y Botón de Aprobar -->
+                            <div class="flex justify-between items-center pt-2 border-t">
+                                <div>
+                                    <span class="text-sm font-bold block">Total Mensual a Repartir:</span>
+                                    <button type="button" onclick="approveAndCloseNotice()"
+                                        class="mt-2 px-3 py-1.5 bg-teal-600 text-white text-xs font-bold rounded-lg shadow hover:bg-teal-700 transition-colors">
+                                        💾 Aprobar y Emitir Aviso
+                                    </button>
+                                </div>
+                                <div class="text-right">
+                                    <span id="total-expenses-amount"
+                                        class="text-lg font-extrabold text-teal-600">$0.00</span>
+                                    <span id="total-expenses-bs" class="text-xs text-slate-500 block">(Bs. 0.00)</span>
+                                </div>
+                            </div>
+
                             <!-- Previsualización WhatsApp -->
                             <div class="bg-teal-50 p-4 rounded-xl border border-teal-200 space-y-3">
                                 <div class="flex justify-between items-center">
@@ -1141,55 +1180,7 @@
             }
         }
 
-        // ==========================================
-        // FUNCIONES AUXILIARES PARA EL FORMULARIO DE AVISO
-        // ==========================================
-        function autoFillConcept(periodValue) {
-            const typeSelect = document.getElementById('exp-type');
-            const descInput = document.getElementById('exp-desc');
-            
-            if (typeSelect && typeSelect.value === 'ordinaria' && periodValue) {
-                const [yyyy, mm] = periodValue.split('-');
-                const nombreMes = new Date(yyyy, mm - 1, 1).toLocaleString('es', { month: 'long', year: 'numeric' }).toUpperCase();
-                descInput.value = `AVISO DE COBRO ${nombreMes}`;
-            }
-        }
-
-        function toggleFormMode(val) {
-            const conceptLabel = document.getElementById('concept-label');
-            const descInput = document.getElementById('exp-desc');
-            const periodInput = document.getElementById('exp-period');
-            const aptoBox = document.getElementById('specific-apto-box');
-
-            if (typeof toggleAptoBox === 'function') {
-                toggleAptoBox(val);
-            } else if (aptoBox) {
-                aptoBox.classList.toggle('hidden', val !== 'no_comun');
-            }
-
-            if (val === 'ordinaria') {
-                if (conceptLabel) conceptLabel.textContent = 'Concepto del Aviso';
-                if (periodInput && periodInput.value) {
-                    autoFillConcept(periodInput.value);
-                } else if (descInput) {
-                    descInput.placeholder = 'Ej: AVISO DE COBRO AGOSTO 2026';
-                }
-            } else if (val === 'extraordinaria') {
-                if (conceptLabel) conceptLabel.textContent = 'Nombre de la Cuota / Proyecto Especial';
-                if (descInput) {
-                    descInput.placeholder = 'Ej: Reparación de Ascensor Par';
-                    descInput.value = '';
-                }
-            } else {
-                if (conceptLabel) conceptLabel.textContent = 'Concepto del Gasto No Común';
-                if (descInput) {
-                    descInput.placeholder = 'Ej: Daño en tubería específica';
-                    descInput.value = '';
-                }
-            }
-        }
-
-        // CONTROLADOR DEL CAMPO DEL EURO
+        // NUEVA FUNCIÓN PARA CONTROLAR EL CAMPO DEL EURO
         function toggleEuroRateInput(currency) {
             const euroBox = document.getElementById('euro-rate-box');
             const euroInput = document.getElementById('exp-euro-rate');
@@ -1206,7 +1197,7 @@
             }
         }
 
-        // FUNCIÓN ADDEXPENSE ACTUALIZADA CON TASA HISTÓRICA DEL MES Y SOPORTE PARA EUROS
+        // NUEVA FUNCIÓN ADDEXPENSE ACTUALIZADA CON TASA HISTÓRICA DEL MES Y SOPORTE PARA EUROS
         async function addExpense(e) {
             if (e) e.preventDefault();
             const period = document.getElementById('exp-period')?.value || ''; // Formato "YYYY-MM"
@@ -1217,6 +1208,7 @@
             const providerVal = document.getElementById('exp-provider')?.value || null;
             const aptoVal = document.getElementById('exp-apto')?.value || 'TODOS';
 
+            // Buscar la tasa del BCV correspondiente al día 1 del mes del gasto seleccionado
             const targetDate = period ? `${period}-01` : new Date().toISOString().split('T')[0];
             const bcvRateForPeriod = getBcvRateForDate(targetDate);
 
@@ -1230,6 +1222,7 @@
                     alert("Por favor ingresa una tasa válida para el Euro.");
                     return;
                 }
+                // Convertir Euros a Bolívares con la tasa del euro, y luego a USD usando la tasa BCV de ese mes
                 const montoEnBs = rawAmount * euroRateUsed;
                 amountUsd = montoEnBs / bcvRateForPeriod;
             }
@@ -1255,7 +1248,7 @@
             if (euroBox) euroBox.classList.add('hidden');
 
             await loadStorage();
-            alert(`¡Aviso/Gasto registrado con éxito! (Calculado usando la Tasa BCV del periodo: Bs. ${bcvRateForPeriod})`);
+            alert(`¡Gasto registrado con éxito! (Calculado usando la Tasa BCV del periodo: Bs. ${bcvRateForPeriod})`);
         }
 
         function renderExpenses() {
@@ -1267,7 +1260,7 @@
             const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
             if (pendingExpenses.length === 0) {
-                body.innerHTML = `<tr><td colspan="4" class="p-2 text-center text-slate-400">No hay avisos ni gastos pendientes por aprobar.</td></tr>`;
+                body.innerHTML = `<tr><td colspan="4" class="p-2 text-center text-slate-400">No hay gastos pendientes por aprobar.</td></tr>`;
             } else {
                 pendingExpenses.forEach(exp => {
                     const amt = Number(exp.amount || 0);
@@ -1293,10 +1286,10 @@
         }
 
         async function deleteExpense(id) {
-            if (!confirm('¿Seguro que deseas eliminar este registro?')) return;
+            if (!confirm('¿Seguro que deseas eliminar este gasto?')) return;
             const { error } = await db.from('expenses').delete().eq('id', id);
             if (error) {
-                alert('Error eliminando registro: ' + error.message);
+                alert('Error eliminando gasto: ' + error.message);
                 return;
             }
             await loadStorage();
