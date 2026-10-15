@@ -1411,7 +1411,7 @@
                 `¿Deseas archivar el aviso de cobro del periodo ${period}?\n\n` +
                 `• Total Gastos: $${totalUSD.toFixed(2)}\n` +
                 `• Registros incluidos: ${pendingExpenses.length}\n` +
-                `• Tasa BCV: Bs. ${bcvRate.toFixed(2)}`
+                `• Tasa BCV de referencia: Bs. ${bcvRate.toFixed(2)}`
             );
 
             if (!confirmSave) return;
@@ -1420,7 +1420,7 @@
                 period: period,
                 type: 'all',
                 total_amount_usd: totalUSD,
-                bcv_rate: bcvRate,
+                bcv_rate: bcvRate, // Se guarda solo como referencia informativa del mes
                 details: {
                     expenses: pendingExpenses,
                     owners: (state.owners || []).map(o => {
@@ -1430,8 +1430,7 @@
                             apto: o.apto,
                             owner: o.owner,
                             alicuota: alicuotaVal,
-                            usd: totalUSD * factor,
-                            bs: (totalUSD * factor) * bcvRate
+                            usd: totalUSD * factor // Únicamente guardamos el monto exacto en USD
                         };
                     })
                 }
@@ -1493,7 +1492,7 @@
             const owners = details.owners || [];
             const bcvRate = Number(notice.bcv_rate || 0);
 
-            const ventanaDetalle = window.open('', '_blank', 'width=850,height=700');
+            const ventanaDetalle = window.open('', '_blank', 'width=800,height=700');
 
             let gastosHtml = '';
             expenses.forEach(e => {
@@ -1514,7 +1513,6 @@
                         <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${o.owner || '-'}</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: center;">${Number(o.alicuota || 0).toFixed(1)}%</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold; color: #0d9488;">$${Number(o.usd || 0).toFixed(2)}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: right;">Bs. ${Number(o.bs || 0).toFixed(2)}</td>
                     </tr>
                 `;
             });
@@ -1541,7 +1539,7 @@
                     </div>
 
                     <div class="info-box">
-                        <div><strong>Tasa BCV Oficial Aplicada:</strong> Bs. ${bcvRate.toFixed(2)}</div>
+                        <div><strong>Tasa BCV Referencial del Mes:</strong> Bs. ${bcvRate.toFixed(2)}</div>
                         <div><strong>Total General Emitido:</strong> $${Number(notice.total_amount_usd || 0).toFixed(2)}</div>
                     </div>
 
@@ -1559,7 +1557,7 @@
                         </tbody>
                     </table>
 
-                    <h3>🏠 Distribución por Apartamentos y Alícuotas</h3>
+                    <h3>🏠 Distribución por Apartamentos y Alícuotas (En Dólares)</h3>
                     <table>
                         <thead>
                             <tr>
@@ -1567,7 +1565,6 @@
                                 <th>Propietario</th>
                                 <th style="text-align: center;">Alícuota</th>
                                 <th style="text-align: right;">A Pagar ($ USD)</th>
-                                <th style="text-align: right;">A Pagar (Bs.)</th>
                             </tr>
                         </thead>
                         <tbody>
