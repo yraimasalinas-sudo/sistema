@@ -1492,7 +1492,10 @@
             const owners = details.owners || [];
             const bcvRate = Number(notice.bcv_rate || 0);
 
-            const ventanaDetalle = window.open('', '_blank', 'width=800,height=700');
+            // Cruzar con los pagos reales registrados en el sistema para este período/aviso
+            const paymentsList = (state.payments || []).filter(p => p.period === notice.period);
+
+            const ventanaDetalle = window.open('', '_blank', 'width=950,height=750');
 
             let gastosHtml = '';
             expenses.forEach(e => {
@@ -1507,12 +1510,34 @@
 
             let propietariosHtml = '';
             owners.forEach(o => {
+                // Buscar si el apartamento tiene pagos registrados para este periodo
+                const aptPayments = paymentsList.filter(p => p.apto === o.apto);
+                const totalPagadoUsd = aptPayments.reduce((sum, p) => sum + Number(p.amount_usd || p.amount || 0), 0);
+                
+                // Extraer referencias y fechas de pago si existen
+                const referencias = aptPayments.map(p => `${p.reference || 'S/N'} (${p.date || 'Sin fecha'})`).join(', ') || 'Sin pagos registrados';
+                
+                // Cálculo de saldo: Deudor (negativo / falta por pagar) o A favor (positivo / pagó de más)
+                const montoAsignado = Number(o.usd || 0);
+                const diferencia = totalPagadoUsd - montoAsignado;
+                
+                let estadoHtml = '';
+                if (Math.abs(diferencia) < 0.01) {
+                    estadoHtml = `<span style="color: #16a34a; font-weight: bold;">✔ Solvente</span>`;
+                } else if (diferencia < 0) {
+                    estadoHtml = `<span style="color: #dc2626; font-weight: bold;">Deudor: -$${Math.abs(diferencia).toFixed(2)}</span>`;
+                } else {
+                    estadoHtml = `<span style="color: #2563eb; font-weight: bold;">A favor: +$${diferencia.toFixed(2)}</span>`;
+                }
+
                 propietariosHtml += `
                     <tr>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold;">${o.apto}</td>
                         <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${o.owner || '-'}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: center;">${Number(o.alicuota || 0).toFixed(1)}%</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold; color: #0d9488;">$${Number(o.usd || 0).toFixed(2)}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: right;">$${montoAsignado.toFixed(2)}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: right; color: #0d9488; font-weight: bold;">$${totalPagadoUsd.toFixed(2)}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; font-size: 11px;">${referencias}</td>
+                        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: center;">${estadoHtml}</td>
                     </tr>
                 `;
             });
@@ -1521,7 +1546,7 @@
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>Aviso Histórico - Período ${notice.period}</title>
+                    <title>Reporte y Estado de Cuenta - Período ${notice.period}</title>
                     <style>
                         body { font-family: Arial, sans-serif; color: #333; margin: 25px; }
                         h2, h3 { color: #0f172a; margin-bottom: 5px; }
@@ -1535,36 +1560,38 @@
                 <body>
                     <div class="header">
                         <h2>${state.building?.name || 'Residencias'}</h2>
-                        <p style="margin:2px 0; font-size: 13px; color: #64748b;">AVISO DE COBRO HISTÓRICO - PERÍODO: <strong>${notice.period}</strong></p>
+                        <p style="margin:2px 0; font-size: 13px; color: #64748b;">REPORTE DE COBRANZA Y SALDOS - PERÍODO: <strong>${notice.period}</strong></p>
                     </div>
 
                     <div class="info-box">
-                        <div><strong>Tasa BCV Referencial del Mes:</strong> Bs. ${bcvRate.toFixed(2)}</div>
-                        <div><strong>Total General Emitido:</strong> $${Number(notice.total_amount_usd || 0).toFixed(2)}</div>
+                        <div><strong>Tasa BCV Referencial:</strong> Bs. ${bcvRate.toFixed(2)}</div>
+                        <div><strong>Total Emitido:</strong> $${Number(notice.total_amount_usd || 0).toFixed(2)}</div>
                     </div>
 
-                    <h3>📌 Desglose de Gastos y Cuotas Registradas</h3>
+                    <h3>📌 Conceptos Incluidos en el Aviso</h3>
                     <table>
                         <thead>
                             <tr>
-                                <th>Descripción / Concepto</th>
+                                <th>Descripción</th>
                                 <th style="text-align: center;">Tipo</th>
                                 <th style="text-align: right;">Monto ($ USD)</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${gastosHtml || '<tr><td colspan="3" style="text-align:center; color:#94a3b8; padding:10px;">No hay gastos registrados.</td></tr>'}
+                            ${gastosHtml}
                         </tbody>
                     </table>
 
-                    <h3>🏠 Distribución por Apartamentos y Alícuotas (En Dólares)</h3>
+                    <h3>💰 Estado de Pagos y Saldos por Apartamento</h3>
                     <table>
                         <thead>
                             <tr>
                                 <th style="text-align: center;">Apto</th>
                                 <th>Propietario</th>
-                                <th style="text-align: center;">Alícuota</th>
-                                <th style="text-align: right;">A Pagar ($ USD)</th>
+                                <th style="text-align: right;">Le Corresponde</th>
+                                <th style="text-align: right;">Pagado</th>
+                                <th>Referencias y Fechas de Pago</th>
+                                <th style="text-align: center;">Estatus / Saldo</th>
                             </tr>
                         </thead>
                         <tbody>
