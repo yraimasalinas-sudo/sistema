@@ -1099,172 +1099,145 @@
             populateSelects();
         }
 
-        // ==================== GASTOS Y COBROS ====================
-        async function approveAndCloseNotice() {
-            const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
+        // ==================== GASTOS Y COBROS (UNIFICADO) ====================
 
-            if (pendingExpenses.length === 0) {
-                alert("⚠️ No hay gastos pendientes registrados para aprobar.");
-                return;
-            }
-
-            const period = pendingExpenses[0].period || new Date().toISOString().slice(0, 7);
-            const filterType = document.getElementById('wa-fee-type')?.value || 'all';
-
-            const totalUSD = pendingExpenses.reduce((acc, e) => acc + Number(e.amount || 0), 0);
-            const bcvRate = Number(state.building?.bcv || 0);
-
-            const confirmEmit = confirm(
-                `¿Deseas APROBAR el aviso de cobro de ${period}?\n\n` +
-                `• Total Gastos: $${totalUSD.toFixed(2)}\n` +
-                `• Cantidad de gastos: ${pendingExpenses.length}\n` +
-                `• Tasa BCV: ${bcvRate} Bs.\n\n` +
-                `Al aprobar, este aviso se guardará en el Histórico y los gastos quedarán cerrados.`
-            );
-
-            if (!confirmEmit) return;
-
-            try {
-                const noticeData = {
-                    period: period,
-                    type: filterType,
-                    total_amount_usd: totalUSD,
-                    bcv_rate: bcvRate,
-                    details: {
-                        expenses: pendingExpenses,
-                        owners: (state.owners || []).map(o => {
-                            const alicuotaVal = Number(o.alicuota || 0);
-                            const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
-                            return {
-                                apto: o.apto,
-                                owner: o.owner,
-                                alicuota: alicuotaVal,
-                                usd: totalUSD * factor,
-                                bs: (totalUSD * factor) * bcvRate
-                            };
-                        })
-                    }
-                };
-
-                const { error: noticeErr } = await db.from('billing_notices').insert([noticeData]);
-
-                if (noticeErr) {
-                    alert("Error al emitir el aviso en billing_notices: " + noticeErr.message);
-                    return;
-                }
-
-                const expenseIds = pendingExpenses.map(e => e.id);
-                const { error: updateErr } = await db.from('expenses')
-                    .update({ status: 'billed' })
-                    .in('id', expenseIds);
-
-                if (updateErr) {
-                    console.warn("Detalle actualizando estado de gastos:", updateErr.message);
-                }
-
-                alert(`¡Aviso del periodo ${period} APROBADO Y EMITIDO exitosamente!`);
-                await loadStorage();
-
-            } catch (err) {
-                console.error("Error procesando cierre de aviso:", err);
-                alert("Ocurrió un error inesperado al aprobar el aviso.");
-            }
+        // Sincronizar el período seleccionado con los formularios si hace falta
+        function syncPeriodToForms(periodVal) {
+            console.log("Período activo cambiado a:", periodVal);
         }
 
-        // NUEVA FUNCIÓN PARA CONTROLAR EL CAMPO DEL EURO
-        function toggleEuroRateInput(currency) {
-            const euroBox = document.getElementById('euro-rate-box');
-            const euroInput = document.getElementById('exp-euro-rate');
-            if (!euroBox) return;
-
-            if (currency === 'EUR') {
-                euroBox.classList.remove('hidden');
-                if (euroInput && !euroInput.value) {
-                    const currentBcv = Number(state.building?.bcv || 36.50);
-                    euroInput.value = (currentBcv * 1.08).toFixed(2);
-                }
+        // Mostrar u ocultar el campo de tasa de cambio si selecciona Euros
+        function toggleTasaCambio(moneda) {
+            const contenedorTasa = document.getElementById('contenedorTasa');
+            if (!contenedorTasa) return;
+            if (moneda === 'EUR') {
+                contenedorTasa.classList.remove('hidden');
             } else {
-                euroBox.classList.add('hidden');
+                contenedorTasa.classList.add('hidden');
             }
         }
 
-        // NUEVA FUNCIÓN ADDEXPENSE ACTUALIZADA CON TASA HISTÓRICA DEL MES Y SOPORTE PARA EUROS
-        async function addExpense(e) {
-            if (e) e.preventDefault();
-            const period = document.getElementById('exp-period')?.value || ''; // Formato "YYYY-MM"
-            const desc = document.getElementById('exp-desc')?.value || '';
-            const rawAmount = parseFloat(document.getElementById('exp-amount')?.value) || 0;
-            const currency = document.getElementById('exp-currency')?.value || 'USD';
-            const typeVal = document.getElementById('exp-type')?.value || 'ordinaria';
-            const providerVal = document.getElementById('exp-provider')?.value || null;
-            const aptoVal = document.getElementById('exp-apto')?.value || 'TODOS';
-
-            // Buscar la tasa del BCV correspondiente al día 1 del mes del gasto seleccionado
-            const targetDate = period ? `${period}-01` : new Date().toISOString().split('T')[0];
-            const bcvRateForPeriod = getBcvRateForDate(targetDate);
-
-            let amountUsd = rawAmount;
-            let euroRateUsed = null;
-
-            if (currency === 'EUR') {
-                euroRateUsed = parseFloat(document.getElementById('exp-euro-rate')?.value) || 0;
-
-                if (euroRateUsed <= 0) {
-                    alert("Por favor ingresa una tasa válida para el Euro.");
-                    return;
-                }
-                // Convertir Euros a Bolívares con la tasa del euro, y luego a USD usando la tasa BCV de ese mes
-                const montoEnBs = rawAmount * euroRateUsed;
-                amountUsd = montoEnBs / bcvRateForPeriod;
+        // Obtener el período actual seleccionado en formato YYYY-MM
+        function getSelectedPeriod() {
+            const input = document.getElementById('periodoInput');
+            if (input && input.value) {
+                return input.value; // Formato YYYY-MM desde el input type="month"
             }
+            return new Date().toISOString().slice(0, 7);
+        }
+
+        // 1. Agregar Gasto Regular (Columna 1)
+        async function addRegularExpense(e) {
+            if (e) e.preventDefault();
+            const period = getSelectedPeriod();
+            const provider = document.getElementById('provRegular')?.value.trim() || '';
+            const description = document.getElementById('descRegular')?.value.trim() || '';
+            const rawAmount = parseFloat(document.getElementById('montoRegular')?.value) || 0;
+        
+            const targetDate = period ? `${period}-01` : new Date().toISOString().split('T')[0];
+            const bcvRateForPeriod = getBcvRateForDate ? getBcvRateForDate(targetDate) : Number(state.building?.bcv || 0);
 
             const payload = {
                 period,
-                description: currency === 'EUR' ? `${desc} (€${rawAmount.toFixed(2)})` : desc,
-                amount: Number(amountUsd.toFixed(2)),
-                type: typeVal,
-                provider: providerVal || null,
-                apto: typeVal === 'no_comun' ? aptoVal : 'TODOS',
+                provider,
+                description,
+                amount: Number(rawAmount.toFixed(2)),
+                amount_usd: Number(rawAmount.toFixed(2)),
+                type: 'ordinaria',
+                apto: 'TODOS',
                 status: 'pending'
             };
 
             const { error } = await db.from('expenses').insert([payload]);
             if (error) {
-                alert('Error al guardar gasto en Supabase: ' + error.message);
+                alert('Error al guardar gasto regular: ' + error.message);
                 return;
             }
 
-            document.getElementById('expense-form')?.reset();
-            const euroBox = document.getElementById('euro-rate-box');
-            if (euroBox) euroBox.classList.add('hidden');
-
+            document.getElementById('formGastoRegular')?.reset();
             await loadStorage();
-            alert(`¡Gasto registrado con éxito! (Calculado usando la Tasa BCV del periodo: Bs. ${bcvRateForPeriod})`);
         }
 
+        // 2. Agregar Cuota Extraordinaria (Columna 2 - Soporta USD y EUR con tasa histórica)
+        async function addExtraExpense(e) {
+            if (e) e.preventDefault();
+            const period = getSelectedPeriod();
+            const provider = document.getElementById('provExtra')?.value.trim() || '';
+            const moneda = document.getElementById('monedaExtra')?.value || 'USD';
+            const description = document.getElementById('descExtra')?.value.trim() || '';
+            const rawAmount = parseFloat(document.getElementById('montoExtra')?.value) || 0;
+
+            const targetDate = period ? `${period}-01` : new Date().toISOString().split('T')[0];
+            const bcvRateForPeriod = getBcvRateForDate ? getBcvRateForDate(targetDate) : Number(state.building?.bcv || 0);
+
+            let finalUsd = rawAmount;
+            let descFinal = description;
+
+            if (moneda === 'EUR') {
+                const tasaEuro = parseFloat(document.getElementById('tasaCambio')?.value) || 0;
+                if (tasaEuro <= 0) {
+                    alert('Por favor ingresa una tasa de cambio válida para el Euro.');
+                    return;
+                }
+                // Conversión: Monto en EUR * Tasa Euro = Monto en Bs. / Tasa BCV del período = USD
+                const montoBs = rawAmount * tasaEuro;
+                finalUsd = montoBs / bcvRateForPeriod;
+                descFinal += ` (€${rawAmount.toFixed(2)})`;
+            }
+
+            const payload = {
+                period,
+                provider,
+                description: descFinal,
+                amount: Number(finalUsd.toFixed(2)),
+                amount_usd: Number(finalUsd.toFixed(2)),
+                type: 'extraordinaria',
+                apto: 'TODOS',
+                status: 'pending'
+            };
+
+            const { error } = await db.from('expenses').insert([payload]);
+            if (error) {
+                alert('Error al guardar cuota extraordinaria: ' + error.message);
+                return;
+            }
+
+            document.getElementById('formGastoExtra')?.reset();
+            const contenedorTasa = document.getElementById('contenedorTasa');
+            if (contenedorTasa) contenedorTasa.classList.add('hidden');
+
+            await loadStorage();
+        }
+
+        // 3. Renderizar la tabla unificada de control y gastos pendientes
             function renderExpenses() {
             const body = document.getElementById('expenses-table-body');
             if (!body) return;
             body.innerHTML = '';
             let totalUsd = 0;
 
-            // Filtrar solo los gastos que aún no han sido aprobados/emitidos en un aviso final
             const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
             if (pendingExpenses.length === 0) {
-                body.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">No hay gastos o ítems agregados para el aviso actual.</td></tr>`;
+                body.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-400">No hay registros pendientes para este periodo.</td></tr>`;
             } else {
                 pendingExpenses.forEach(exp => {
-                    const amt = Number(exp.amount || 0);
+                    const amt = Number(exp.amount || exp.amount_usd || 0);
                     totalUsd += amt;
+                    const tipoBadge = exp.type === 'extraordinaria' 
+                        ? '<span class="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded font-bold">Extraordinaria</span>' 
+                        : '<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold">Ordinaria</span>';
+
                     body.innerHTML += `
-                        <tr class="border-b hover:bg-slate-50 transition-colors">
-                            <td class="p-2 font-semibold text-slate-600 text-xs">${(exp.type || 'ordinaria').toUpperCase()}</td>
-                            <td class="p-2 text-sm text-slate-800">${exp.description} ${exp.apto && exp.apto !== 'TODOS' ? `(${exp.apto})` : ''}</td>
-                            <td class="p-2 text-sm font-bold text-slate-900 text-right">$${amt.toFixed(2)}</td>
-                            <td class="p-2 text-center">
-                                <button onclick="deleteExpense(${exp.id})" title="Eliminar ítem" class="text-red-500 font-bold hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition-all text-xs">
-                                    ✕ Eliminar
+                        <tr class="border-b hover:bg-gray-50 transition-colors">
+                            <td class="p-3">${tipoBadge}</td>
+                            <td class="p-3 font-medium text-gray-800">${exp.provider || 'N/A'}</td>
+                            <td class="p-3 text-gray-600">${exp.description}</td>
+                            <td class="p-3 text-right text-gray-700">$${amt.toFixed(2)}</td>
+                            <td class="p-3 text-right font-bold text-gray-900">$${amt.toFixed(2)}</td>
+                            <td class="p-3 text-center">
+                                 <button onclick="deleteExpense(${exp.id})" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded text-xs font-semibold transition">
+                                    🗑️ Eliminar
                                 </button>
                             </td>
                         </tr>
@@ -1272,27 +1245,94 @@
                 });
             }
 
-            const bcvRate = Number(state.building?.bcv || 0);
-            const totalBs = totalUsd * bcvRate;
-
-            const amountEl = document.getElementById('total-expenses-amount');
-            const bsEl = document.getElementById('total-expenses-bs');
-            
-            if (amountEl) amountEl.innerText = `$${totalUsd.toFixed(2)}`;
-            if (bsEl) bsEl.innerText = `(Bs. ${totalBs.toFixed(2)})`;
+            const totalEl = document.getElementById('total-expenses-amount');
+            if (totalEl) totalEl.innerText = `$${totalUsd.toFixed(2)}`;
 
             if (typeof generateWhatsappGroupMsg === 'function') generateWhatsappGroupMsg();
         }
 
-        async function deleteExpense(id) {
-            if (!confirm('¿Seguro que deseas eliminar este gasto?')) return;
-            const { error } = await db.from('expenses').delete().eq('id', id);
-            if (error) {
-                alert('Error eliminando gasto: ' + error.message);
-                return;
+        // 4. Eliminar un ítem individual de gasto
+async function deleteExpense(id) {
+    if (!confirm('¿Seguro que deseas eliminar este registro?')) return;
+    const { error } = await db.from('expenses').delete().eq('id', id);
+    if (error) {
+        alert('Error eliminando gasto: ' + error.message);
+        return;
+    }
+    await loadStorage();
+}
+
+// 5. Aprobar y cerrar el aviso de cobro mensual
+async function approveAndCloseNotice() {
+    const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
+
+    if (pendingExpenses.length === 0) {
+        alert("⚠️ No hay gastos pendientes registrados para aprobar.");
+        return;
+    }
+
+    const period = pendingExpenses[0].period || getSelectedPeriod();
+    const filterType = document.getElementById('wa-fee-type')?.value || 'all';
+
+    const totalUSD = pendingExpenses.reduce((acc, e) => acc + Number(e.amount || e.amount_usd || 0), 0);
+    const bcvRate = Number(state.building?.bcv || 0);
+
+    const confirmEmit = confirm(
+        `¿Deseas APROBAR el aviso de cobro de ${period}?\n\n` +
+        `• Total Gastos: $${totalUSD.toFixed(2)}\n` +
+        `• Cantidad de registros: ${pendingExpenses.length}\n` +
+        `• Tasa BCV: ${bcvRate} Bs.\n\n` +
+        `Al aprobar, este aviso se guardará en el Histórico y los gastos quedarán cerrados.`
+    );
+
+    if (!confirmEmit) return;
+
+    try {
+        const noticeData = {
+            period: period,
+            type: filterType,
+            total_amount_usd: totalUSD,
+            bcv_rate: bcvRate,
+            details: {
+                expenses: pendingExpenses,
+                owners: (state.owners || []).map(o => {
+                    const alicuotaVal = Number(o.alicuota || 0);
+                    const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+                    return {
+                        apto: o.apto,
+                        owner: o.owner,
+                        alicuota: alicuotaVal,
+                        usd: totalUSD * factor,
+                        bs: (totalUSD * factor) * bcvRate
+                    };
+                })
             }
-            await loadStorage();
+        };
+
+        const { error: noticeErr } = await db.from('billing_notices').insert([noticeData]);
+
+        if (noticeErr) {
+            alert("Error al emitir el aviso en billing_notices: " + noticeErr.message);
+            return;
         }
+
+        const expenseIds = pendingExpenses.map(e => e.id);
+        const { error: updateErr } = await db.from('expenses')
+            .update({ status: 'billed' })
+            .in('id', expenseIds);
+
+        if (updateErr) {
+            console.warn("Detalle actualizando estado de gastos:", updateErr.message);
+        }
+
+        alert(`¡Aviso del periodo ${period} APROBADO Y EMITIDO exitosamente!`);
+        await loadStorage();
+
+    } catch (err) {
+        console.error("Error procesando cierre de aviso:", err);
+        alert("Ocurrió un error inesperado al aprobar el aviso.");
+    }
+}
         // ==================== WHATSAPP Y COMUNICACIÓN ====================
         function generateWhatsappGroupMsg() {
             const preview = document.getElementById('whatsapp-preview');
