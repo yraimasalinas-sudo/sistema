@@ -2077,8 +2077,10 @@
             // SECCIÓN 2: REPORTE INDIVIDUAL POR CADA CUOTA EXTRAORDINARIA
             // ==========================================
             // Usamos el contenedor principal de la sección de extraordinarias
-            const extraContainer = document.getElementById('report-extraordinary-container') || document.getElementById('report-extraordinary-body').parentElement.parentElement; 
-            
+            const extraBodyElem = document.getElementById('report-extraordinary-body');
+            const extraContainer = document.getElementById('report-extraordinary-container') || (extraBodyElem ? extraBodyElem.parentElement.parentElement : null);
+
+            if (!extraContainer) return; // Si no existe el contenedor en esta vista, salimos sin romper la app
             if (extraContainer) {
                 extraContainer.innerHTML = ''; // Limpiar contenedor
 
