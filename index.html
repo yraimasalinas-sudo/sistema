@@ -105,36 +105,34 @@
                     </div>
                 </div>
             </header>
-
-            <!-- ==================== CONTENIDO ADMINISTRADOR ==================== -->
-            <div id="admin-view" class="hidden space-y-6">
-                <!-- Navegación por pestañas -->
-                <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-2 no-print">
-                    <button onclick="switchTab(event, 'bcv')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-teal-500 text-white">💵 Tasa BCV
-                        (Manual / API)</button>
-                    <button onclick="switchTab(event, 'gastos')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Gastos
-                        y Cobro</button>
-                    <button onclick="switchTab(event, 'pagos')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Conciliación
-                        y Pagos</button>
-                    <button onclick="switchTab(event, 'propietarios')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Propietarios
-                        y Alícuotas</button>
-                    <button onclick="switchTab(event, 'proveedores')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Proveedores</button>
-                    <button onclick="switchTab(event, 'notices-history')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">📄
-                        Histórico de Avisos</button>
-                    <button onclick="switchTab(event, 'reportes')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Reportes
-                        de Gestión</button>
-                    <button onclick="switchTab(event, 'config')"
-                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Config.
-                        Edificio</button>
-                </div>
-
+            <!-- ==================== CONTENIDO ADMINISTRADOR ==================== -->
+            <div id="admin-view" class="hidden space-y-6">
+                <!-- Navegación por pestañas -->
+                <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-2 no-print">
+                    <button onclick="switchTab(event, 'bcv')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-teal-500 text-white">💵 Tasa BCV
+                        (Manual / API)</button>
+                    <button onclick="switchTab(event, 'gastos')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Gastos
+                        y Cobro</button>
+                    <button onclick="switchTab(event, 'pagos')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Conciliación
+                        y Pagos</button>
+                    <button onclick="switchTab(event, 'propietarios')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Propietarios
+                        y Alícuotas</button>
+                    <button onclick="switchTab(event, 'proveedores')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Proveedores</button>
+                    <button onclick="switchTab(event, 'notices-history')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">📄
+                        Histórico de Avisos</button>
+                    <button onclick="switchTab(event, 'reportes')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Reportes
+                        de Gestión</button>
+                    <button onclick="switchTab(event, 'config')"
+                        class="tab-btn font-semibold px-4 py-2 rounded-xl text-sm bg-white text-slate-600 hover:bg-slate-100">Config.
+                        Edificio</button>
+                </div>
                 <!-- PESTAÑA 0: GESTIÓN DE TASA BCV -->
                 <div id="tab-bcv" class="tab-content space-y-6">
                     <div class="grid md:grid-cols-2 gap-6">
@@ -1338,6 +1336,30 @@ async function approveAndCloseNotice() {
         alert("Ocurrió un error inesperado al aprobar el aviso.");
     }
 }
+       function switchTab(evt, tabId) {
+        const contents = document.querySelectorAll('.tab-content');
+        contents.forEach(el => {
+            el.classList.add('hidden');
+        });
+
+        const buttons = document.querySelectorAll('.tab-btn');
+        buttons.forEach(btn => {
+            btn.classList.remove('bg-teal-500', 'text-white');
+            btn.classList.add('bg-white', 'text-slate-600', 'hover:bg-slate-100');
+        });
+
+        const target = document.getElementById(tabId) || document.getElementById('tab-' + tabId);
+        if (target) {
+            target.classList.remove('hidden');
+        } else {
+            console.error(`No se encontró el contenedor para la pestaña: ${tabId}`);
+        }
+
+        if (evt && evt.currentTarget) {
+            evt.currentTarget.classList.remove('bg-white', 'text-slate-600', 'hover:bg-slate-100');
+            evt.currentTarget.classList.add('bg-teal-500', 'text-white');
+        }
+    } 
         // ==================== WHATSAPP Y COMUNICACIÓN ====================
         function generateWhatsappGroupMsg() {
             const preview = document.getElementById('whatsapp-preview');
