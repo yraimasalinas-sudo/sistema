@@ -1913,14 +1913,22 @@
             ventanaImpresion.document.close();
         }
 
-        // ==================== REPORTES DE GESTIÓN Y MOROSIDAD ====================
+// ==================== REPORTES DE GESTIÓN Y MOROSIDAD ====================
         function generateReports() {
             const selectedPeriod = document.getElementById('rep-period')?.value || getSelectedPeriod();
             const periodLabel = document.getElementById('rep-ord-period-label');
             if (periodLabel) periodLabel.innerText = `Periodo: ${selectedPeriod}`;
 
-            // 1. Buscar el aviso de cobro oficial archivado para el período seleccionado
-            const notice = (state.billingNotices || []).find(n => n.period && n.period.includes(selectedPeriod));
+            // Normalizador de formato para años y meses (ej: 2026-08)
+            const cleanPeriodStr = (str) => String(str || '').trim().toLowerCase();
+
+            // 1. Buscar aviso archivado aceptando variaciones de formato
+            const notice = (state.billingNotices || []).find(n => {
+                const p = cleanPeriodStr(n.period);
+                const sel = cleanPeriodStr(selectedPeriod);
+                return p.includes(sel) || sel.includes(p);
+            });
+
             let ownersAssigned = {};
             
             if (notice) {
@@ -1929,16 +1937,18 @@
                     try { details = JSON.parse(details); } catch (e) { details = {}; }
                 }
                 (details.owners || []).forEach(o => {
-                    const cleanApto = String(o.apto || '').trim().replace(/^apto\s*/i, '');
+                    const cleanApto = String(o.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
                     ownersAssigned[cleanApto] = Number(o.usd || 0);
                 });
             }
 
-            // 2. Filtrar pagos aprobados para este período
+            // 2. Filtrar pagos aprobados que coincidan con el período
             const approvedPayments = (state.payments || []).filter(p => {
                 const st = String(p.status || '').toLowerCase();
                 const isApproved = st === 'aprobado' || st === 'aprobada';
-                const matchPeriod = p.period && p.period.includes(selectedPeriod);
+                const pPeriod = cleanPeriodStr(p.period);
+                const sel = cleanPeriodStr(selectedPeriod);
+                const matchPeriod = pPeriod.includes(sel) || sel.includes(pPeriod);
                 return isApproved && matchPeriod;
             });
 
@@ -1946,52 +1956,54 @@
             if (ordBody) {
                 ordBody.innerHTML = '';
                 
-                if (!notice) {
-                    ordBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay un aviso de cobro archivado para el período ${selectedPeriod}.</td></tr>`;
-                } else {
-                    (state.owners || []).forEach(o => {
-                        const rawApto = String(o.apto || '').trim();
-                        const cleanApto = rawApto.replace(/^apto\s*/i, '');
-                        
-                        const montoAsignado = ownersAssigned[cleanApto] || 0;
-                        
-                        // Buscar pagos aprobados para este apartamento
-                        const aptPayments = approvedPayments.filter(p => {
-                            const pApto = String(p.apto || '').trim().replace(/^apto\s*/i, '');
-                            return pApto === cleanApto;
-                        });
+                (state.owners || []).forEach(o => {
+                    const rawApto = String(o.apto || '').trim();
+                    const cleanApto = rawApto.toUpperCase().replace(/^APTO\s*/i, '');
+                    
+                    // Si hay aviso usa el monto asignado del aviso, si no busca alícuotas generales
+                    const montoAsignado = ownersAssigned[cleanApto] !== undefined 
+                        ? ownersAssigned[cleanApto] 
+                        : 0;
 
-                        const totalPagadoUsd = aptPayments.reduce((sum, p) => sum + Number(p.usdEquiv || p.amount || 0), 0);
-                        const referencias = aptPayments.map(p => `${p.reference || p.ref || 'S/N'}`).join(', ');
-                        const detallePagoText = referencias 
-                            ? `Asignado: $${montoAsignado.toFixed(2)} | Pagado: <span class="font-bold text-teal-600">$${totalPagadoUsd.toFixed(2)}</span> <span class="text-slate-400 text-[11px]">(Ref: ${referencias})</span>` 
-                            : `Asignado: $${montoAsignado.toFixed(2)} | Pagado: <span class="font-bold text-teal-600">$${totalPagadoUsd.toFixed(2)}</span>`;
-
-                        const diferencia = totalPagadoUsd - montoAsignado;
-                        
-                        let estadoBadge = '';
-                        if (Math.abs(diferencia) < 0.01) {
-                            estadoBadge = `<span class="px-2 py-1 bg-emerald-100 text-emerald-700 font-bold rounded text-xs">✔ Solvente</span>`;
-                        } else if (diferencia < 0) {
-                            estadoBadge = `<span class="px-2 py-1 bg-rose-100 text-rose-700 font-bold rounded text-xs">Deudor: -$${Math.abs(diferencia).toFixed(2)}</span>`;
-                        } else {
-                            estadoBadge = `<span class="px-2 py-1 bg-blue-100 text-blue-700 font-bold rounded text-xs">A favor: +$${diferencia.toFixed(2)}</span>`;
-                        }
-
-                        ordBody.innerHTML += `
-                            <tr class="border-b hover:bg-slate-50 text-xs">
-                                <td class="p-2 font-bold text-center">${o.apto}</td>
-                                <td class="p-2 text-center">-</td>
-                                <td class="p-2 text-slate-700">${detallePagoText}</td>
-                                <td class="p-2 text-right font-semibold">$${montoAsignado.toFixed(2)}</td>
-                                <td class="p-2 text-center">${estadoBadge}</td>
-                            </tr>
-                        `;
+                    // Filtrar pagos aprobados de este apartamento específico
+                    const aptPayments = approvedPayments.filter(p => {
+                        const pApto = String(p.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
+                        return pApto === cleanApto;
                     });
-                }
+
+                    const totalPagadoUsd = aptPayments.reduce((sum, p) => sum + Number(p.usdEquiv || p.amount || 0), 0);
+                    const referencias = aptPayments.map(p => `${p.reference || p.ref || 'S/N'}`).filter(r => r !== 'S/N').join(', ');
+                    
+                    const detallePagoText = referencias 
+                        ? `Asignado: $${montoAsignado.toFixed(2)} | Pagado: <span class="font-bold text-teal-600">$${totalPagadoUsd.toFixed(2)}</span> <span class="text-slate-400 text-[11px]">(Ref: ${referencias})</span>` 
+                        : `Asignado: $${montoAsignado.toFixed(2)} | Pagado: <span class="font-bold text-teal-600">$${totalPagadoUsd.toFixed(2)}</span>`;
+
+                    const diferencia = totalPagadoUsd - montoAsignado;
+                    
+                    let estadoBadge = '';
+                    if (montoAsignado === 0 && totalPagadoUsd === 0) {
+                        estadoBadge = `<span class="px-2 py-1 bg-slate-100 text-slate-500 font-medium rounded text-xs">Sin Registro</span>`;
+                    } else if (Math.abs(diferencia) < 0.01) {
+                        estadoBadge = `<span class="px-2 py-1 bg-emerald-100 text-emerald-700 font-bold rounded text-xs">✔ Solvente</span>`;
+                    } else if (diferencia < 0) {
+                        estadoBadge = `<span class="px-2 py-1 bg-rose-100 text-rose-700 font-bold rounded text-xs">Deudor: -$${Math.abs(diferencia).toFixed(2)}</span>`;
+                    } else {
+                        estadoBadge = `<span class="px-2 py-1 bg-blue-100 text-blue-700 font-bold rounded text-xs">A favor: +$${diferencia.toFixed(2)}</span>`;
+                    }
+
+                    ordBody.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50 text-xs">
+                            <td class="p-2 font-bold text-center">${o.apto}</td>
+                            <td class="p-2 text-center">-</td>
+                            <td class="p-2 text-slate-700">${detallePagoText}</td>
+                            <td class="p-2 text-right font-semibold">$${montoAsignado.toFixed(2)}</td>
+                            <td class="p-2 text-center">${estadoBadge}</td>
+                        </tr>
+                    `;
+                });
             }
 
-            // Actualizar tabla de proveedores en el reporte
+            // Actualizar tabla de proveedores
             const provBody = document.getElementById('report-providers-body');
             if (provBody) {
                 provBody.innerHTML = '';
