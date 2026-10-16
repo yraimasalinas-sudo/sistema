@@ -1291,7 +1291,7 @@
             else await loadStorage();
         }
 
-function renderPendingPayments() {
+        function renderPendingPayments() {
             const body = document.getElementById('payments-pending-body');
             if (!body) return;
             body.innerHTML = '';
@@ -1806,50 +1806,45 @@ function renderPendingPayments() {
 
         // ==================== REPORTES Y CONFIGURACIÓN ====================
         function generateReports() {
-            console.log("STATE PAYMENTS:", state.payments);
-            console.log("STATE OWNERS:", state.owners);
-            
-            const selectedPeriod = document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7)
+            const selectedPeriod = document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
+            const periodLabel = document.getElementById('rep-ord-period-label');
+            if (periodLabel) periodLabel.innerText = `Periodo: ${selectedPeriod} (Mostrando pagos aprobados)`;
 
-            // 1. Buscar el aviso archivado correspondiente al período seleccionado (búsqueda flexible)
+            // Buscar aviso archivado solo para ver el monto asignado si existe
             const notice = (state.billingNotices || []).find(n => n.period && n.period.includes(selectedPeriod));
-            
             let ownersAssigned = {};
-            let activePeriod = selectedPeriod;
-
             if (notice) {
-                activePeriod = notice.period; // Usar el período exacto del aviso encontrado
                 let details = notice.details;
                 if (typeof details === 'string') {
                     try { details = JSON.parse(details); } catch (e) { details = {}; }
                 }
                 (details.owners || []).forEach(o => {
-                    ownersAssigned[String(o.apto).trim()] = Number(o.usd || 0);
-                });
-            } else {
-                // Si no hay aviso archivado exacto, buscamos en los gastos pendientes del período
-                (state.owners || []).forEach(o => {
-                    ownersAssigned[String(o.apto).trim()] = 30.00; // Valor por defecto o estimado si aplica
+                    ownersAssigned[String(o.apto).trim().replace('Apto ', '')] = Number(o.usd || 0);
                 });
             }
 
-            // 2. Filtrar pagos aprobados de forma flexible (coincidiendo con el período o estado 'Aprobado')
-            const paymentsList = (state.payments || []).filter(p => {
-                const isApproved = String(p.status || '').toLowerCase() === 'aprobado' || String(p.status || '').toLowerCase() === 'aprobada';
-                const matchPeriod = p.period && (p.period.includes(selectedPeriod) || p.period.includes(activePeriod));
-                return isApproved && matchPeriod;
+            // Tomar TODOS los pagos aprobados en general para verificar la coincidencia
+            const allApprovedPayments = (state.payments || []).filter(p => {
+                const st = String(p.status || '').toLowerCase();
+                return st === 'aprobado' || st === 'aprobada';
             });
 
             const ordBody = document.getElementById('report-ordinary-body');
             if (ordBody) {
                 ordBody.innerHTML = '';
                 
-                state.owners.forEach(o => {
-                    const aptoKey = String(o.apto).trim();
-                    const montoAsignado = ownersAssigned[aptoKey] || 0;
+                (state.owners || []).forEach(o => {
+                    const rawApto = String(o.apto || '').trim();
+                    const cleanApto = rawApto.replace('Apto ', '');
                     
-                    // Sumar pagos aprobados de este apto filtrando por apartamento
-                    const aptPayments = paymentsList.filter(p => String(p.apto || '').trim() === aptoKey);
+                    const montoAsignado = ownersAssigned[cleanApto] || 30.00; // Asignado por defecto si no hay aviso
+                    
+                    // Buscar pagos de este apartamento comparando de forma flexible
+                    const aptPayments = allApprovedPayments.filter(p => {
+                        const pApto = String(p.apto || '').trim().replace('Apto ', '');
+                        return pApto === cleanApto;
+                    });
+
                     const totalPagadoUsd = aptPayments.reduce((sum, p) => sum + Number(p.usdEquiv || p.amount || 0), 0);
                     const referencias = aptPayments.map(p => `${p.reference || p.ref || 'S/N'}`).join(', ') || '-';
 
