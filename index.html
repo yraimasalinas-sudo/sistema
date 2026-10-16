@@ -1119,7 +1119,7 @@
             await loadStorage();
         }
 
-        async function approveAndCloseNotice() {
+async function approveAndCloseNotice() {
             const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
             if (pendingExpenses.length === 0) {
@@ -1129,13 +1129,32 @@
 
             const period = pendingExpenses[0].period || getSelectedPeriod();
             const totalUSD = pendingExpenses.reduce((acc, e) => acc + Number(e.amount || e.amount_usd || 0), 0);
-            const bcvRate = Number(state.building?.bcv || 0);
+
+            // 1. BUSCAR LA TASA BCV HISTÓRICA PARA ESTE PERÍODO (ej. "2026-08")
+            let bcvRate = Number(state.building?.bcv || 0);
+            try {
+                const { data, error } = await db
+                    .from('bcv_history')
+                    .select('rate, date')
+                    .like('date', `${period}%`)
+                    .order('date', { ascending: true })
+                    .limit(1);
+
+                if (!error && data && data.length > 0) {
+                    bcvRate = Number(data[0].rate);
+                    console.log(`Tasa histórica aplicada para el período ${period}: ${bcvRate} (Fecha: ${data[0].date})`);
+                } else {
+                    console.warn(`No se encontró tasa histórica para ${period}, usando tasa actual por defecto.`);
+                }
+            } catch (err) {
+                console.warn("Error consultando la tasa histórica:", err);
+            }
 
             const confirmEmit = confirm(
                 `¿Deseas APROBAR el aviso de cobro de ${period}?\n\n` +
                 `• Total Gastos: $${totalUSD.toFixed(2)}\n` +
                 `• Cantidad de registros: ${pendingExpenses.length}\n` +
-                `• Tasa BCV: ${bcvRate} Bs.\n\n` +
+                `• Tasa BCV Histórica: ${bcvRate} Bs.\n\n` +
                 `Al aprobar, este aviso se guardará en el Histórico y los gastos quedarán cerrados.`
             );
 
@@ -1172,7 +1191,7 @@
                 const expenseIds = pendingExpenses.map(e => e.id);
                 await db.from('expenses').update({ status: 'billed' }).in('id', expenseIds);
 
-                alert(`¡Aviso del periodo ${period} APROBADO Y EMITIDO exitosamente!`);
+                alert(`¡Aviso del periodo ${period} APROBADO Y EMITIDO exitosamente con la tasa de ${bcvRate} Bs.!`);
                 await loadStorage();
 
             } catch (err) {
@@ -1180,7 +1199,6 @@
                 alert("Ocurrió un error inesperado al aprobar el aviso.");
             }
         }
-
         // ==================== PAGOS Y CONCILIACIÓN ====================
         function getBcvRateForDate(targetDate) {
             if (!state.bcvHistory || state.bcvHistory.length === 0) {
