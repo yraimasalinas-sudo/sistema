@@ -278,7 +278,6 @@
                         <button onclick="copyWhatsAppSummary()" class="bg-teal-600 text-white font-bold py-3 px-6 rounded-lg shadow hover:bg-teal-700 transition flex items-center gap-2 cursor-pointer text-sm">
                             💬 Copiar Resumen WhatsApp
                         </button>
-                        </button>
                         <button onclick="window.print()" class="bg-gray-700 text-white font-bold py-3 px-6 rounded-lg shadow hover:bg-gray-800 transition flex items-center gap-2 cursor-pointer text-sm">
                             🖨️ Imprimir / Guardar PDF
                         </button>
@@ -1182,20 +1181,17 @@
             // BÚSQUEDA DE TASA HISTÓRICA SEGURA Y DIRECTA
             let bcvRate = Number(state.building?.bcv || 0);
             try {
-                // Consultamos ordenado por fecha de forma ascendente para traer la primera del mes
                 const { data, error } = await db
                     .from('bcv_history')
                     .select('rate, date')
                     .order('date', { ascending: true });
 
                 if (!error && data && data.length > 0) {
-                    // Buscamos en memoria la que coincida con el año y mes (ej. "2026-09")
                     const matchRate = data.find(item => item.date && item.date.startsWith(period));
                     if (matchRate) {
                         bcvRate = Number(matchRate.rate);
                         console.log(`Tasa histórica encontrada para ${period}: ${bcvRate} (${matchRate.date})`);
                     } else {
-                        // Si no hay de ese mes exacto, tomamos la más cercana o la primera disponible
                         bcvRate = Number(data[0].rate);
                         console.warn(`No hay tasa exacta para ${period}, usando la más cercana: ${bcvRate}`);
                     }
@@ -1331,13 +1327,12 @@
             mensaje += `\n----------------------------------------\n`;
             mensaje += `*Nota:* Por favor reportar su pago a la brevedad posible en la plataforma. ¡Gracias!`;
 
-            // Codificar el mensaje para que sea compatible con URLs y abrir WhatsApp web/desktop
             const encodedMessage = encodeURIComponent(mensaje);
             const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
 
-            // Abrir WhatsApp en una nueva pestaña
             window.open(whatsappUrl, '_blank');
         }
+
         // ==================== PAGOS Y CONCILIACIÓN ====================
         function getBcvRateForDate(targetDate) {
             if (!state.bcvHistory || state.bcvHistory.length === 0) {
@@ -1483,6 +1478,7 @@
                 `;
             });
         }
+
         // ==================== PROPIETARIOS Y PROVEEDORES ====================
         function renderOwnersTable() {
             const body = document.getElementById('owners-table-body');
@@ -1534,7 +1530,6 @@
             const service = document.getElementById('prov-service').value;
             const phone = document.getElementById('prov-phone').value;
 
-            // Se inserta en service_type como se vio en la tabla de Supabase
             const { error } = await db.from('providers').insert([{ name, service_type: service, phone }]);
             if (error) {
                 alert('Error guardando proveedor: ' + error.message);
@@ -1585,7 +1580,7 @@
                 period: period,
                 type: 'all',
                 total_amount_usd: totalUSD,
-                bcv_rate: bcvRate, // Se guarda solo como referencia informativa del mes
+                bcv_rate: bcvRate,
                 details: {
                     expenses: pendingExpenses,
                     owners: (state.owners || []).map(o => {
@@ -1595,7 +1590,7 @@
                             apto: o.apto,
                             owner: o.owner,
                             alicuota: alicuotaVal,
-                            usd: totalUSD * factor // Únicamente guardamos el monto exacto en USD
+                            usd: totalUSD * factor
                         };
                     })
                 }
@@ -1741,6 +1736,7 @@
             `);
             ventanaDetalle.document.close();
         }
+
         // ==================== VISTA DE PROPIETARIOS ====================
         function renderOwnerData() {
             if (!currentUser || currentUser.role !== 'owner') return;
@@ -1755,10 +1751,8 @@
             const bcvRate = Number(state.building?.bcv || 1);
             document.getElementById('owner-bcv-rate').innerText = bcvRate.toFixed(2);
 
-            // Tomamos los gastos del último aviso histórico o los pendientes si aún no se archiva
             let activeExpenses = [];
             if (state.billingNotices && state.billingNotices.length > 0) {
-                // Ordenar por ID o fecha para obtener el más reciente
                 const lastNotice = state.billingNotices[state.billingNotices.length - 1];
                 let details = lastNotice.details;
                 if (typeof details === 'string') {
@@ -1823,23 +1817,6 @@
             }
         }
 
-            const historyBody = document.getElementById('owner-history-body');
-            if (historyBody) {
-                historyBody.innerHTML = '';
-                const myPayments = (state.payments || []).filter(p => p.apto === myApto);
-                myPayments.forEach(p => {
-                    historyBody.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-2">${p.date}</td>
-                            <td class="p-2">${p.concept}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref}</span></td>
-                            <td class="p-2 text-right font-semibold">$${Number(p.amount).toFixed(2)}</td>
-                            <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv).toFixed(2)}</td>
-                            <td class="p-2 text-center"><span class="px-2 py-1 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">${p.status}</span></td>
-                        </tr>
-                    `;
-                });
-            } 
-
         function imprimirReciboPropietario() {
             if (!currentUser || currentUser.role !== 'owner') return;
 
@@ -1850,7 +1827,6 @@
 
             const bcvRate = Number(state.building?.bcv || 1);
 
-            // Obtener los gastos del último aviso histórico o los activos
             let activeExpenses = [];
             let periodStr = 'Actual';
             if (state.billingNotices && state.billingNotices.length > 0) {
@@ -1887,7 +1863,6 @@
 
             const totalPagarBs = totalPagarUsd * bcvRate;
 
-            // Abrir ventana emergente para impresión formal
             const ventanaImpresion = window.open('', '_blank', 'width=850,height=750');
             ventanaImpresion.document.write(`
                 <!DOCTYPE html>
@@ -1965,13 +1940,13 @@
         function periodToNumber(pStr) {
             if (!pStr) return 0;
             const clean = String(pStr).replace(/[^0-9]/g, '');
-            if (clean.length === 6) return Number(clean); // Formato YYYYMM
+            if (clean.length === 6) return Number(clean);
             return 0;
         }
 
         function generateCustomRangeReport() {
-            const fromVal = document.getElementById('rep-period-from')?.value; // ej: "2026-08"
-            const toVal = document.getElementById('rep-period-to')?.value || fromVal; // ej: "2026-10"
+            const fromVal = document.getElementById('rep-period-from')?.value;
+            const toVal = document.getElementById('rep-period-to')?.value || fromVal;
 
             const buildingName = state.building?.name || 'Residencias El Parque';
             const buildingRif = state.building?.rif || 'J-29819798-6';
@@ -1997,7 +1972,6 @@
             const fromNum = periodToNumber(fromVal);
             const toNum = periodToNumber(toVal);
 
-            // 1. Filtrar Avisos de Cobro (Billing Notices) dentro del rango
             const matchedNotices = (state.billingNotices || []).filter(n => {
                 if (!fromNum && !toNum) return true;
                 const nNum = periodToNumber(n.period);
@@ -2007,7 +1981,6 @@
                 return true;
             });
 
-            // Acumular la deuda asignada por apartamento en los avisos del rango
             let ownersAssigned = {};
             matchedNotices.forEach(notice => {
                 let details = notice.details;
@@ -2022,7 +1995,6 @@
                 });
             });
 
-            // 2. Filtrar Pagos Aprobados dentro del rango
             const approvedPayments = (state.payments || []).filter(p => {
                 const st = String(p.status || '').toLowerCase();
                 const isApproved = st === 'aprobado' || st === 'aprobada';
@@ -2038,7 +2010,6 @@
                 return true;
             });
 
-            // 3. Renderizar Tabla Ordinaria / Morosidad
             const ordBody = document.getElementById('report-ordinary-body');
             if (ordBody) {
                 ordBody.innerHTML = '';
@@ -2093,7 +2064,6 @@
                 });
             }
 
-            // 4. Actualizar tabla de proveedores
             const provBody = document.getElementById('report-providers-body');
             if (provBody) {
                 provBody.innerHTML = '';
@@ -2109,10 +2079,10 @@
             }
         }
 
-        // Compatibilidad por si otra función llama a generateReports()
         function generateReports() {
             generateCustomRangeReport();
         }
+
         async function saveBuildingConfig(e) {
             e.preventDefault();
             const name = document.getElementById('cfg-name').value;
