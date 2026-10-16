@@ -454,61 +454,109 @@
 
                 <!-- PESTAÑA 6: REPORTES DE GESTIÓN -->
                 <div id="tab-reportes" class="tab-content hidden space-y-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 no-print">
-                        <h3 class="font-bold text-slate-800 mb-4 text-sm">🔍 Filtro para Reportes Financieros</h3>
+                    
+                    <!-- CONTENEDOR DE FILTROS -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 no-print">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            🔍 Filtro para Reportes Financieros
+                        </h3>
+                        
                         <div class="flex flex-wrap items-end gap-4">
+                            <!-- Rango Desde -->
                             <div>
-                                <label class="text-xs text-slate-600 block">Mes a Consultar</label>
-                                <input type="month" id="rep-period" class="p-2 rounded-lg border text-sm" onchange="generateReports()">
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Desde (MM/AAAA)</label>
+                                <input type="month" id="rep-period-from" class="border border-slate-300 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none">
                             </div>
-                            <button onclick="generateReports()" class="px-5 py-2.5 bg-teal-500 text-white font-semibold text-sm rounded-lg hover:bg-teal-600">Actualizar Reportes</button>
-                            <button onclick="window.print()" class="px-5 py-2.5 bg-slate-700 text-white font-semibold text-sm rounded-lg hover:bg-slate-800 flex items-center gap-1">🖨 Imprimir / Guardar PDF</button>
+
+                            <!-- Rango Hasta -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 mb-1">Hasta (MM/AAAA)</label>
+                                <input type="month" id="rep-period-to" class="border border-slate-300 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none">
+                            </div>
+
+                            <!-- Botón Actualizar -->
+                            <button onclick="generateCustomRangeReport()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-6 rounded-lg transition shadow flex items-center gap-2 text-sm cursor-pointer">
+                                ⚡ Actualizar Reporte
+                            </button>
+
+                            <!-- Botón Imprimir -->
+                            <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-lg transition shadow flex items-center gap-2 text-sm cursor-pointer ml-auto">
+                                🖨️ Imprimir / Guardar PDF
+                            </button>
                         </div>
                     </div>
 
-                    <!-- REPORTE 1: CUOTAS ORDINARIAS -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-3">
-                        <div class="flex justify-between items-center border-b pb-2">
+                    <!-- REPORTE IMPRIMIBLE -->
+                    <div id="printable-report-area" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+                        <!-- Encabezado del Reporte para Impresión -->
+                        <div class="flex justify-between items-center border-b pb-4">
+                            <div>
+                                <h2 class="text-xl font-black text-slate-800 uppercase tracking-wide" id="rep-building-name">Residencias El Parque</h2>
+                                <p class="text-xs text-slate-500" id="rep-building-rif">RIF: J-00000000-0</p>
+                                <h1 class="text-lg font-bold text-teal-700 mt-2">📊 Estado Financiero Consolidado y Morosidad</h1>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-block bg-teal-50 text-teal-700 font-bold px-3 py-1.5 rounded-full text-xs border border-teal-200" id="rep-range-label">
+                                    Período: General
+                                </span>
+                                <p class="text-[10px] text-slate-400 mt-1">Fecha de Emisión: <span id="rep-emission-date"></span></p>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de Estado Financiero / Morosidad -->
+                        <div class="space-y-3">
                             <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                                📊 Estado Financiero - Cuota Mensual Ordinaria
+                                📊 Cuotas Ordinarias y Extraordinarias Acumuladas
                             </h3>
-                            <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full font-bold" id="rep-ord-period-label">Periodo: --</span>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase text-[11px] tracking-wider font-bold">
+                                            <th class="p-3 text-center">Apto</th>
+                                            <th class="p-3">Propietario</th>
+                                            <th class="p-3">Detalle de Cargos y Pagos</th>
+                                            <th class="p-3 text-right">Total Asignado ($)</th>
+                                            <th class="p-3 text-center">Estatus / Deuda ($)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="report-ordinary-body" class="divide-y divide-slate-200">
+                                        <!-- Filas generadas dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-xs">
-                                <thead>
-                                    <tr class="bg-slate-50 text-slate-700 text-left border-b">
-                                        <th class="p-2">Apto</th>
-                                        <th class="p-2 text-center">Meses Adeudados</th>
-                                        <th class="p-2">Detalle Meses</th>
-                                        <th class="p-2 text-right">Total Asignado ($)</th>
-                                        <th class="p-2 text-right">Estatus / Deuda ($)</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="report-ordinary-body"></tbody>
-                            </table>
+
+                        <!-- Historial de Proveedores y Servicios -->
+                        <div class="space-y-3 pt-4 border-t border-slate-100">
+                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                📑 Historial de Proveedores y Servicios
+                            </h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase text-[11px] tracking-wider font-bold">
+                                            <th class="p-3">Proveedor</th>
+                                            <th class="p-3">Servicio</th>
+                                            <th class="p-3 text-right">Teléfono / Contacto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="report-providers-body" class="divide-y divide-slate-200">
+                                        <!-- Proveedores generados dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- REPORTE 2: CUOTAS EXTRAORDINARIAS -->
-                    <div id="report-extraordinary-container" class="space-y-6">
-                        <!-- Se llena dinámicamente -->
-                    </div>
-
-                    <!-- REPORTE 3: PAGOS A PROVEEDORES -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <h3 class="font-bold text-slate-800 mb-2 text-sm">📑 Historial de Proveedores y Servicios</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-xs">
-                                <thead>
-                                    <tr class="bg-slate-100 text-left">
-                                        <th class="p-2">Proveedor</th>
-                                        <th class="p-2">Servicio</th>
-                                        <th class="p-2 text-right">Teléfono / Contacto</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="report-providers-body"></tbody>
-                            </table>
+                        <!-- Pie del Reporte / Firmas para Impresión -->
+                        <div class="mt-12 pt-6 border-t border-slate-200 hidden print:flex justify-between text-center text-xs text-slate-500">
+                            <div class="w-1/3">
+                                <div class="border-b border-slate-400 mb-2 h-10"></div>
+                                <p class="font-bold">Administración del Condominio</p>
+                            </div>
+                            <div class="w-1/3">
+                                <div class="border-b border-slate-400 mb-2 h-10"></div>
+                                <p class="font-bold">Junta de Condominio</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1913,111 +1961,158 @@
             ventanaImpresion.document.close();
         }
 
-// ==================== REPORTES DE GESTIÓN Y MOROSIDAD ====================
-        function generateReports() {
-            const selectedPeriod = document.getElementById('rep-period')?.value || getSelectedPeriod();
-            const periodLabel = document.getElementById('rep-ord-period-label');
-            if (periodLabel) periodLabel.innerText = `Periodo: ${selectedPeriod}`;
+// ==================== REPORTES DE GESTIÓN Y MOROSIDAD (RANGO DESDE / HASTA) ====================
+function periodToNumber(pStr) {
+    if (!pStr) return 0;
+    const clean = String(pStr).replace(/[^0-9]/g, '');
+    if (clean.length === 6) return Number(clean); // Formato YYYYMM
+    return 0;
+}
 
-            // Normalizador de formato para años y meses (ej: 2026-08)
-            const cleanPeriodStr = (str) => String(str || '').trim().toLowerCase();
+function generateCustomRangeReport() {
+    const fromVal = document.getElementById('rep-period-from')?.value; // ej: "2026-08"
+    const toVal = document.getElementById('rep-period-to')?.value || fromVal; // ej: "2026-10"
 
-            // 1. Buscar aviso archivado aceptando variaciones de formato
-            const notice = (state.billingNotices || []).find(n => {
-                const p = cleanPeriodStr(n.period);
-                const sel = cleanPeriodStr(selectedPeriod);
-                return p.includes(sel) || sel.includes(p);
-            });
+    const buildingName = state.building?.name || 'Residencias El Parque';
+    const buildingRif = state.building?.rif || 'J-29819798-6';
+    
+    const nameEl = document.getElementById('rep-building-name');
+    if (nameEl) nameEl.innerText = buildingName;
+    
+    const rifEl = document.getElementById('rep-building-rif');
+    if (rifEl) rifEl.innerText = `RIF: ${buildingRif}`;
+    
+    const dateEl = document.getElementById('rep-emission-date');
+    if (dateEl) dateEl.innerText = new Date().toLocaleDateString('es-VE');
 
-            let ownersAssigned = {};
-            
-            if (notice) {
-                let details = notice.details;
-                if (typeof details === 'string') {
-                    try { details = JSON.parse(details); } catch (e) { details = {}; }
-                }
-                (details.owners || []).forEach(o => {
-                    const cleanApto = String(o.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
-                    ownersAssigned[cleanApto] = Number(o.usd || 0);
-                });
-            }
-
-            // 2. Filtrar pagos aprobados que coincidan con el período
-            const approvedPayments = (state.payments || []).filter(p => {
-                const st = String(p.status || '').toLowerCase();
-                const isApproved = st === 'aprobado' || st === 'aprobada';
-                const pPeriod = cleanPeriodStr(p.period);
-                const sel = cleanPeriodStr(selectedPeriod);
-                const matchPeriod = pPeriod.includes(sel) || sel.includes(pPeriod);
-                return isApproved && matchPeriod;
-            });
-
-            const ordBody = document.getElementById('report-ordinary-body');
-            if (ordBody) {
-                ordBody.innerHTML = '';
-                
-                (state.owners || []).forEach(o => {
-                    const rawApto = String(o.apto || '').trim();
-                    const cleanApto = rawApto.toUpperCase().replace(/^APTO\s*/i, '');
-                    
-                    // Si hay aviso usa el monto asignado del aviso, si no busca alícuotas generales
-                    const montoAsignado = ownersAssigned[cleanApto] !== undefined 
-                        ? ownersAssigned[cleanApto] 
-                        : 0;
-
-                    // Filtrar pagos aprobados de este apartamento específico
-                    const aptPayments = approvedPayments.filter(p => {
-                        const pApto = String(p.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
-                        return pApto === cleanApto;
-                    });
-
-                    const totalPagadoUsd = aptPayments.reduce((sum, p) => sum + Number(p.usdEquiv || p.amount || 0), 0);
-                    const referencias = aptPayments.map(p => `${p.reference || p.ref || 'S/N'}`).filter(r => r !== 'S/N').join(', ');
-                    
-                    const detallePagoText = referencias 
-                        ? `Asignado: $${montoAsignado.toFixed(2)} | Pagado: <span class="font-bold text-teal-600">$${totalPagadoUsd.toFixed(2)}</span> <span class="text-slate-400 text-[11px]">(Ref: ${referencias})</span>` 
-                        : `Asignado: $${montoAsignado.toFixed(2)} | Pagado: <span class="font-bold text-teal-600">$${totalPagadoUsd.toFixed(2)}</span>`;
-
-                    const diferencia = totalPagadoUsd - montoAsignado;
-                    
-                    let estadoBadge = '';
-                    if (montoAsignado === 0 && totalPagadoUsd === 0) {
-                        estadoBadge = `<span class="px-2 py-1 bg-slate-100 text-slate-500 font-medium rounded text-xs">Sin Registro</span>`;
-                    } else if (Math.abs(diferencia) < 0.01) {
-                        estadoBadge = `<span class="px-2 py-1 bg-emerald-100 text-emerald-700 font-bold rounded text-xs">✔ Solvente</span>`;
-                    } else if (diferencia < 0) {
-                        estadoBadge = `<span class="px-2 py-1 bg-rose-100 text-rose-700 font-bold rounded text-xs">Deudor: -$${Math.abs(diferencia).toFixed(2)}</span>`;
-                    } else {
-                        estadoBadge = `<span class="px-2 py-1 bg-blue-100 text-blue-700 font-bold rounded text-xs">A favor: +$${diferencia.toFixed(2)}</span>`;
-                    }
-
-                    ordBody.innerHTML += `
-                        <tr class="border-b hover:bg-slate-50 text-xs">
-                            <td class="p-2 font-bold text-center">${o.apto}</td>
-                            <td class="p-2 text-center">-</td>
-                            <td class="p-2 text-slate-700">${detallePagoText}</td>
-                            <td class="p-2 text-right font-semibold">$${montoAsignado.toFixed(2)}</td>
-                            <td class="p-2 text-center">${estadoBadge}</td>
-                        </tr>
-                    `;
-                });
-            }
-
-            // Actualizar tabla de proveedores
-            const provBody = document.getElementById('report-providers-body');
-            if (provBody) {
-                provBody.innerHTML = '';
-                (state.providers || []).forEach(p => {
-                    provBody.innerHTML += `
-                        <tr class="border-b text-xs">
-                            <td class="p-2 font-bold">${p.name || '-'}</td>
-                            <td class="p-2">${p.service || '-'}</td>
-                            <td class="p-2 text-right font-mono">${p.phone || 'N/A'}</td>
-                        </tr>
-                    `;
-                });
-            }
+    const rangeLabel = document.getElementById('rep-range-label');
+    if (rangeLabel) {
+        if (fromVal && toVal) {
+            rangeLabel.innerText = fromVal === toVal ? `Periodo: ${fromVal}` : `Rango: ${fromVal} a ${toVal}`;
+        } else {
+            rangeLabel.innerText = `Periodo: General`;
         }
+    }
+
+    const fromNum = periodToNumber(fromVal);
+    const toNum = periodToNumber(toVal);
+
+    // 1. Filtrar Avisos de Cobro (Billing Notices) dentro del rango
+    const matchedNotices = (state.billingNotices || []).filter(n => {
+        if (!fromNum && !toNum) return true;
+        const nNum = periodToNumber(n.period);
+        if (fromNum && toNum) return nNum >= fromNum && nNum <= toNum;
+        if (fromNum) return nNum >= fromNum;
+        if (toNum) return nNum <= toNum;
+        return true;
+    });
+
+    // Acumular la deuda asignada por apartamento en los avisos del rango
+    let ownersAssigned = {};
+    matchedNotices.forEach(notice => {
+        let details = notice.details;
+        if (typeof details === 'string') {
+            try { details = JSON.parse(details); } catch (e) { details = {}; }
+        }
+        const ownersList = details.owners || details.alicuotas || [];
+        ownersList.forEach(o => {
+            const cleanApto = String(o.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
+            const amountUsd = Number(o.usd || o.monto || o.amount || 0);
+            ownersAssigned[cleanApto] = (ownersAssigned[cleanApto] || 0) + amountUsd;
+        });
+    });
+
+    // 2. Filtrar Pagos Aprobados dentro del rango
+    const approvedPayments = (state.payments || []).filter(p => {
+        const st = String(p.status || '').toLowerCase();
+        const isApproved = st === 'aprobado' || st === 'aprobada';
+        if (!isApproved) return false;
+
+        if (!fromNum && !toNum) return true;
+        const pNum = periodToNumber(p.period);
+        if (!pNum) return true;
+
+        if (fromNum && toNum) return pNum >= fromNum && pNum <= toNum;
+        if (fromNum) return pNum >= fromNum;
+        if (toNum) return pNum <= toNum;
+        return true;
+    });
+
+    // 3. Renderizar Tabla Ordinaria / Morosidad
+    const ordBody = document.getElementById('report-ordinary-body');
+    if (ordBody) {
+        ordBody.innerHTML = '';
+        
+        (state.owners || []).forEach(o => {
+            const rawApto = String(o.apto || '').trim();
+            const cleanApto = rawApto.toUpperCase().replace(/^APTO\s*/i, '');
+            const ownerName = o.owner_name || o.name || '-';
+            
+            const montoAsignado = ownersAssigned[cleanApto] || 0;
+
+            const aptPayments = approvedPayments.filter(p => {
+                const pApto = String(p.apto || p.apartment || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
+                return pApto === cleanApto;
+            });
+
+            const totalPagadoUsd = aptPayments.reduce((sum, p) => {
+                return sum + Number(p.usdEquiv ?? p.usd_equiv ?? p.amount_usd ?? p.amount || 0);
+            }, 0);
+
+            const referencias = aptPayments
+                .map(p => p.reference || p.ref)
+                .filter(Boolean)
+                .join(', ');
+            
+            const detallePagoText = referencias 
+                ? `Asignado: $${montoAsignado.toFixed(2)} | Pagado: <span class="font-bold text-teal-600">$${totalPagadoUsd.toFixed(2)}</span> <span class="text-slate-400 text-[11px]">(Ref: ${referencias})</span>` 
+                : `Asignado: $${montoAsignado.toFixed(2)} | Pagado: <span class="font-bold text-teal-600">$${totalPagadoUsd.toFixed(2)}</span>`;
+
+            const diferencia = totalPagadoUsd - montoAsignado;
+            
+            let estadoBadge = '';
+            if (montoAsignado === 0 && totalPagadoUsd === 0) {
+                estadoBadge = `<span class="px-2 py-1 bg-slate-100 text-slate-500 font-medium rounded text-xs">Sin Registro</span>`;
+            } else if (Math.abs(diferencia) < 0.01) {
+                estadoBadge = `<span class="px-2 py-1 bg-emerald-100 text-emerald-700 font-bold rounded text-xs">✔ Solvente</span>`;
+            } else if (diferencia < 0) {
+                estadoBadge = `<span class="px-2 py-1 bg-rose-100 text-rose-700 font-bold rounded text-xs">Deudor: -$${Math.abs(diferencia).toFixed(2)}</span>`;
+            } else {
+                estadoBadge = `<span class="px-2 py-1 bg-blue-100 text-blue-700 font-bold rounded text-xs">A favor: +$${diferencia.toFixed(2)}</span>`;
+            }
+
+            ordBody.innerHTML += `
+                <tr class="border-b hover:bg-slate-50 text-xs">
+                    <td class="p-2 font-bold text-center">${o.apto}</td>
+                    <td class="p-2 text-center">${ownerName}</td>
+                    <td class="p-2 text-slate-700">${detallePagoText}</td>
+                    <td class="p-2 text-right font-semibold">$${montoAsignado.toFixed(2)}</td>
+                    <td class="p-2 text-center">${estadoBadge}</td>
+                </tr>
+            `;
+        });
+    }
+
+    // 4. Actualizar tabla de proveedores
+    const provBody = document.getElementById('report-providers-body');
+    if (provBody) {
+        provBody.innerHTML = '';
+        (state.providers || []).forEach(p => {
+            provBody.innerHTML += `
+                <tr class="border-b text-xs">
+                    <td class="p-2 font-bold">${p.name || '-'}</td>
+                    <td class="p-2">${p.service || '-'}</td>
+                    <td class="p-2 text-right font-mono">${p.phone || 'N/A'}</td>
+                </tr>
+            `;
+        });
+    }
+}
+
+// Compatibilidad por si otra función llama a generateReports()
+function generateReports() {
+    generateCustomRangeReport();
+}
         async function saveBuildingConfig(e) {
             e.preventDefault();
             const name = document.getElementById('cfg-name').value;
