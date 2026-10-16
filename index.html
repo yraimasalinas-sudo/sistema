@@ -1130,13 +1130,14 @@
             const period = pendingExpenses[0].period || getSelectedPeriod();
             const totalUSD = pendingExpenses.reduce((acc, e) => acc + Number(e.amount || e.amount_usd || 0), 0);
 
-            // 1. BUSCAR LA TASA BCV HISTÓRICA PARA ESTE PERÍODO (ej. "2026-08")
+            // 1. BUSCAR LA TASA BCV HISTÓRICA PARA ESTE PERÍODO (ej. "2026-08") en bcv_history
             let bcvRate = Number(state.building?.bcv || 0);
             try {
                 const { data, error } = await db
                     .from('bcv_history')
                     .select('rate, date')
-                    .like('date', `${period}%`)
+                    .gte('date', `${period}-01`)
+                    .lte('date', `${period}-31`)
                     .order('date', { ascending: true })
                     .limit(1);
 
@@ -1144,7 +1145,16 @@
                     bcvRate = Number(data[0].rate);
                     console.log(`Tasa histórica aplicada para el período ${period}: ${bcvRate} (Fecha: ${data[0].date})`);
                 } else {
-                    console.warn(`No se encontró tasa histórica para ${period}, usando tasa actual por defecto.`);
+                    console.warn(`No se encontró tasa histórica exacta para ${period}, intentando búsqueda amplia.`);
+                    const { data: dataLike } = await db
+                        .from('bcv_history')
+                        .select('rate, date')
+                        .like('date', `${period}%`)
+                        .order('date', { ascending: true })
+                        .limit(1);
+                    if (dataLike && dataLike.length > 0) {
+                        bcvRate = Number(dataLike[0].rate);
+                    }
                 }
             } catch (err) {
                 console.warn("Error consultando la tasa histórica:", err);
@@ -1206,7 +1216,9 @@
             let expensesList = (state.expenses || []).filter(e => e.period === period && e.status !== 'billed');
             let ownersList = state.owners || [];
             let totalUSD = 0;
+            let bcvRate = Number(state.building?.bcv || 0);
 
+            // Buscar si ya existe un aviso emitido para este período
             let notice = (state.billingNotices || []).find(n => n.period === period);
 
             if (notice) {
@@ -1217,8 +1229,36 @@
                 expensesList = details.expenses || expensesList;
                 ownersList = details.owners || ownersList;
                 totalUSD = Number(notice.total_amount_usd || 0);
+                bcvRate = Number(notice.bcv_rate || bcvRate);
             } else {
                 totalUSD = expensesList.reduce((acc, e) => acc + Number(e.amount || e.amount_usd || 0), 0);
+                
+                // Buscar la tasa histórica correspondiente a ese mes en bcv_history si no hay aviso aún[cite: 4]
+                try {
+                    const { data, error } = await db
+                        .from('bcv_history')
+                        .select('rate')
+                        .gte('date', `${period}-01`)
+                        .lte('date', `${period}-31`)
+                        .order('date', { ascending: true })
+                        .limit(1);
+
+                    if (!error && data && data.length > 0) {
+                        bcvRate = Number(data[0].rate);
+                    } else {
+                        const { data: dataLike } = await db
+                            .from('bcv_history')
+                            .select('rate')
+                            .like('date', `${period}%`)
+                            .order('date', { ascending: true })
+                            .limit(1);
+                        if (dataLike && dataLike.length > 0) {
+                            bcvRate = Number(dataLike[0].rate);
+                        }
+                    }
+                } catch (err) {
+                    console.warn("No se pudo obtener la tasa histórica para el resumen:", err);
+                }
             }
 
             if (expensesList.length === 0) {
@@ -1230,6 +1270,9 @@
 
             let mensaje = `*${buildingName}*\n`;
             mensaje += `*RESUMEN DE GASTOS Y COBRANZA - ${period}*\n`;
+            if (bcvRate > 0) {
+                mensaje += `*Tasa BCV:* Bs. ${bcvRate.toFixed(4)}\n`;
+            }
             mensaje += `----------------------------------------\n\n`;
             mensaje += `*DESGLOSE DE GASTOS DEL MES:*\n`;
 
@@ -1256,7 +1299,7 @@
 
             try {
                 await navigator.clipboard.writeText(mensaje);
-                alert("¡Resumen copiado al portapapeles listo para pegar en WhatsApp! 📱");
+                alert("¡Resumen copiado al portapapeles con su tasa BCV histórica y listo para WhatsApp! 📱");
             } catch (err) {
                 console.error("Error al copiar al portapapeles: ", err);
                 prompt("Copia el siguiente texto para WhatsApp:", mensaje);
