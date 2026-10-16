@@ -1846,7 +1846,10 @@
                     });
 
                     const totalPagadoUsd = aptPayments.reduce((sum, p) => sum + Number(p.usdEquiv || p.amount || 0), 0);
-                    const referencias = aptPayments.map(p => `${p.reference || p.ref || 'S/N'}`).join(', ') || '-';
+                    
+                    // Extraer las referencias ordenadas
+                    const referencias = aptPayments.map(p => `${p.reference || p.ref || 'S/N'}`).join(', ');
+                    const detallePagoText = referencias ? `Asignado: $${montoAsignado.toFixed(2)} | Pagado: <span class="font-bold text-teal-600">$${totalPagadoUsd.toFixed(2)}</span> <span class="text-slate-400 text-[11px]">(Ref: ${referencias})</span>` : `Asignado: $${montoAsignado.toFixed(2)} | Pagado: <span class="font-bold text-teal-600">$${totalPagadoUsd.toFixed(2)}</span>`;
 
                     const diferencia = totalPagadoUsd - montoAsignado;
                     
@@ -1862,8 +1865,8 @@
                     ordBody.innerHTML += `
                         <tr class="border-b hover:bg-slate-50 text-xs">
                             <td class="p-2 font-bold text-center">${o.apto}</td>
-                            <td class="p-2 text-center">${referencias}</td>
-                            <td class="p-2 text-slate-700">Asignado: $${montoAsignado.toFixed(2)} | Pagado: <span class="font-bold text-teal-600">$${totalPagadoUsd.toFixed(2)}</span></td>
+                            <td class="p-2 text-center">-</td>
+                            <td class="p-2 text-slate-700">${detallePagoText}</td>
                             <td class="p-2 text-right font-semibold">$${montoAsignado.toFixed(2)}</td>
                             <td class="p-2 text-center">${estadoBadge}</td>
                         </tr>
@@ -1885,7 +1888,6 @@
                 });
             }
         }
-
         async function saveBuildingConfig(e) {
             e.preventDefault();
             const name = document.getElementById('cfg-name').value;
