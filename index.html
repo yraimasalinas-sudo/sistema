@@ -1283,13 +1283,12 @@
             mensaje += `\n----------------------------------------\n`;
             mensaje += `*Nota:* Por favor reportar su pago a la brevedad posible en la plataforma. ¡Gracias!`;
 
-            try {
-                await navigator.clipboard.writeText(mensaje);
-                alert("¡Resumen copiado al portapapeles listo para WhatsApp! 📱");
-            } catch (err) {
-                console.error("Error al copiar al portapapeles: ", err);
-                prompt("Copia el siguiente texto para WhatsApp:", mensaje);
-            }
+            // Codificar el mensaje para que sea compatible con URLs y abrir WhatsApp web/desktop
+            const encodedMessage = encodeURIComponent(mensaje);
+            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+
+            // Abrir WhatsApp en una nueva pestaña
+            window.open(whatsappUrl, '_blank');
         }
         // ==================== PAGOS Y CONCILIACIÓN ====================
         function getBcvRateForDate(targetDate) {
