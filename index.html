@@ -1806,9 +1806,10 @@ function renderPendingPayments() {
 
         // ==================== REPORTES Y CONFIGURACIÓN ====================
         function generateReports() {
-            const selectedPeriod = document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
-            const periodLabel = document.getElementById('rep-ord-period-label');
-            if (periodLabel) periodLabel.innerText = `Periodo: ${selectedPeriod}`;
+            console.log("STATE PAYMENTS:", state.payments);
+            console.log("STATE OWNERS:", state.owners);
+            
+            const selectedPeriod = document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7)
 
             // 1. Buscar el aviso archivado correspondiente al período seleccionado (búsqueda flexible)
             const notice = (state.billingNotices || []).find(n => n.period && n.period.includes(selectedPeriod));
