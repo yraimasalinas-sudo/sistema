@@ -1119,7 +1119,7 @@
             await loadStorage();
         }
 
-async function approveAndCloseNotice() {
+        async function approveAndCloseNotice() {
             const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
 
             if (pendingExpenses.length === 0) {
@@ -1197,6 +1197,69 @@ async function approveAndCloseNotice() {
             } catch (err) {
                 console.error("Error procesando cierre de aviso:", err);
                 alert("Ocurrió un error inesperado al aprobar el aviso.");
+            }
+        }
+
+        async function copyWhatsAppSummary() {
+            const period = getSelectedPeriod();
+
+            let expensesList = (state.expenses || []).filter(e => e.period === period && e.status !== 'billed');
+            let ownersList = state.owners || [];
+            let totalUSD = 0;
+
+            let notice = (state.billingNotices || []).find(n => n.period === period);
+
+            if (notice) {
+                let details = notice.details;
+                if (typeof details === 'string') {
+                    try { details = JSON.parse(details); } catch (e) { details = {}; }
+                }
+                expensesList = details.expenses || expensesList;
+                ownersList = details.owners || ownersList;
+                totalUSD = Number(notice.total_amount_usd || 0);
+            } else {
+                totalUSD = expensesList.reduce((acc, e) => acc + Number(e.amount || e.amount_usd || 0), 0);
+            }
+
+            if (expensesList.length === 0) {
+                alert("⚠️ No hay gastos registrados o emitidos para este período para generar el resumen.");
+                return;
+            }
+
+            const buildingName = state.building?.name || 'Residencias Aventura Suites';
+
+            let mensaje = `*${buildingName}*\n`;
+            mensaje += `*RESUMEN DE GASTOS Y COBRANZA - ${period}*\n`;
+            mensaje += `----------------------------------------\n\n`;
+            mensaje += `*DESGLOSE DE GASTOS DEL MES:*\n`;
+
+            expensesList.forEach(e => {
+                const amt = Number(e.amount || e.amount_usd || 0);
+                mensaje += `- ${e.description}: $${amt.toFixed(2)}\n`;
+            });
+
+            mensaje += `\n*TOTAL GASTOS COMUNES:* *\$${totalUSD.toFixed(2)}*\n`;
+            mensaje += `----------------------------------------\n\n`;
+            mensaje += `*ALÍCUOTAS Y MONTOS A PAGAR POR APTO:*\n`;
+
+            ownersList.forEach(o => {
+                const alicuotaVal = Number(o.alicuota || 0);
+                const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+                const montoApto = o.usd !== undefined ? Number(o.usd) : (totalUSD * factor);
+                const alicuotaPorcentaje = alicuotaVal > 1 ? alicuotaVal : (alicuotaVal * 100);
+
+                mensaje += `*Apt ${o.apto}* (${alicuotaPorcentaje.toFixed(1)}%): *\$${montoApto.toFixed(2)}*\n`;
+            });
+
+            mensaje += `\n----------------------------------------\n`;
+            mensaje += `*Nota:* Por favor reportar su pago a la brevedad posible en la plataforma. ¡Gracias!`;
+
+            try {
+                await navigator.clipboard.writeText(mensaje);
+                alert("¡Resumen copiado al portapapeles listo para pegar en WhatsApp! 📱");
+            } catch (err) {
+                console.error("Error al copiar al portapapeles: ", err);
+                prompt("Copia el siguiente texto para WhatsApp:", mensaje);
             }
         }
         // ==================== PAGOS Y CONCILIACIÓN ====================
