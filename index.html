@@ -451,109 +451,74 @@
                     </div>
                 </div>
 
-                <!-- PESTAÑA 6: REPORTES DE GESTIÓN -->
+                <!-- PESTAÑA 6: REPORTES DE GESTIÓN Y CUENTAS POR COBRAR -->
                 <div id="tab-reportes" class="tab-content hidden space-y-6">
                     
                     <!-- CONTENEDOR DE FILTROS -->
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 no-print">
                         <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                            🔍 Filtro para Reportes Financieros
+                            🔍 Filtro para Reportes de Cuentas por Cobrar
                         </h3>
                         
                         <div class="flex flex-wrap items-end gap-4">
-                            <!-- Rango Desde -->
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Desde (MM/AAAA)</label>
                                 <input type="month" id="rep-period-from" class="border border-slate-300 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none">
                             </div>
 
-                            <!-- Rango Hasta -->
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Hasta (MM/AAAA)</label>
                                 <input type="month" id="rep-period-to" class="border border-slate-300 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none">
                             </div>
 
-                            <!-- Botón Actualizar -->
-                            <button onclick="generateCustomRangeReport()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-6 rounded-lg transition shadow flex items-center gap-2 text-sm cursor-pointer">
-                                ⚡ Actualizar Reporte
+                            <button onclick="generateMatrixReport()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-6 rounded-lg transition shadow flex items-center gap-2 text-sm cursor-pointer">
+                                ⚡ Generar Reporte Matricial
                             </button>
 
-                            <!-- Botón Imprimir -->
                             <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-lg transition shadow flex items-center gap-2 text-sm cursor-pointer ml-auto">
                                 🖨️ Imprimir / Guardar PDF
                             </button>
                         </div>
                     </div>
 
-                    <!-- REPORTE IMPRIMIBLE -->
-                    <div id="printable-report-area" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-6">
-                        <!-- Encabezado del Reporte para Impresión -->
-                        <div class="flex justify-between items-center border-b pb-4">
+                    <!-- REPORTE MATRICIAL IMPRIMIBLE -->
+                    <div id="printable-report-area" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                        
+                        <!-- Encabezado Estilo Reporte Profesional -->
+                        <div class="border-b pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                             <div>
-                                <h2 class="text-xl font-black text-slate-800 uppercase tracking-wide" id="rep-building-name">Residencias El Parque</h2>
-                                <p class="text-xs text-slate-500" id="rep-building-rif">RIF: J-00000000-0</p>
-                                <h1 class="text-lg font-bold text-teal-700 mt-2">📊 Estado Financiero Consolidado y Morosidad</h1>
+                                <h2 class="text-lg font-black text-slate-800 uppercase tracking-wide" id="rep-building-name">Residencias El Parque</h2>
+                                <p class="text-xs text-slate-500" id="rep-building-rif">RIF: J-29819798-6</p>
+                                <h1 class="text-base font-bold text-teal-700 mt-1">REPORTE DE CUENTAS POR COBRAR (MATRIZ POR PERÍODO Y CONCEPTOS)</h1>
                             </div>
-                            <div class="text-right">
-                                <span class="inline-block bg-teal-50 text-teal-700 font-bold px-3 py-1.5 rounded-full text-xs border border-teal-200" id="rep-range-label">
-                                    Período: General
-                                </span>
-                                <p class="text-[10px] text-slate-400 mt-1">Fecha de Emisión: <span id="rep-emission-date"></span></p>
+                            <div class="text-right text-xs text-slate-500">
+                                <p>Fecha: <span id="rep-emission-date"></span></p>
+                                <p id="rep-range-label" class="font-bold text-slate-700">Rango: General</p>
                             </div>
                         </div>
 
-                        <!-- Tabla de Estado Financiero / Morosidad -->
-                        <div class="space-y-3">
-                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                                📊 Cuotas Ordinarias y Extraordinarias Acumuladas
-                            </h3>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase text-[11px] tracking-wider font-bold">
-                                            <th class="p-3 text-center">Apto</th>
-                                            <th class="p-3">Propietario</th>
-                                            <th class="p-3">Detalle de Cargos y Pagos</th>
-                                            <th class="p-3 text-right">Total Asignado ($)</th>
-                                            <th class="p-3 text-center">Estatus / Deuda ($)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="report-ordinary-body" class="divide-y divide-slate-200">
-                                        <!-- Filas generadas dinámicamente -->
-                                    </tbody>
-                                </table>
-                            </div>
+                        <!-- Tabla Matricial con Scroll Horizontal -->
+                        <div class="overflow-x-auto border rounded-xl">
+                            <table class="w-full text-left border-collapse whitespace-nowrap">
+                                <thead>
+                                    <tr id="matrix-table-head" class="bg-slate-100 border-b border-slate-200 text-slate-700 uppercase text-[11px] tracking-wider font-bold">
+                                        <!-- Las columnas de meses/conceptos se generan dinámicamente aquí -->
+                                    </tr>
+                                </thead>
+                                <tbody id="matrix-table-body" class="divide-y divide-slate-200 text-xs">
+                                    <!-- Las filas de apartamentos y montos se llenan dinámicamente aquí -->
+                                </tbody>
+                            </table>
                         </div>
 
-                        <!-- Historial de Proveedores y Servicios -->
-                        <div class="space-y-3 pt-4 border-t border-slate-100">
-                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                                📑 Historial de Proveedores y Servicios
-                            </h3>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase text-[11px] tracking-wider font-bold">
-                                            <th class="p-3">Proveedor</th>
-                                            <th class="p-3">Servicio</th>
-                                            <th class="p-3 text-right">Teléfono / Contacto</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="report-providers-body" class="divide-y divide-slate-200">
-                                        <!-- Proveedores generados dinámicamente -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- Pie del Reporte / Firmas para Impresión -->
-                        <div class="mt-12 pt-6 border-t border-slate-200 hidden print:flex justify-between text-center text-xs text-slate-500">
+                        <!-- Pie de firma para impresión -->
+                        <div class="mt-8 pt-6 border-t border-slate-200 hidden print:flex justify-between text-center text-xs text-slate-500">
                             <div class="w-1/3">
-                                <div class="border-b border-slate-400 mb-2 h-10"></div>
-                                <p class="font-bold">Administración del Condominio</p>
+                                <div class="border-b border-slate-400 mb-2 h-8"></div>
+                                <p class="font-bold">Administración</p>
                             </div>
                             <div class="w-1/3">
-                                <div class="border-b border-slate-400 mb-2 h-10"></div>
+                                <div class="border-b border-slate-400 mb-2 h-8"></div>
                                 <p class="font-bold">Junta de Condominio</p>
                             </div>
                         </div>
@@ -1936,7 +1901,7 @@
             ventanaImpresion.document.close();
         }
 
-// ==================== REPORTES DE GESTIÓN Y MOROSIDAD (RANGO DESDE / HASTA) ====================
+        // ==================== REPORTE MATRICIAL DE CUENTAS POR COBRAR ====================
         function periodToNumber(pStr) {
             if (!pStr) return 0;
             const clean = String(pStr).replace(/[^0-9]/g, '');
@@ -1944,35 +1909,33 @@
             return 0;
         }
 
-        function generateCustomRangeReport() {
-            const fromVal = document.getElementById('rep-period-from') ? document.getElementById('rep-period-from').value : '';
-            const toVal = document.getElementById('rep-period-to') ? (document.getElementById('rep-period-to').value || fromVal) : fromVal;
+        function generateMatrixReport() {
+            const fromVal = document.getElementById('rep-period-from')?.value;
+            const toVal = document.getElementById('rep-period-to')?.value || fromVal;
 
-            const buildingName = (state.building && state.building.name) ? state.building.name : 'Residencias El Parque';
-            const buildingRif = (state.building && state.building.rif) ? state.building.rif : 'J-29819798-6';
+            // Actualizar datos del edificio en el membrete
+            const buildingName = state.building?.name || 'Residencias El Parque';
+            const buildingRif = state.building?.rif || 'J-29819798-6';
     
             const nameEl = document.getElementById('rep-building-name');
             if (nameEl) nameEl.innerText = buildingName;
     
             const rifEl = document.getElementById('rep-building-rif');
-            if (rifEl) rifEl.innerText = 'RIF: ' + buildingRif;
+            if (rifEl) rifEl.innerText = `RIF: ${buildingRif}`;
     
             const dateEl = document.getElementById('rep-emission-date');
-            if (dateEl) dateEl.innerText = new Date().toLocaleDateString('es-VE');
+            if (dateEl) dateEl.innerText = new Date().toLocaleDateString('es-VE') + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
             const rangeLabel = document.getElementById('rep-range-label');
             if (rangeLabel) {
-                if (fromVal && toVal) {
-                    rangeLabel.innerText = (fromVal === toVal) ? ('Periodo: ' + fromVal) : ('Rango: ' + fromVal + ' a ' + toVal);
-                } else {
-                    rangeLabel.innerText = 'Periodo: General';
-                }
+                rangeLabel.innerText = fromVal && toVal ? (fromVal === toVal ? `Período: ${fromVal}` : `Rango: ${fromVal} al ${toVal}`) : 'Período: Histórico Completo';
             }
 
             const fromNum = periodToNumber(fromVal);
             const toNum = periodToNumber(toVal);
 
-            const matchedNotices = (state.billingNotices || []).filter(function(n) {
+            // 1. Obtener y filtrar todos los avisos de cobro (ordinarios y extraordinarios) en el rango
+            const notices = (state.billingNotices || []).filter(n => {
                 if (!fromNum && !toNum) return true;
                 const nNum = periodToNumber(n.period);
                 if (fromNum && toNum) return nNum >= fromNum && nNum <= toNum;
@@ -1981,103 +1944,118 @@
                 return true;
             });
 
-            let ownersAssigned = {};
-            matchedNotices.forEach(function(notice) {
+            // Extraer todos los períodos únicos ordenados de más reciente a más antiguo (estilo tu imagen)
+            let periodsSet = new Set();
+            notices.forEach(n => { if (n.period) periodsSet.add(n.period); });
+    
+            // Si hay gastos pendientes actuales que no se han cerrado en un aviso, incluirlos también
+            (state.expenses || []).filter(e => e.status !== 'billed').forEach(e => {
+                if (e.period) periodsSet.add(e.period);
+            });
+
+            let periodsList = Array.from(periodsSet).sort().reverse(); // Orden descendente (ej: Sep, Ago, Jul...)
+
+            // 2. Construir el Encabezado de la Tabla Dinámica (Estilo Matriz)
+            const thead = document.getElementById('matrix-table-head');
+            if (thead) {
+                let headHtml = `
+                    <th class="p-3 text-center">Nro</th>
+                    <th class="p-3">Unidad / Apto</th>
+                    <th class="p-3 text-center">R. Pend</th>
+                    <th class="p-3 text-right">Total ($)</th>
+                `;
+                periodsList.forEach(p => {
+                    headHtml += `<th class="p-3 text-right">${p}</th>`;
+                });
+                thead.innerHTML = headHtml;
+            }
+
+            // 3. Mapear asignaciones por apartamento y por período
+            // Estructura: { "1A": { "2026-09": 35.00, "2026-08": 40.00, ... } }
+            let aptoPeriodDebt = {};
+            let aptoPendCount = {};
+
+            notices.forEach(notice => {
+                const p = notice.period;
                 let details = notice.details;
                 if (typeof details === 'string') {
                     try { details = JSON.parse(details); } catch (e) { details = {}; }
                 }
                 const ownersList = details.owners || details.alicuotas || [];
-                ownersList.forEach(function(o) {
+                ownersList.forEach(o => {
                     const cleanApto = String(o.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
-                    const amountUsd = Number(o.usd || o.monto || o.amount || 0);
-                    ownersAssigned[cleanApto] = (ownersAssigned[cleanApto] || 0) + amountUsd;
+                    const amt = Number(o.usd || o.monto || o.amount || 0);
+            
+                    if (!aptoPeriodDebt[cleanApto]) aptoPeriodDebt[cleanApto] = {};
+                    aptoPeriodDebt[cleanApto][p] = (aptoPeriodDebt[cleanApto][p] || 0) + amt;
                 });
             });
 
-            const approvedPayments = (state.payments || []).filter(function(p) {
+            // Pagos aprobados para descontar o cruzar
+            const approvedPayments = (state.payments || []).filter(p => {
                 const st = String(p.status || '').toLowerCase();
-                const isApproved = (st === 'aprobado' || st === 'aprobada');
-                if (!isApproved) return false;
-
-                if (!fromNum && !toNum) return true;
-                const pNum = periodToNumber(p.period);
-                if (!pNum) return true;
-
-                if (fromNum && toNum) return pNum >= fromNum && pNum <= toNum;
-                if (fromNum) return pNum >= fromNum;
-                if (toNum) return pNum <= toNum;
-                return true;
+                return st === 'aprobado' || st === 'aprobada';
             });
 
-            const ordBody = document.getElementById('report-ordinary-body');
-            if (ordBody) {
-                ordBody.innerHTML = '';
-        
-                (state.owners || []).forEach(function(o) {
+            // 4. Renderizar las filas de la tabla por cada apartamento
+            const tbody = document.getElementById('matrix-table-body');
+            if (tbody) {
+                tbody.innerHTML = '';
+                const owners = state.owners || [];
+
+                if (owners.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="10" class="p-4 text-center text-slate-400">No hay apartamentos registrados.</td></tr>`;
+                    return;
+                }
+
+                owners.forEach((o, index) => {
                     const rawApto = String(o.apto || '').trim();
                     const cleanApto = rawApto.toUpperCase().replace(/^APTO\s*/i, '');
-                    const ownerName = o.owner_name || o.name || '-';
-            
-                    const montoAsignado = ownersAssigned[cleanApto] || 0;
+                    
+                    let totalAptoDebt = 0;
+                    let pendingMonthsCount = 0;
+                    let periodCellsHtml = '';
 
-                    const aptPayments = approvedPayments.filter(function(p) {
-                        const pApto = String(p.apto || p.apartment || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
-                        return pApto === cleanApto;
+                    periodsList.forEach(p => {
+                        const assigned = aptoPeriodDebt[cleanApto]?.[p] || 0;
+                
+                        // Verificar si este apto pagó este período específico
+                        const paidInPeriod = approvedPayments
+                            .filter(pay => {
+                                const pApto = String(pay.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
+                                return pApto === cleanApto && pay.period && pay.period.includes(p);
+                            })
+                            .reduce((sum, pay) => sum + Number(pay.usdEquiv ?? pay.amount || 0), 0);
+
+                        const saldoPeriodo = Math.max(0, assigned - paidInPeriod);
+                        totalAptoDebt += saldoPeriodo;
+
+                        if (saldoPeriodo > 0.01) {
+                            pendingMonthsCount++;
+                            periodCellsHtml += `<td class="p-3 text-right font-semibold text-rose-600">$${saldoPeriodo.toFixed(2)}</td>`;
+                        } else if (assigned > 0) {
+                            periodCellsHtml += `<td class="p-3 text-right text-emerald-600 font-medium">0,00</td>`;
+                        } else {
+                            periodCellsHtml += `<td class="p-3 text-right text-slate-300">-</td>`;
+                        }
                     });
 
-                    const totalPagadoUsd = aptPayments.reduce(function(sum, p) {
-                        return sum + Number(p.usdEquiv !== undefined ? p.usdEquiv : (p.usd_equiv !== undefined ? p.usd_equiv : (p.amount_usd !== undefined ? p.amount_usd : (p.amount || 0))));
-                    }, 0);
-
-                    const referencias = aptPayments
-                        .map(function(p) { return p.reference || p.ref; })
-                        .filter(Boolean)
-                        .join(', ');
-            
-                    let detallePagoText = 'Asignado: $' + montoAsignado.toFixed(2) + ' | Pagado: <span class="font-bold text-teal-600">$' + totalPagadoUsd.toFixed(2) + '</span>';
-                    if (referencias) {
-                        detallePagoText += ' <span class="text-slate-400 text-[11px]">(Ref: ' + referencias + ')</span>';
-                    }
-
-                    const diferencia = totalPagadoUsd - montoAsignado;
-            
-                    let estadoBadge = '';
-                    if (montoAsignado === 0 && totalPagadoUsd === 0) {
-                        estadoBadge = '<span class="px-2 py-1 bg-slate-100 text-slate-500 font-medium rounded text-xs">Sin Registro</span>';
-                    } else if (Math.abs(diferencia) < 0.01) {
-                        estadoBadge = '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 font-bold rounded text-xs">✔ Solvente</span>';
-                    } else if (diferencia < 0) {
-                        estadoBadge = '<span class="px-2 py-1 bg-rose-100 text-rose-700 font-bold rounded text-xs">Deudor: -$' + Math.abs(diferencia).toFixed(2) + '</span>';
-                    } else {
-                        estadoBadge = '<span class="px-2 py-1 bg-blue-100 text-blue-700 font-bold rounded text-xs">A favor: +$' + diferencia.toFixed(2) + '</span>';
-                    }
-
-                    ordBody.innerHTML += '<tr class="border-b hover:bg-slate-50 text-xs">' +
-                        '<td class="p-2 font-bold text-center">' + o.apto + '</td>' +
-                        '<td class="p-2 text-center">' + ownerName + '</td>' +
-                        '<td class="p-2 text-slate-700">' + detallePagoText + '</td>' +
-                        '<td class="p-2 text-right font-semibold">$' + montoAsignado.toFixed(2) + '</td>' +
-                        '<td class="p-2 text-center">' + estadoBadge + '</td>' +
-                        '</tr>';
-                });
-            }
-
-            const provBody = document.getElementById('report-providers-body');
-            if (provBody) {
-                provBody.innerHTML = '';
-                (state.providers || []).forEach(function(p) {
-                    provBody.innerHTML += '<tr class="border-b text-xs">' +
-                        '<td class="p-2 font-bold">' + (p.name || '-') + '</td>' +
-                        '<td class="p-2">' + (p.service || '-') + '</td>' +
-                        '<td class="p-2 text-right font-mono">' + (p.phone || 'N/A') + '</td>' +
-                        '</tr>';
+                    tbody.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-3 text-center font-medium text-slate-500">${index + 1}</td>
+                            <td class="p-3 font-bold text-slate-800">${o.apto}</td>
+                            <td class="p-3 text-center font-bold ${pendingMonthsCount > 0 ? 'text-rose-500' : 'text-slate-500'}">${pendingMonthsCount}</td>
+                            <td class="p-3 text-right font-black text-slate-900">$${totalAptoDebt.toFixed(2)}</td>
+                            ${periodCellsHtml}
+                        </tr>
+                    `;
                 });
             }
         }
 
+        // Mantener compatibilidad con funciones previas
         function generateReports() {
-            generateCustomRangeReport();
+            generateMatrixReport();
         }
 
         async function saveBuildingConfig(e) {
