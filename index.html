@@ -1806,34 +1806,76 @@ function renderPendingPayments() {
 
         // ==================== REPORTES Y CONFIGURACIÓN ====================
         function generateReports() {
-            const toInput = document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
+            const selectedPeriod = document.getElementById('rep-period')?.value || new Date().toISOString().slice(0, 7);
             const periodLabel = document.getElementById('rep-ord-period-label');
-            if (periodLabel) periodLabel.innerText = `Periodo: Hasta ${toInput}`;
+            if (periodLabel) periodLabel.innerText = `Periodo: ${selectedPeriod}`;
+
+            // 1. Buscar el aviso archivado correspondiente al período seleccionado
+            const notice = (state.billingNotices || []).find(n => n.period === selectedPeriod);
+            
+            let ownersAssigned = {};
+            if (notice) {
+                let details = notice.details;
+                if (typeof details === 'string') {
+                    try { details = JSON.parse(details); } catch (e) { details = {}; }
+                }
+                // Mapear lo que le corresponde a cada apartamento en este período específico
+                (details.owners || []).forEach(o => {
+                    ownersAssigned[String(o.apto).trim()] = Number(o.usd || 0);
+                });
+            }
+
+            // Filtrar pagos aprobados para este período
+            const paymentsList = (state.payments || []).filter(p => p.period === selectedPeriod && p.status === 'Aprobado');
 
             const ordBody = document.getElementById('report-ordinary-body');
             if (ordBody) {
                 ordBody.innerHTML = '';
-                state.owners.forEach(o => {
-                    ordBody.innerHTML += `
-                        <tr class="border-b hover:bg-slate-50">
-                            <td class="p-2 font-bold text-center">${o.apto}</td>
-                            <td class="p-2 text-center">-</td>
-                            <td class="p-2 text-xs text-slate-700">Alícuota ${o.alicuota}%</td>
-                            <td class="p-2 text-right font-semibold">$0.00</td>
-                            <td class="p-2 text-right text-emerald-500 font-bold">Solvente</td>
-                        </tr>
-                    `;
-                });
+                
+                if (!notice) {
+                    ordBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay un aviso de cobro archivado para el período ${selectedPeriod}.</td></tr>`;
+                } else {
+                    state.owners.forEach(o => {
+                        const aptoKey = String(o.apto).trim();
+                        const montoAsignado = ownersAssigned[aptoKey] || 0;
+                        
+                        // Sumar pagos aprobados de este apto en este período
+                        const aptPayments = paymentsList.filter(p => String(p.apto).trim() === aptoKey);
+                        const totalPagadoUsd = aptPayments.reduce((sum, p) => sum + Number(p.usdEquiv || p.amount || 0), 0);
+                        const referencias = aptPayments.map(p => `${p.reference || p.ref || 'S/N'}`).join(', ') || '-';
+
+                        const diferencia = totalPagadoUsd - montoAsignado;
+                        
+                        let estadoBadge = '';
+                        if (Math.abs(diferencia) < 0.01) {
+                            estadoBadge = `<span class="px-2 py-1 bg-emerald-100 text-emerald-700 font-bold rounded text-xs">Solvente</span>`;
+                        } else if (diferencia < 0) {
+                            estadoBadge = `<span class="px-2 py-1 bg-rose-100 text-rose-700 font-bold rounded text-xs">Deudor: -$${Math.abs(diferencia).toFixed(2)}</span>`;
+                        } else {
+                            estadoBadge = `<span class="px-2 py-1 bg-blue-100 text-blue-700 font-bold rounded text-xs">A favor: +$${diferencia.toFixed(2)}</span>`;
+                        }
+
+                        ordBody.innerHTML += `
+                            <tr class="border-b hover:bg-slate-50 text-xs">
+                                <td class="p-2 font-bold text-center">${o.apto}</td>
+                                <td class="p-2 text-center">${referencias}</td>
+                                <td class="p-2 text-slate-700">Asignado: $${montoAsignado.toFixed(2)} | Pagado: <span class="font-bold text-teal-600">$${totalPagadoUsd.toFixed(2)}</span></td>
+                                <td class="p-2 text-right font-semibold">$${montoAsignado.toFixed(2)}</td>
+                                <td class="p-2 text-center">${estadoBadge}</td>
+                            </tr>
+                        `;
+                    });
+                }
             }
 
             const provBody = document.getElementById('report-providers-body');
             if (provBody) {
                 provBody.innerHTML = '';
-                state.providers.forEach(p => {
+                (state.providers || []).forEach(p => {
                     provBody.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-2 font-bold">${p.name}</td>
-                            <td class="p-2">${p.service}</td>
+                        <tr class="border-b text-xs">
+                            <td class="p-2 font-bold">${p.name || '-'}</td>
+                            <td class="p-2">${p.service || '-'}</td>
                             <td class="p-2 text-right font-mono">${p.phone || 'N/A'}</td>
                         </tr>
                     `;
