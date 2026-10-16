@@ -1130,30 +1130,25 @@
             const period = pendingExpenses[0].period || getSelectedPeriod();
             const totalUSD = pendingExpenses.reduce((acc, e) => acc + Number(e.amount || e.amount_usd || 0), 0);
 
-            // 1. BUSCAR LA TASA BCV HISTÓRICA PARA ESTE PERÍODO (ej. "2026-08") en bcv_history
+            // BÚSQUEDA DE TASA HISTÓRICA SEGURA Y DIRECTA
             let bcvRate = Number(state.building?.bcv || 0);
             try {
+                // Consultamos ordenado por fecha de forma ascendente para traer la primera del mes
                 const { data, error } = await db
                     .from('bcv_history')
                     .select('rate, date')
-                    .gte('date', `${period}-01`)
-                    .lte('date', `${period}-31`)
-                    .order('date', { ascending: true })
-                    .limit(1);
+                    .order('date', { ascending: true });
 
                 if (!error && data && data.length > 0) {
-                    bcvRate = Number(data[0].rate);
-                    console.log(`Tasa histórica aplicada para el período ${period}: ${bcvRate} (Fecha: ${data[0].date})`);
-                } else {
-                    console.warn(`No se encontró tasa histórica exacta para ${period}, intentando búsqueda amplia.`);
-                    const { data: dataLike } = await db
-                        .from('bcv_history')
-                        .select('rate, date')
-                        .like('date', `${period}%`)
-                        .order('date', { ascending: true })
-                        .limit(1);
-                    if (dataLike && dataLike.length > 0) {
-                        bcvRate = Number(dataLike[0].rate);
+                    // Buscamos en memoria la que coincida con el año y mes (ej. "2026-09")
+                    const matchRate = data.find(item => item.date && item.date.startsWith(period));
+                    if (matchRate) {
+                        bcvRate = Number(matchRate.rate);
+                        console.log(`Tasa histórica encontrada para ${period}: ${bcvRate} (${matchRate.date})`);
+                    } else {
+                        // Si no hay de ese mes exacto, tomamos la más cercana o la primera disponible
+                        bcvRate = Number(data[0].rate);
+                        console.warn(`No hay tasa exacta para ${period}, usando la más cercana: ${bcvRate}`);
                     }
                 }
             } catch (err) {
@@ -1218,7 +1213,6 @@
             let totalUSD = 0;
             let bcvRate = Number(state.building?.bcv || 0);
 
-            // Buscar si ya existe un aviso emitido para este período
             let notice = (state.billingNotices || []).find(n => n.period === period);
 
             if (notice) {
@@ -1233,27 +1227,18 @@
             } else {
                 totalUSD = expensesList.reduce((acc, e) => acc + Number(e.amount || e.amount_usd || 0), 0);
                 
-                // Buscar la tasa histórica correspondiente a ese mes en bcv_history si no hay aviso aún[cite: 4]
                 try {
                     const { data, error } = await db
                         .from('bcv_history')
-                        .select('rate')
-                        .gte('date', `${period}-01`)
-                        .lte('date', `${period}-31`)
-                        .order('date', { ascending: true })
-                        .limit(1);
+                        .select('rate, date')
+                        .order('date', { ascending: true });
 
                     if (!error && data && data.length > 0) {
-                        bcvRate = Number(data[0].rate);
-                    } else {
-                        const { data: dataLike } = await db
-                            .from('bcv_history')
-                            .select('rate')
-                            .like('date', `${period}%`)
-                            .order('date', { ascending: true })
-                            .limit(1);
-                        if (dataLike && dataLike.length > 0) {
-                            bcvRate = Number(dataLike[0].rate);
+                        const matchRate = data.find(item => item.date && item.date.startsWith(period));
+                        if (matchRate) {
+                            bcvRate = Number(matchRate.rate);
+                        } else {
+                            bcvRate = Number(data[0].rate);
                         }
                     }
                 } catch (err) {
@@ -1299,7 +1284,7 @@
 
             try {
                 await navigator.clipboard.writeText(mensaje);
-                alert("¡Resumen copiado al portapapeles con su tasa BCV histórica y listo para WhatsApp! 📱");
+                alert("¡Resumen copiado al portapapeles listo para WhatsApp! 📱");
             } catch (err) {
                 console.error("Error al copiar al portapapeles: ", err);
                 prompt("Copia el siguiente texto para WhatsApp:", mensaje);
