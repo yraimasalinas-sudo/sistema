@@ -1948,7 +1948,7 @@
             const fromVal = document.getElementById('rep-period-from') ? document.getElementById('rep-period-from').value : '';
             const toVal = document.getElementById('rep-period-to') ? (document.getElementById('rep-period-to').value || fromVal) : fromVal;
 
-            const buildingName = (state.building && state.building.name) ? state.building.name : 'Residencias El Parque';
+            const buildingName = (state.building && state.building.name) ? state.building.name : 'Residencias Aventura Suites';
             const buildingRif = (state.building && state.building.rif) ? state.building.rif : 'J-29819798-6';
             
             const nameEl = document.getElementById('rep-building-name');
@@ -1971,7 +1971,7 @@
             let periodsSet = new Set();
             let aptoPeriodDebt = {};
 
-            // 1. Procesar Avisos de Cobro Guardados en Supabase
+            // 1. Procesar Avisos de Cobro (Billing Notices de Supabase)
             const notices = (state.billingNotices || []).filter(function(n) {
                 if (!fromNum && !toNum) return true;
                 const nNum = periodToNumber(n.period);
@@ -1990,64 +1990,112 @@
                     try { details = JSON.parse(details); } catch (e) { details = {}; }
                 }
 
-                // Soportar cualquier variante de estructura guardada (owners, alicuotas, items)
+                // Soportar la estructura real de Supabase (owners o alicuotas)
                 const ownersList = details.owners || details.alicuotas || details.items || [];
                 
                 ownersList.forEach(function(o) {
-                    const cleanApto = String(o.apto || o.apartment || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
-                    const amt = Number(o.usd || o.monto || o.amount || o.monto_usd || 0);
+                    const cleanApto = String(o.apto || o.apartment || o.unidad || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
+                    // Buscar montos en USD según las claves que guardas en los JSON
+                    const amt = Number(o.usd || o.amount_usd || o.monto || o.amount || o.total || 0);
                     
-                    if (cleanApto) {
+                    if (cleanApto && amt > 0) {
                         if (!aptoPeriodDebt[cleanApto]) aptoPeriodDebt[cleanApto] = {};
                         aptoPeriodDebt[cleanApto][p] = (aptoPeriodDebt[cleanApto][p] || 0) + amt;
                     }
                 });
             });
 
-            // 2. Procesar Gastos Activos no cerrados (Expenses pendientes)
-            (state.expenses || []).filter(function(e) { return e.status !== 'billed'; }).forEach(function(e) {
-                const p = e.period || 'Actual';
+            // 2. Procesar Gastos Activos (Expenses) por si hay períodos sueltos
+            (state.expenses || []).filter(function(e) {
+                if (e.status === 'billed') return false;
+                if (!fromNum && !toNum) return true;
+                const eNum = periodToNumber(e.period);
+                if (fromNum && toNum) return eNum >= fromNum && eNum <= toNum;
+                if (fromNum) return eNum >= fromNum;
+                if (toNum) return eNum <= toNum;
+                return true;
+            }).forEach(function(e) {
+                const p = e.period || '2026-10';
                 periodsSet.add(p);
-                const totalExpUsd = Number(e.amount || e.amount_usd || 0);
+                const totalExpUsd = Number(e.amount || 0);
 
-                (state.owners || []).forEach(function(o) {
-                    const cleanApto = String(o.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
-                    const alicuotaVal = Number(o.alicuota || 0);
-                    const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
-                    const amtApto = totalExpUsd * factor;
+                // Si el gasto aplica a "TODOS", distribuirlo por alícuota
+                const targetApto = String(e.apto || '').trim().toUpperCase();
+                
+                if (targetApto === 'TODOS' || !targetApto) {
+                    (state.owners || []).forEach(function(o) {
+                        const cleanApto = String(o.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
+                        const alicuotaVal = Number(o.alicuota || 0);
+                        const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+                        const amtApto = totalExpUsd * factor;
 
-                    if (cleanApto && amtApto > 0) {
-                        if (!aptoPeriodDebt[cleanApto]) aptoPeriodDebt[cleanApto] = {};
-                        if (!aptoPeriodDebt[cleanApto][p]) {
-                            aptoPeriodDebt[cleanApto][p] = amtApto;
+                        if (cleanApto && amtApto > 0) {
+                            if (!aptoPeriodDebt[cleanApto]) aptoPeriodDebt[cleanApto] = {};
+                            if (!aptoPeriodDebt[cleanApto][p]) {
+                                aptoPeriodDebt[cleanApto][p] = amtApto;
+                            }
                         }
-                    }
-                });
+                    });
+                } else {
+                    // Gasto dirigido a un apartamento específico
+                    if (!aptoPeriodDebt[targetApto]) aptoPeriodDebt[targetApto] = {};
+                    aptoPeriodDebt[targetApto][p] = (aptoPeriodDebt[targetApto][p] || 0) + totalExpUsd;
+                }
             });
+
+            // Si por alguna razón el filtro de fechas dejó los períodos vacíos, usar todos los disponibles en memoria
+            if (periodsSet.size === 0) {
+                (state.billingNotices || []).forEach(function(n) { if (n.period) periodsSet.add(n.period); });
+                (state.expenses || []).forEach(function(e) { if (e.period) periodsSet.add(e.period); });
+            }
 
             let periodsListAsc = Array.from(periodsSet).sort();
             let periodsListDesc = [...periodsListAsc].reverse();
 
-            // 3. Construir la Cabecera de la Tabla
-            const thead = document.getElementById('matrix-table-head');
+            // 3. Ubicar o crear la tabla en el DOM
+            let thead = document.getElementById('matrix-table-head');
+            let tbody = document.getElementById('matrix-table-body');
+
+            if (!thead || !tbody) {
+                const reportContainer = document.getElementById('tab-reportes') || document.getElementById('reportes') || document.body;
+                let targetTable = reportContainer.querySelector('table');
+                
+                if (!targetTable) {
+                    const container = reportContainer.querySelector('.space-y-6') || reportContainer;
+                    const divWrapper = document.createElement('div');
+                    divWrapper.className = 'overflow-x-auto bg-white rounded-2xl shadow-sm border border-slate-200 mt-4';
+                    divWrapper.innerHTML = '<table class="w-full text-left border-collapse"><thead id="matrix-table-head" class="bg-slate-100 text-slate-700 text-xs uppercase font-semibold"></thead><tbody id="matrix-table-body" class="text-sm divide-y divide-slate-100"></tbody></table>';
+                    container.appendChild(divWrapper);
+                } else {
+                    if (!targetTable.querySelector('thead')) {
+                        targetTable.innerHTML = '<thead id="matrix-table-head" class="bg-slate-100 text-slate-700 text-xs uppercase font-semibold"></thead><tbody id="matrix-table-body" class="text-sm divide-y divide-slate-100"></tbody>';
+                    } else {
+                        targetTable.querySelector('thead').id = 'matrix-table-head';
+                        if (targetTable.querySelector('tbody')) targetTable.querySelector('tbody').id = 'matrix-table-body';
+                    }
+                }
+                thead = document.getElementById('matrix-table-head');
+                tbody = document.getElementById('matrix-table-body');
+            }
+
             if (thead) {
-                let headHtml = '<th class="p-3 text-center">Nro</th>' +
+                let headHtml = '<tr class="bg-slate-100 text-slate-700">' +
+                               '<th class="p-3 text-center">Nro</th>' +
                                '<th class="p-3">Unidad / Apto</th>' +
                                '<th class="p-3 text-center">R. Pend</th>' +
                                '<th class="p-3 text-right">Total ($)</th>';
                 periodsListDesc.forEach(function(p) {
                     headHtml += '<th class="p-3 text-right">' + p + '</th>';
                 });
+                headHtml += '</tr>';
                 thead.innerHTML = headHtml;
             }
 
             const approvedPayments = (state.payments || []).filter(function(p) {
                 const st = String(p.status || '').toLowerCase();
-                return st === 'aprobado' || st === 'aprobada';
+                return st === 'aprobado' || st === 'aprobada' || st === 'approved' || !p.status; // Incluir si no tiene estatus estricto
             });
 
-            // 4. Renderizar Filas por Apartamento con resta de pagos antiguos a nuevos
-            const tbody = document.getElementById('matrix-table-body');
             if (tbody) {
                 tbody.innerHTML = '';
                 const owners = state.owners || [];
@@ -2069,7 +2117,7 @@
                         let amt = p.usdEquiv;
                         if (amt === undefined) amt = p.usd_equiv;
                         if (amt === undefined) amt = p.amount_usd;
-                        if (amt === undefined) amt = p.amount;
+                        if (amt === undefined) amt = Number(p.amount || 0) / (state.building.bcv || 879.12);
                         return sum + Number(amt || 0);
                     }, 0);
 
@@ -2120,13 +2168,6 @@
                         '</tr>';
                 });
             }
-        }
-        function generateReports() {
-            generateMatrixReport();
-        }
-        // Alias de compatibilidad para evitar el error de referencia
-        function generateCustomRangeReport() {
-            generateMatrixReport();
         }
         async function saveBuildingConfig(e) {
             e.preventDefault();
