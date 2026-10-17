@@ -1737,7 +1737,7 @@
             ventanaDetalle.document.close();
         }
 
-// ==================== VISTA DE PROPIETARIOS HISTÓRICA Y SINCRONIZADA ====================
+        // ==================== VISTA DE PROPIETARIOS (SOLO EN USD $) ====================
         function renderOwnerData() {
             if (!currentUser || currentUser.role !== 'owner') return;
 
@@ -1745,159 +1745,101 @@
             const rawApto = currentUser.apto || '1A';
             const myAptoClean = normalizeApto(rawApto);
 
-            // 1. Buscar al propietario en la tabla 'owners' (usando 'owner_name')
+            // 1. Buscar al propietario en la tabla 'owners'
             const myOwnerObj = (state.owners || []).find(o => normalizeApto(o.apto) === myAptoClean) || currentUser;
 
-            // Rellenar datos principales en la interfaz
+            // Rellenar datos de cabecera
             const aptoEl = document.getElementById('owner-dash-apto');
             if (aptoEl) aptoEl.innerText = rawApto;
 
             const nameEl = document.getElementById('owner-dash-name');
-            if (nameEl) nameEl.innerText = myOwnerObj.owner_name || myOwnerObj.owner || currentUser.owner_name || 'Propietario';
+            if (nameEl) nameEl.innerText = myOwnerObj.owner || myOwnerObj.owner_name || currentUser.owner_name || currentUser.owner || 'Propietario';
 
             const alicuotaVal = Number(myOwnerObj.alicuota || currentUser.alicuota || 6);
             const alicuotaEl = document.getElementById('owner-dash-alicuota');
             if (alicuotaEl) alicuotaEl.innerText = `${alicuotaVal}%`;
 
-            const bcvRateGeneral = Number(state.building?.bcv || 879.12);
-            const bcvRateEl = document.getElementById('owner-bcv-rate');
-            if (bcvRateEl) bcvRateEl.innerText = bcvRateGeneral.toFixed(2);
-
             const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
 
-            // 2. Recorrer TODOS los avisos de cobro (billingNotices) históricos de Supabase
             let totalHistoricoUsd = 0;
-            let allReceiptItems = [];
 
-            if (state.billingNotices && state.billingNotices.length > 0) {
-                state.billingNotices.forEach(notice => {
-                    let details = notice.details;
-                    if (typeof details === 'string') {
-                        try { details = JSON.parse(details); } catch (e) { details = {}; }
-                    }
+            // 2. Renderizar la Tabla Principal de AVISOS MENSUALES (Solo $)
+            const receiptBody = document.getElementById('owner-receipt-body');
+            if (receiptBody) {
+                receiptBody.innerHTML = '';
+                const notices = state.billingNotices || [];
 
-                    const noticeBcv = Number(notice.bcv_rate || details.bcv_rate || bcvRateGeneral);
-
-                    // Revisar si el aviso tiene montos específicos por propietario en su estructura JSONB
-                    const ownersList = details.owners || details.alicuotas || details.items || [];
-                    const myNoticeObj = ownersList.find(o => normalizeApto(o.apto || o.apartment) === myAptoClean);
-
-                    if (myNoticeObj) {
-                        const noticeAmt = Number(myNoticeObj.usd || myNoticeObj.amount_usd || myNoticeObj.monto || myNoticeObj.amount || 0);
-                        totalHistoricoUsd += noticeAmt;
-                    }
-
-                    // Acumular los ítems o gastos para mostrarlos en el recibo visual
-                    const expensesList = details.expenses || details.items || details.items_gastos || [];
-                    expensesList.forEach(exp => {
-                        const totalBldg = Number(exp.amount || exp.amount_usd || exp.monto || 0);
-                        const expAptoClean = normalizeApto(exp.apto);
-                        
-                        // Si el gasto es individual de este apartamento o es general del edificio
-                        const isAlreadyAptoShare = expAptoClean && expAptoClean === myAptoClean;
-                        const myUsdShare = isAlreadyAptoShare ? totalBldg : (totalBldg * factor);
-
-                        // Si el aviso no traía el monto directo por apartamento en 'ownersList', sumamos cada gasto desglosado
-                        if (!myNoticeObj) {
-                            totalHistoricoUsd += myUsdShare;
+                if (notices.length > 0) {
+                    notices.forEach(notice => {
+                        let details = notice.details;
+                        if (typeof details === 'string') {
+                            try { details = JSON.parse(details); } catch (e) { details = {}; }
                         }
 
-                        allReceiptItems.push({
-                            period: notice.period || 'Anterior',
-                            description: exp.description || exp.concept || `Aviso Período ${notice.period}`,
-                            type: exp.type || 'ordinaria',
-                            totalBldg: totalBldg,
-                            myUsd: myUsdShare,
-                            bcvRate: noticeBcv
-                        });
+                        const totalBldgUsd = Number(notice.total_amount_usd || details.total_usd || 0);
+
+                        // Buscar cuota del propietario en el aviso o calcularla
+                        const ownersList = details.owners || details.alicuotas || details.items || [];
+                        const myNoticeObj = ownersList.find(o => normalizeApto(o.apto || o.apartment) === myAptoClean);
+                        
+                        const myUsdShare = myNoticeObj 
+                            ? Number(myNoticeObj.usd || myNoticeObj.amount_usd || myNoticeObj.monto || 0)
+                            : (totalBldgUsd * factor);
+
+                        totalHistoricoUsd += myUsdShare;
+
+                        receiptBody.innerHTML += `
+                            <tr class="border-b hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-700">${notice.period || 'Sin Período'}</td>
+                                <td class="p-3"><span class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-[11px] font-bold">${String(notice.type || 'ALL').toUpperCase()}</span></td>
+                                <td class="p-3 text-right font-bold text-slate-700">$${totalBldgUsd.toFixed(2)}</td>
+                                <td class="p-3 text-right font-extrabold text-teal-600">$${myUsdShare.toFixed(2)}</td>
+                                <td class="p-3 text-center">
+                                    <button onclick="verDetalleAvisoPropietario('${notice.id}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold shadow-sm transition flex items-center justify-center gap-1 mx-auto">
+                                        👁️ Ver Detalle
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
                     });
-                });
+                } else {
+                    receiptBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No hay avisos de cobro registrados.</td></tr>`;
+                }
             }
 
-            // Si no hay avisos procesados en billingNotices, recurrir a los gastos sueltos de la tabla expenses
-            if (totalHistoricoUsd === 0) {
-                const fallbackExpenses = (state.expenses || []);
-                fallbackExpenses.forEach(e => {
-                    const totalBldg = Number(e.amount || e.amount_usd || e.monto || 0);
-                    const eAptoClean = normalizeApto(e.apto);
-                    const isAlreadyAptoShare = eAptoClean && eAptoClean === myAptoClean;
-                    const myShare = isAlreadyAptoShare ? totalBldg : (totalBldg * factor);
-                    totalHistoricoUsd += myShare;
-
-                    allReceiptItems.push({
-                        period: e.period || 'Actual',
-                        description: e.description || e.concept || 'Gasto General',
-                        type: e.type || 'ordinaria',
-                        totalBldg: totalBldg,
-                        myUsd: myShare,
-                        bcvRate: bcvRateGeneral
-                    });
-                });
-            }
-
-            // 3. Filtrar y sumar los pagos aprobados del propietario
+            // 3. Pagos Aprobados y Saldo Neto
             const myApprovedPayments = (state.payments || []).filter(p => {
                 const pAptoClean = normalizeApto(p.apto || p.apartment);
                 const pStatus = String(p.status || '').toLowerCase();
                 return pAptoClean === myAptoClean && (pStatus === 'aprobado' || pStatus === 'aprobada' || pStatus === 'approved');
             });
 
+            const bcvRateGeneral = Number(state.building?.bcv || 879.12);
             const totalPaidUsd = myApprovedPayments.reduce((acc, p) => {
-                let amt = p.usdEquiv;
-                if (amt === undefined) amt = p.usd_equiv;
-                if (amt === undefined) amt = p.amount_usd;
-                if (amt === undefined) amt = Number(p.amount || 0) / bcvRateGeneral;
+                let amt = p.usdEquiv ?? p.usd_equiv ?? p.amount_usd ?? (Number(p.amount || 0) / bcvRateGeneral);
                 return acc + Number(amt || 0);
             }, 0);
 
-            // 4. Calcular saldo neto pendiente acumulado
             const netBalanceUsd = Math.max(0, totalHistoricoUsd - totalPaidUsd);
-            const netBalanceBs = netBalanceUsd * bcvRateGeneral;
 
             const balanceEl = document.getElementById('owner-dash-balance');
             if (balanceEl) balanceEl.innerText = `$${netBalanceUsd.toFixed(2)}`;
 
+            // Ocultar texto en Bolívares si existe en el HTML
             const balanceBsEl = document.getElementById('owner-dash-balance-bs');
-            if (balanceBsEl) balanceBsEl.innerText = `Monto a pagar en Bolívares: Bs. ${netBalanceBs.toFixed(2)}`;
+            if (balanceBsEl) balanceBsEl.innerText = '';
 
-            // 5. Renderizar la tabla de recibos / gastos acumulados
-            const receiptBody = document.getElementById('owner-receipt-body');
-            if (receiptBody) {
-                receiptBody.innerHTML = '';
-                if (allReceiptItems.length > 0) {
-                    allReceiptItems.forEach(e => {
-                        const myBs = e.myUsd * e.bcvRate;
-
-                        receiptBody.innerHTML += `
-                            <tr class="border-b">
-                                <td class="p-2 font-bold">${e.description} <br><span class="text-[10px] text-slate-400">Período: ${e.period}</span></td>
-                                <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${String(e.type).toUpperCase()}</span></td>
-                                <td class="p-2 text-right">$${e.totalBldg.toFixed(2)}</td>
-                                <td class="p-2 text-right font-bold text-teal-600">$${e.myUsd.toFixed(2)}</td>
-                                <td class="p-2 text-right font-semibold">Bs. ${myBs.toFixed(2)}</td>
-                            </tr>
-                        `;
-                    });
-                } else {
-                    receiptBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay registros de cobro para este apartamento.</td></tr>`;
-                }
-            }
-
-            // 6. Renderizar el historial de pagos del propietario
+            // 4. Historial de Pagos (Solo $)
             const historyBody = document.getElementById('owner-history-body');
             if (historyBody) {
                 historyBody.innerHTML = '';
                 const myPayments = (state.payments || []).filter(p => normalizeApto(p.apto || p.apartment) === myAptoClean);
 
                 if (myPayments.length === 0) {
-                    historyBody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay pagos registrados.</td></tr>';
+                    historyBody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-400">No hay pagos registrados.</td></tr>';
                 } else {
                     myPayments.forEach(p => {
-                        let usdVal = p.usdEquiv;
-                        if (usdVal === undefined) usdVal = p.usd_equiv;
-                        if (usdVal === undefined) usdVal = p.amount_usd;
-                        if (usdVal === undefined) usdVal = Number(p.amount || 0) / bcvRateGeneral;
-
+                        let usdVal = p.usdEquiv ?? p.usd_equiv ?? p.amount_usd ?? (Number(p.amount || 0) / bcvRateGeneral);
                         const st = p.status || 'Registrado';
                         const stClass = (st.toLowerCase() === 'aprobado' || st.toLowerCase() === 'aprobada') ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
 
@@ -1905,7 +1847,6 @@
                             <tr class="border-b">
                                 <td class="p-2">${p.date || p.created_at?.split('T')[0] || '-'}</td>
                                 <td class="p-2">${p.concept || 'Pago'}<br><span class="text-[10px] text-slate-400">Ref: ${p.reference || p.ref || 'S/N'}</span></td>
-                                <td class="p-2 text-right font-semibold">Bs. ${Number(p.amount || 0).toFixed(2)}</td>
                                 <td class="p-2 text-right font-bold text-teal-600">$${Number(usdVal || 0).toFixed(2)}</td>
                                 <td class="p-2 text-center"><span class="px-2 py-1 rounded text-[10px] font-bold ${stClass}">${st}</span></td>
                             </tr>
@@ -1913,6 +1854,95 @@
                     });
                 }
             }
+        }
+
+        // ==================== RECIBO DETALLADO (SOLO EN USD $) ====================
+        function verDetalleAvisoPropietario(noticeId) {
+            const notice = (state.billingNotices || []).find(n => String(n.id) === String(noticeId));
+            if (!notice) return alert("No se encontró el aviso seleccionado.");
+
+            let details = notice.details;
+            if (typeof details === 'string') {
+                try { details = JSON.parse(details); } catch (e) { details = {}; }
+            }
+
+            const rawApto = currentUser?.apto || '1A';
+            const normalizeApto = (val) => String(val || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+            const myAptoClean = normalizeApto(rawApto);
+            const myOwnerObj = (state.owners || []).find(o => normalizeApto(o.apto) === myAptoClean) || currentUser;
+            const alicuotaVal = Number(myOwnerObj.alicuota || 6);
+            const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+
+            const expensesList = details.expenses || details.items || details.items_gastos || [];
+
+            let htmlRows = '';
+            let totalMyShareUsd = 0;
+
+            expensesList.forEach(exp => {
+                const totalBldg = Number(exp.amount || exp.amount_usd || exp.monto || 0);
+                const isAlreadyAptoShare = normalizeApto(exp.apto) === myAptoClean;
+                const myUsd = isAlreadyAptoShare ? totalBldg : (totalBldg * factor);
+                totalMyShareUsd += myUsd;
+
+                htmlRows += `
+                    <tr class="border-b text-xs">
+                        <td class="p-2 text-left font-semibold text-slate-800">${exp.description || exp.concept || 'Gasto'}</td>
+                        <td class="p-2 text-center"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(exp.type || 'ORDINARIA').toUpperCase()}</span></td>
+                        <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
+                        <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            // Ventana limpia del Recibo
+            const windowPrint = window.open('', '_blank', 'width=750,height=650');
+            windowPrint.document.write(`
+                <html>
+                <head>
+                    <title>Recibo de Cobro - Apt ${rawApto}</title>
+                    <script src="https://cdn.tailwindcss.com"></script>
+                </head>
+                <body class="p-6 bg-white text-slate-800">
+                    <div class="max-w-xl mx-auto border p-6 rounded-lg shadow-sm">
+                        <div class="text-center border-b pb-4 mb-4">
+                            <h1 class="text-xl font-bold text-slate-900">${state.building?.name || 'Residencias Aventura Suites'}</h1>
+                            <p class="text-xs text-slate-500 font-semibold">AVISO DE COBRO HISTÓRICO - PERÍODO: ${notice.period}</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 text-xs bg-slate-50 p-3 rounded mb-4 gap-2">
+                            <div><strong>Apartamento:</strong> ${rawApto}</div>
+                            <div><strong>Propietario:</strong> ${myOwnerObj.owner_name || myOwnerObj.owner || 'Propietario'}</div>
+                            <div><strong>Alícuota:</strong> ${alicuotaVal}%</div>
+                        </div>
+
+                        <h3 class="font-bold text-sm mb-2 text-slate-700">📌 Desglose de Gastos</h3>
+                        <table class="w-full text-left border-collapse mb-4">
+                            <thead>
+                                <tr class="bg-slate-100 text-[11px] text-slate-600 uppercase border-b">
+                                    <th class="p-2">Concepto</th>
+                                    <th class="p-2 text-center">Tipo</th>
+                                    <th class="p-2 text-right">Total Edificio ($)</th>
+                                    <th class="p-2 text-right">Su Cuota ($)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${htmlRows}
+                            </tbody>
+                        </table>
+
+                        <div class="border-t pt-3 flex justify-between items-center text-sm">
+                            <span class="font-bold">TOTAL A PAGAR:</span>
+                            <span class="font-extrabold text-teal-600 text-lg">$${totalMyShareUsd.toFixed(2)}</span>
+                        </div>
+
+                        <div class="mt-6 text-center no-print">
+                            <button onclick="window.print()" class="px-4 py-2 bg-teal-600 text-white font-bold rounded text-xs shadow hover:bg-teal-700">🖨️ Imprimir Recibo</button>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+            windowPrint.document.close();
         }
         // ==================== REPORTE MATRICIAL Y DE GESTIÓN ====================
         function periodToNumber(pStr) {
