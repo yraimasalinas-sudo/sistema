@@ -2036,7 +2036,6 @@
                 const p = e.period || '2026-10';
                 periodsSet.add(p);
                 const totalExpUsd = Number(e.amount || 0);
-
                 const targetApto = String(e.apto || '').trim().toUpperCase();
                 
                 if (targetApto === 'TODOS' || !targetApto) {
@@ -2060,8 +2059,7 @@
             });
 
             if (periodsSet.size === 0) {
-                (state.billingNotices || []).forEach(function(n) { if (n.period) periodsSet.add(n.period); });
-                (state.expenses || []).forEach(function(e) { if (e.period) periodsSet.add(e.period); });
+                periodsSet.add('2026-10');
             }
 
             let periodsListAsc = Array.from(periodsSet).sort();
@@ -2098,7 +2096,8 @@
                                '<th class="p-3 text-center">Nro</th>' +
                                '<th class="p-3">Unidad / Apto</th>' +
                                '<th class="p-3 text-center">R. Pend</th>' +
-                               '<th class="p-3 text-right">Total ($)</th>';
+                               '<th class="p-3 text-right">Total Deuda ($)</th>' +
+                               '<th class="p-3 text-right text-emerald-700">Saldo a Favor ($)</th>';
                 periodsListDesc.forEach(function(p) {
                     headHtml += '<th class="p-3 text-right">' + p + '</th>';
                 });
@@ -2132,13 +2131,14 @@
                         let amt = p.usdEquiv;
                         if (amt === undefined) amt = p.usd_equiv;
                         if (amt === undefined) amt = p.amount_usd;
-                        if (amt === undefined) amt = Number(p.amount || 0) / (state.building.bcv || 879.12);
+                        if (amt === undefined) amt = Number(p.amount || 0) / (state.building.bcv || 36.50);
                         return sum + Number(amt || 0);
                     }, 0);
 
                     let remainingPayment = totalPagadoUsd;
                     let periodBalances = {};
 
+                    // Distribuir dinero del mes más antiguo al más reciente
                     periodsListAsc.forEach(function(p) {
                         const assigned = (aptoPeriodDebt[cleanApto] && aptoPeriodDebt[cleanApto][p]) ? aptoPeriodDebt[cleanApto][p] : 0;
                         if (assigned > 0) {
@@ -2154,6 +2154,7 @@
                         }
                     });
 
+                    const creditBalance = remainingPayment;
                     let totalAptoDebt = 0;
                     let pendingMonthsCount = 0;
                     let periodCellsHtml = '';
@@ -2174,11 +2175,20 @@
                         }
                     });
 
+                    const creditHtml = creditBalance > 0.009
+                        ? '<td class="p-3 text-right font-bold text-emerald-600">+$' + creditBalance.toFixed(2) + '</td>'
+                        : '<td class="p-3 text-right text-slate-400">$0.00</td>';
+
+                    const debtHtml = totalAptoDebt > 0.009
+                        ? '<td class="p-3 text-right font-black text-rose-600">$' + totalAptoDebt.toFixed(2) + '</td>'
+                        : '<td class="p-3 text-right font-black text-slate-700">$0.00</td>';
+
                     tbody.innerHTML += '<tr class="border-b hover:bg-slate-50">' +
                         '<td class="p-3 text-center font-medium text-slate-500">' + (index + 1) + '</td>' +
                         '<td class="p-3 font-bold text-slate-800">' + o.apto + '</td>' +
                         '<td class="p-3 text-center font-bold ' + (pendingMonthsCount > 0 ? 'text-rose-500' : 'text-slate-500') + '">' + pendingMonthsCount + '</td>' +
-                        '<td class="p-3 text-right font-black text-slate-900">$' + totalAptoDebt.toFixed(2) + '</td>' +
+                        debtHtml +
+                        creditHtml +
                         periodCellsHtml +
                         '</tr>';
                 });
