@@ -1936,7 +1936,7 @@
             ventanaImpresion.document.close();
         }
 
-        // ==================== REPORTE MATRICIAL DE CUENTAS POR COBRAR ====================
+// ==================== REPORTE MATRICIAL Y DE GESTIÓN ====================
         function periodToNumber(pStr) {
             if (!pStr) return 0;
             const clean = String(pStr).replace(/[^0-9]/g, '');
@@ -1990,12 +1990,10 @@
                     try { details = JSON.parse(details); } catch (e) { details = {}; }
                 }
 
-                // Soportar la estructura real de Supabase (owners o alicuotas)
                 const ownersList = details.owners || details.alicuotas || details.items || [];
                 
                 ownersList.forEach(function(o) {
                     const cleanApto = String(o.apto || o.apartment || o.unidad || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
-                    // Buscar montos en USD según las claves que guardas en los JSON
                     const amt = Number(o.usd || o.amount_usd || o.monto || o.amount || o.total || 0);
                     
                     if (cleanApto && amt > 0) {
@@ -2005,7 +2003,7 @@
                 });
             });
 
-            // 2. Procesar Gastos Activos (Expenses) por si hay períodos sueltos
+            // 2. Procesar Gastos Activos (Expenses)
             (state.expenses || []).filter(function(e) {
                 if (e.status === 'billed') return false;
                 if (!fromNum && !toNum) return true;
@@ -2019,7 +2017,6 @@
                 periodsSet.add(p);
                 const totalExpUsd = Number(e.amount || 0);
 
-                // Si el gasto aplica a "TODOS", distribuirlo por alícuota
                 const targetApto = String(e.apto || '').trim().toUpperCase();
                 
                 if (targetApto === 'TODOS' || !targetApto) {
@@ -2037,13 +2034,11 @@
                         }
                     });
                 } else {
-                    // Gasto dirigido a un apartamento específico
                     if (!aptoPeriodDebt[targetApto]) aptoPeriodDebt[targetApto] = {};
                     aptoPeriodDebt[targetApto][p] = (aptoPeriodDebt[targetApto][p] || 0) + totalExpUsd;
                 }
             });
 
-            // Si por alguna razón el filtro de fechas dejó los períodos vacíos, usar todos los disponibles en memoria
             if (periodsSet.size === 0) {
                 (state.billingNotices || []).forEach(function(n) { if (n.period) periodsSet.add(n.period); });
                 (state.expenses || []).forEach(function(e) { if (e.period) periodsSet.add(e.period); });
@@ -2093,7 +2088,7 @@
 
             const approvedPayments = (state.payments || []).filter(function(p) {
                 const st = String(p.status || '').toLowerCase();
-                return st === 'aprobado' || st === 'aprobada' || st === 'approved' || !p.status; // Incluir si no tiene estatus estricto
+                return st === 'aprobado' || st === 'aprobada' || st === 'approved' || !p.status;
             });
 
             if (tbody) {
@@ -2168,6 +2163,14 @@
                         '</tr>';
                 });
             }
+        }
+
+        function generateReports() {
+            generateMatrixReport();
+        }
+
+        function generateCustomRangeReport() {
+            generateMatrixReport();
         }
         async function saveBuildingConfig(e) {
             e.preventDefault();
