@@ -1903,7 +1903,11 @@
                 <html>
                 <head>
                     <title>Recibo de Cobro - Apt ${rawApto}</title>
-                    <script src="https://cdn.tailwindcss.com"></script>
+                    <!-- AQUÍ REEMPLAZAS LA ETIQUETA DE TAILWIND: -->
+                    <script>
+                        window.tailwind = { config: { corePlugins: { preflight: true } } };
+                    </script>
+                    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
                 </head>
                 <body class="p-6 bg-white text-slate-800">
                     <div class="max-w-xl mx-auto border p-6 rounded-lg shadow-sm">
@@ -1947,7 +1951,6 @@
                 </html>
             `);
             windowPrint.document.close();
-        }
 
         // ==================== REPORTE MATRICIAL Y DE GESTIÓN ====================
         function periodToNumber(pStr) {
