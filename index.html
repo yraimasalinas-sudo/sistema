@@ -1737,7 +1737,7 @@
             ventanaDetalle.document.close();
         }
 
-        // ==================== VISTA DE PROPIETARIOS ADAPTADA A SUPABASE ====================
+// ==================== VISTA DE PROPIETARIOS HISTÓRICA Y SINCRONIZADA ====================
         function renderOwnerData() {
             if (!currentUser || currentUser.role !== 'owner') return;
 
@@ -1745,10 +1745,10 @@
             const rawApto = currentUser.apto || '1A';
             const myAptoClean = normalizeApto(rawApto);
 
-            // Buscar al propietario en la tabla 'owners' usando 'owner_name'
+            // 1. Buscar al propietario en la tabla 'owners' (usando 'owner_name')
             const myOwnerObj = (state.owners || []).find(o => normalizeApto(o.apto) === myAptoClean) || currentUser;
 
-            // 1. Rellenar datos en la interfaz
+            // Rellenar datos principales en la interfaz
             const aptoEl = document.getElementById('owner-dash-apto');
             if (aptoEl) aptoEl.innerText = rawApto;
 
@@ -1759,41 +1759,83 @@
             const alicuotaEl = document.getElementById('owner-dash-alicuota');
             if (alicuotaEl) alicuotaEl.innerText = `${alicuotaVal}%`;
 
-            const bcvRate = Number(state.building?.bcv || 879.12);
+            const bcvRateGeneral = Number(state.building?.bcv || 879.12);
             const bcvRateEl = document.getElementById('owner-bcv-rate');
-            if (bcvRateEl) bcvRateEl.innerText = bcvRate.toFixed(2);
+            if (bcvRateEl) bcvRateEl.innerText = bcvRateGeneral.toFixed(2);
 
             const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
 
-            // 2. Obtener gastos activos o del último aviso de cobro
-            let activeExpenses = [];
+            // 2. Recorrer TODOS los avisos de cobro (billingNotices) históricos de Supabase
+            let totalHistoricoUsd = 0;
+            let allReceiptItems = [];
+
             if (state.billingNotices && state.billingNotices.length > 0) {
-                const lastNotice = state.billingNotices[state.billingNotices.length - 1];
-                let details = lastNotice.details;
-                if (typeof details === 'string') {
-                    try { details = JSON.parse(details); } catch (e) { details = {}; }
-                }
-                activeExpenses = details.expenses || details.items || [];
+                state.billingNotices.forEach(notice => {
+                    let details = notice.details;
+                    if (typeof details === 'string') {
+                        try { details = JSON.parse(details); } catch (e) { details = {}; }
+                    }
+
+                    const noticeBcv = Number(notice.bcv_rate || details.bcv_rate || bcvRateGeneral);
+
+                    // Revisar si el aviso tiene montos específicos por propietario en su estructura JSONB
+                    const ownersList = details.owners || details.alicuotas || details.items || [];
+                    const myNoticeObj = ownersList.find(o => normalizeApto(o.apto || o.apartment) === myAptoClean);
+
+                    if (myNoticeObj) {
+                        const noticeAmt = Number(myNoticeObj.usd || myNoticeObj.amount_usd || myNoticeObj.monto || myNoticeObj.amount || 0);
+                        totalHistoricoUsd += noticeAmt;
+                    }
+
+                    // Acumular los ítems o gastos para mostrarlos en el recibo visual
+                    const expensesList = details.expenses || details.items || details.items_gastos || [];
+                    expensesList.forEach(exp => {
+                        const totalBldg = Number(exp.amount || exp.amount_usd || exp.monto || 0);
+                        const expAptoClean = normalizeApto(exp.apto);
+                        
+                        // Si el gasto es individual de este apartamento o es general del edificio
+                        const isAlreadyAptoShare = expAptoClean && expAptoClean === myAptoClean;
+                        const myUsdShare = isAlreadyAptoShare ? totalBldg : (totalBldg * factor);
+
+                        // Si el aviso no traía el monto directo por apartamento en 'ownersList', sumamos cada gasto desglosado
+                        if (!myNoticeObj) {
+                            totalHistoricoUsd += myUsdShare;
+                        }
+
+                        allReceiptItems.push({
+                            period: notice.period || 'Anterior',
+                            description: exp.description || exp.concept || `Aviso Período ${notice.period}`,
+                            type: exp.type || 'ordinaria',
+                            totalBldg: totalBldg,
+                            myUsd: myUsdShare,
+                            bcvRate: noticeBcv
+                        });
+                    });
+                });
             }
 
-            if (!activeExpenses || activeExpenses.length === 0) {
-                activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
-            }
-            if (!activeExpenses || activeExpenses.length === 0) {
-                activeExpenses = state.expenses || [];
+            // Si no hay avisos procesados en billingNotices, recurrir a los gastos sueltos de la tabla expenses
+            if (totalHistoricoUsd === 0) {
+                const fallbackExpenses = (state.expenses || []);
+                fallbackExpenses.forEach(e => {
+                    const totalBldg = Number(e.amount || e.amount_usd || e.monto || 0);
+                    const eAptoClean = normalizeApto(e.apto);
+                    const isAlreadyAptoShare = eAptoClean && eAptoClean === myAptoClean;
+                    const myShare = isAlreadyAptoShare ? totalBldg : (totalBldg * factor);
+                    totalHistoricoUsd += myShare;
+
+                    allReceiptItems.push({
+                        period: e.period || 'Actual',
+                        description: e.description || e.concept || 'Gasto General',
+                        type: e.type || 'ordinaria',
+                        totalBldg: totalBldg,
+                        myUsd: myShare,
+                        bcvRate: bcvRateGeneral
+                    });
+                });
             }
 
-            // Calcular el total que le corresponde pagar al apartamento
-            let myTotalUsd = 0;
-            activeExpenses.forEach(e => {
-                const totalBldg = Number(e.amount || e.amount_usd || e.monto || 0);
-                const eAptoClean = normalizeApto(e.apto);
-                const isAlreadyAptoShare = eAptoClean && eAptoClean === myAptoClean;
-                const myShare = isAlreadyAptoShare ? totalBldg : (totalBldg * factor);
-                myTotalUsd += myShare;
-            });
-
-            // 3. Filtrar pagos aprobados del propietario
+            // 3. Filtrar y sumar los pagos aprobados del propietario
             const myApprovedPayments = (state.payments || []).filter(p => {
                 const pAptoClean = normalizeApto(p.apto || p.apartment);
                 const pStatus = String(p.status || '').toLowerCase();
@@ -1804,13 +1846,13 @@
                 let amt = p.usdEquiv;
                 if (amt === undefined) amt = p.usd_equiv;
                 if (amt === undefined) amt = p.amount_usd;
-                if (amt === undefined) amt = Number(p.amount || 0) / bcvRate;
+                if (amt === undefined) amt = Number(p.amount || 0) / bcvRateGeneral;
                 return acc + Number(amt || 0);
             }, 0);
 
-            // 4. Saldo neto pendiente final
-            const netBalanceUsd = Math.max(0, myTotalUsd - totalPaidUsd);
-            const netBalanceBs = netBalanceUsd * bcvRate;
+            // 4. Calcular saldo neto pendiente acumulado
+            const netBalanceUsd = Math.max(0, totalHistoricoUsd - totalPaidUsd);
+            const netBalanceBs = netBalanceUsd * bcvRateGeneral;
 
             const balanceEl = document.getElementById('owner-dash-balance');
             if (balanceEl) balanceEl.innerText = `$${netBalanceUsd.toFixed(2)}`;
@@ -1818,34 +1860,30 @@
             const balanceBsEl = document.getElementById('owner-dash-balance-bs');
             if (balanceBsEl) balanceBsEl.innerText = `Monto a pagar en Bolívares: Bs. ${netBalanceBs.toFixed(2)}`;
 
-            // 5. Renderizar tabla del recibo de cobro
+            // 5. Renderizar la tabla de recibos / gastos acumulados
             const receiptBody = document.getElementById('owner-receipt-body');
             if (receiptBody) {
                 receiptBody.innerHTML = '';
-                if (activeExpenses.length > 0) {
-                    activeExpenses.forEach(e => {
-                        const totalBldg = Number(e.amount || e.amount_usd || e.monto || 0);
-                        const eAptoClean = normalizeApto(e.apto);
-                        const isAlreadyAptoShare = eAptoClean && eAptoClean === myAptoClean;
-                        const myUsd = isAlreadyAptoShare ? totalBldg : (totalBldg * factor);
-                        const myBs = myUsd * bcvRate;
+                if (allReceiptItems.length > 0) {
+                    allReceiptItems.forEach(e => {
+                        const myBs = e.myUsd * e.bcvRate;
 
                         receiptBody.innerHTML += `
                             <tr class="border-b">
-                                <td class="p-2 font-bold">${e.description || e.concept || 'Gasto'}</td>
-                                <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(e.type || 'ordinaria').toUpperCase()}</span></td>
-                                <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
-                                <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
+                                <td class="p-2 font-bold">${e.description} <br><span class="text-[10px] text-slate-400">Período: ${e.period}</span></td>
+                                <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${String(e.type).toUpperCase()}</span></td>
+                                <td class="p-2 text-right">$${e.totalBldg.toFixed(2)}</td>
+                                <td class="p-2 text-right font-bold text-teal-600">$${e.myUsd.toFixed(2)}</td>
                                 <td class="p-2 text-right font-semibold">Bs. ${myBs.toFixed(2)}</td>
                             </tr>
                         `;
                     });
                 } else {
-                    receiptBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay gastos activos en este momento.</td></tr>`;
+                    receiptBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay registros de cobro para este apartamento.</td></tr>`;
                 }
             }
 
-            // 6. Renderizar historial de pagos del propietario
+            // 6. Renderizar el historial de pagos del propietario
             const historyBody = document.getElementById('owner-history-body');
             if (historyBody) {
                 historyBody.innerHTML = '';
@@ -1858,7 +1896,7 @@
                         let usdVal = p.usdEquiv;
                         if (usdVal === undefined) usdVal = p.usd_equiv;
                         if (usdVal === undefined) usdVal = p.amount_usd;
-                        if (usdVal === undefined) usdVal = Number(p.amount || 0) / bcvRate;
+                        if (usdVal === undefined) usdVal = Number(p.amount || 0) / bcvRateGeneral;
 
                         const st = p.status || 'Registrado';
                         const stClass = (st.toLowerCase() === 'aprobado' || st.toLowerCase() === 'aprobada') ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
