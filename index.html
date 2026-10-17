@@ -1737,33 +1737,40 @@
             ventanaDetalle.document.close();
         }
 
-        // ==================== VISTA DE PROPIETARIOS ====================
+        // ==================== VISTA DE PROPIETARIOS ROBUSTA ====================
         function renderOwnerData() {
             if (!currentUser || currentUser.role !== 'owner') return;
 
-            const myApto = String(currentUser.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
-            const myOwnerObj = (state.owners || []).find(o => String(o.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '') === myApto) || currentUser;
+            // Función para normalizar cualquier texto de apartamento ("APTO 1A", "1-A", "1a")
+            const normalizeApto = (val) => String(val || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
 
+            const rawApto = currentUser.apto || currentUser.apartment || '';
+            const myAptoClean = normalizeApto(rawApto);
+
+            // Buscar al propietario en la lista cargada de Supabase
+            const myOwnerObj = (state.owners || []).find(o => normalizeApto(o.apto) === myAptoClean) || currentUser;
+
+            // Mostrar número de apartamento y nombre en la interfaz
             const aptoEl = document.getElementById('owner-dash-apto');
-            if (aptoEl) aptoEl.innerText = myApto;
+            if (aptoEl) aptoEl.innerText = rawApto || myOwnerObj.apto || '1A';
 
             const nameEl = document.getElementById('owner-dash-name');
-            if (nameEl) nameEl.innerText = myOwnerObj.owner || myOwnerObj.nombre || 'Propietario';
+            if (nameEl) nameEl.innerText = myOwnerObj.owner || myOwnerObj.nombre || currentUser.name || 'Propietario';
 
+            const alicuotaVal = Number(myOwnerObj.alicuota || currentUser.alicuota || 0);
             const alicuotaEl = document.getElementById('owner-dash-alicuota');
-            if (alicuotaEl) alicuotaEl.innerText = myOwnerObj.alicuota || 0;
+            if (alicuotaEl) alicuotaEl.innerText = alicuotaVal ? `${alicuotaVal}%` : '0%';
 
             const bcvRate = Number(state.building?.bcv || 879.12);
             const bcvRateEl = document.getElementById('owner-bcv-rate');
             if (bcvRateEl) bcvRateEl.innerText = bcvRate.toFixed(2);
 
-            const alicuotaVal = Number(myOwnerObj.alicuota || 0);
             const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
 
-            let activeExpenses = [];
             let myTotalUsd = 0;
+            let activeExpenses = [];
 
-            // 1. Obtener los datos del último aviso de cobro o de los gastos activos
+            // 1. Extraer el monto asignado en el último aviso de cobro de Supabase
             if (state.billingNotices && state.billingNotices.length > 0) {
                 const lastNotice = state.billingNotices[state.billingNotices.length - 1];
                 let details = lastNotice.details;
@@ -1771,9 +1778,8 @@
                     try { details = JSON.parse(details); } catch (e) { details = {}; }
                 }
 
-                // Revisar si el aviso trae un arreglo detallado por apartamento
-                const ownersList = details.owners || details.alicuotas || [];
-                const myNoticeObj = ownersList.find(o => String(o.apto || o.apartment || '').trim().toUpperCase().replace(/^APTO\s*/i, '') === myApto);
+                const ownersList = details.owners || details.alicuotas || details.items || [];
+                const myNoticeObj = ownersList.find(o => normalizeApto(o.apto || o.apartment) === myAptoClean);
 
                 if (myNoticeObj) {
                     myTotalUsd = Number(myNoticeObj.usd || myNoticeObj.amount_usd || myNoticeObj.monto || myNoticeObj.amount || 0);
@@ -1782,7 +1788,7 @@
                 activeExpenses = details.expenses || details.items || details.items_gastos || [];
             }
 
-            // Si no hay monto directo en el aviso, calcularlo a partir de los gastos activos o ítems
+            // 2. Si el aviso no tenía el monto calculado por apartamento, distribuirlo por alícuota
             if (myTotalUsd === 0) {
                 if (!activeExpenses || activeExpenses.length === 0) {
                     activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
@@ -1790,17 +1796,18 @@
 
                 activeExpenses.forEach(e => {
                     const totalBldg = Number(e.amount || e.amount_usd || e.monto || 0);
-                    const isAlreadyAptoShare = e.apto && String(e.apto).trim().toUpperCase() === myApto;
+                    const eAptoClean = normalizeApto(e.apto);
+                    const isAlreadyAptoShare = eAptoClean && eAptoClean === myAptoClean;
                     const myShare = isAlreadyAptoShare ? totalBldg : (totalBldg * factor);
                     myTotalUsd += myShare;
                 });
             }
 
-            // 2. Filtrar pagos aprobados del propietario (tolerante a mayúsculas/minúsculas)
+            // 3. Obtener pagos aprobados para este apartamento
             const myApprovedPayments = (state.payments || []).filter(p => {
-                const pApto = String(p.apto || p.apartment || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
+                const pAptoClean = normalizeApto(p.apto || p.apartment);
                 const pStatus = String(p.status || '').toLowerCase();
-                return pApto === myApto && (pStatus === 'aprobado' || pStatus === 'aprobada' || pStatus === 'approved');
+                return pAptoClean === myAptoClean && (pStatus === 'aprobado' || pStatus === 'aprobada' || pStatus === 'approved');
             });
 
             const totalPaidUsd = myApprovedPayments.reduce((acc, p) => {
@@ -1811,26 +1818,28 @@
                 return acc + Number(amt || 0);
             }, 0);
 
-            // 3. Saldo neto pendiente actual
+            // 4. Calcular el saldo pendiente final
             const netBalanceUsd = Math.max(0, myTotalUsd - totalPaidUsd);
             const netBalanceBs = netBalanceUsd * bcvRate;
 
             const balanceEl = document.getElementById('owner-dash-balance');
             if (balanceEl) balanceEl.innerText = `$${netBalanceUsd.toFixed(2)}`;
-            
+
             const balanceBsEl = document.getElementById('owner-dash-balance-bs');
             if (balanceBsEl) balanceBsEl.innerText = `Monto a pagar en Bolívares: Bs. ${netBalanceBs.toFixed(2)}`;
 
-            // 4. Llenar la tabla del recibo de cobro
+            // 5. Renderizar el desglose de gastos en la tabla
             const receiptBody = document.getElementById('owner-receipt-body');
             if (receiptBody) {
                 receiptBody.innerHTML = '';
-                if (activeExpenses.length > 0) {
+                if (activeExpenses && activeExpenses.length > 0) {
                     activeExpenses.forEach(e => {
                         const totalBldg = Number(e.amount || e.amount_usd || e.monto || 0);
-                        const isAlreadyAptoShare = e.apto && String(e.apto).trim().toUpperCase() === myApto;
+                        const eAptoClean = normalizeApto(e.apto);
+                        const isAlreadyAptoShare = eAptoClean && eAptoClean === myAptoClean;
                         const myUsd = isAlreadyAptoShare ? totalBldg : (totalBldg * factor);
                         const myBs = myUsd * bcvRate;
+
                         receiptBody.innerHTML += `
                             <tr class="border-b">
                                 <td class="p-2 font-bold">${e.description || e.concept || 'Gasto'}</td>
@@ -1842,21 +1851,18 @@
                         `;
                     });
                 } else {
-                    receiptBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay gastos detallados para este período. Total asignado: $${myTotalUsd.toFixed(2)}</td></tr>`;
+                    receiptBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">Total asignado al período: $${myTotalUsd.toFixed(2)}</td></tr>`;
                 }
             }
 
-            // 5. Llenar el historial de pagos del propietario
+            // 6. Renderizar historial de pagos
             const historyBody = document.getElementById('owner-history-body');
             if (historyBody) {
                 historyBody.innerHTML = '';
-                const myPayments = (state.payments || []).filter(p => {
-                    const pApto = String(p.apto || p.apartment || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
-                    return pApto === myApto;
-                });
-                
+                const myPayments = (state.payments || []).filter(p => normalizeApto(p.apto || p.apartment) === myAptoClean);
+
                 if (myPayments.length === 0) {
-                    historyBody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay pagos reportados.</td></tr>';
+                    historyBody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay pagos registrados.</td></tr>';
                 } else {
                     myPayments.forEach(p => {
                         let usdVal = p.usdEquiv;
@@ -1880,8 +1886,7 @@
                 }
             }
         }
-
-// ==================== REPORTE MATRICIAL Y DE GESTIÓN ====================
+        // ==================== REPORTE MATRICIAL Y DE GESTIÓN ====================
         function periodToNumber(pStr) {
             if (!pStr) return 0;
             const clean = String(pStr).replace(/[^0-9]/g, '');
