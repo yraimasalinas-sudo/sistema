@@ -2124,7 +2124,10 @@
         function generateReports() {
             generateMatrixReport();
         }
-
+        // Alias de compatibilidad para evitar el error de referencia
+        function generateCustomRangeReport() {
+            generateMatrixReport();
+        }
         async function saveBuildingConfig(e) {
             e.preventDefault();
             const name = document.getElementById('cfg-name').value;
