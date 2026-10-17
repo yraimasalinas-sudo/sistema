@@ -1742,55 +1742,61 @@
             if (!currentUser || currentUser.role !== 'owner') return;
 
             const myApto = String(currentUser.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
-            const myOwnerObj = state.owners.find(o => String(o.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '') === myApto) || currentUser;
+            const myOwnerObj = (state.owners || []).find(o => String(o.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '') === myApto) || currentUser;
 
-            document.getElementById('owner-dash-apto').innerText = myApto;
-            document.getElementById('owner-dash-name').innerText = myOwnerObj.owner || 'Propietario';
-            document.getElementById('owner-dash-alicuota').innerText = myOwnerObj.alicuota || 0;
+            const aptoEl = document.getElementById('owner-dash-apto');
+            if (aptoEl) aptoEl.innerText = myApto;
+
+            const nameEl = document.getElementById('owner-dash-name');
+            if (nameEl) nameEl.innerText = myOwnerObj.owner || myOwnerObj.nombre || 'Propietario';
+
+            const alicuotaEl = document.getElementById('owner-dash-alicuota');
+            if (alicuotaEl) alicuotaEl.innerText = myOwnerObj.alicuota || 0;
 
             const bcvRate = Number(state.building?.bcv || 879.12);
             const bcvRateEl = document.getElementById('owner-bcv-rate');
             if (bcvRateEl) bcvRateEl.innerText = bcvRate.toFixed(2);
 
+            const alicuotaVal = Number(myOwnerObj.alicuota || 0);
+            const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+
             let activeExpenses = [];
+            let myTotalUsd = 0;
+
+            // 1. Obtener los datos del último aviso de cobro o de los gastos activos
             if (state.billingNotices && state.billingNotices.length > 0) {
                 const lastNotice = state.billingNotices[state.billingNotices.length - 1];
                 let details = lastNotice.details;
                 if (typeof details === 'string') {
                     try { details = JSON.parse(details); } catch (e) { details = {}; }
                 }
-                
-                // Buscar los gastos o ítems del aviso en cualquier estructura posible de Supabase
-                activeExpenses = details.expenses || details.items || details.items_gastos || [];
-                
-                // Si el aviso guarda directamente la lista por apartamento, extraer el monto asignado a este apto
-                const ownersInNotice = details.owners || details.alicuotas || [];
-                const myNoticeObj = ownersInNotice.find(o => String(o.apto || o.apartment || '').trim().toUpperCase().replace(/^APTO\s*/i, '') === myApto);
-                
-                if (myNoticeObj && (!activeExpenses || activeExpenses.length === 0)) {
-                    // Si el aviso tiene el monto directo del apartamento
-                    const directAmt = Number(myNoticeObj.usd || myNoticeObj.amount_usd || myNoticeObj.monto || 0);
-                    activeExpenses = [{ description: `Aviso Período ${lastNotice.period}`, amount: directAmt, type: 'ordinaria' }];
+
+                // Revisar si el aviso trae un arreglo detallado por apartamento
+                const ownersList = details.owners || details.alicuotas || [];
+                const myNoticeObj = ownersList.find(o => String(o.apto || o.apartment || '').trim().toUpperCase().replace(/^APTO\s*/i, '') === myApto);
+
+                if (myNoticeObj) {
+                    myTotalUsd = Number(myNoticeObj.usd || myNoticeObj.amount_usd || myNoticeObj.monto || myNoticeObj.amount || 0);
                 }
-            }
-            
-            if (!activeExpenses || activeExpenses.length === 0) {
-                activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
+
+                activeExpenses = details.expenses || details.items || details.items_gastos || [];
             }
 
-            let myTotalUsd = 0;
-            const alicuotaVal = Number(myOwnerObj.alicuota || 0);
-            const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+            // Si no hay monto directo en el aviso, calcularlo a partir de los gastos activos o ítems
+            if (myTotalUsd === 0) {
+                if (!activeExpenses || activeExpenses.length === 0) {
+                    activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
+                }
 
-            activeExpenses.forEach(e => {
-                const totalBldg = Number(e.amount || e.amount_usd || e.monto || 0);
-                // Si el gasto ya viene calculado por apartamento o es general
-                const isAlreadyAptoShare = e.apto && String(e.apto).trim().toUpperCase() === myApto;
-                const myShare = isAlreadyAptoShare ? totalBldg : (totalBldg * factor);
-                myTotalUsd += myShare;
-            });
+                activeExpenses.forEach(e => {
+                    const totalBldg = Number(e.amount || e.amount_usd || e.monto || 0);
+                    const isAlreadyAptoShare = e.apto && String(e.apto).trim().toUpperCase() === myApto;
+                    const myShare = isAlreadyAptoShare ? totalBldg : (totalBldg * factor);
+                    myTotalUsd += myShare;
+                });
+            }
 
-            // Filtrar pagos aprobados (tolerante a mayúsculas/minúsculas)
+            // 2. Filtrar pagos aprobados del propietario (tolerante a mayúsculas/minúsculas)
             const myApprovedPayments = (state.payments || []).filter(p => {
                 const pApto = String(p.apto || p.apartment || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
                 const pStatus = String(p.status || '').toLowerCase();
@@ -1805,6 +1811,7 @@
                 return acc + Number(amt || 0);
             }, 0);
 
+            // 3. Saldo neto pendiente actual
             const netBalanceUsd = Math.max(0, myTotalUsd - totalPaidUsd);
             const netBalanceBs = netBalanceUsd * bcvRate;
 
@@ -1814,26 +1821,32 @@
             const balanceBsEl = document.getElementById('owner-dash-balance-bs');
             if (balanceBsEl) balanceBsEl.innerText = `Monto a pagar en Bolívares: Bs. ${netBalanceBs.toFixed(2)}`;
 
+            // 4. Llenar la tabla del recibo de cobro
             const receiptBody = document.getElementById('owner-receipt-body');
             if (receiptBody) {
                 receiptBody.innerHTML = '';
-                activeExpenses.forEach(e => {
-                    const totalBldg = Number(e.amount || e.amount_usd || e.monto || 0);
-                    const isAlreadyAptoShare = e.apto && String(e.apto).trim().toUpperCase() === myApto;
-                    const myUsd = isAlreadyAptoShare ? totalBldg : (totalBldg * factor);
-                    const myBs = myUsd * bcvRate;
-                    receiptBody.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-2 font-bold">${e.description || e.concept || 'Gasto'}</td>
-                            <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(e.type || 'ordinaria').toUpperCase()}</span></td>
-                            <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
-                            <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
-                            <td class="p-2 text-right font-semibold">Bs. ${myBs.toFixed(2)}</td>
-                        </tr>
-                    `;
-                });
+                if (activeExpenses.length > 0) {
+                    activeExpenses.forEach(e => {
+                        const totalBldg = Number(e.amount || e.amount_usd || e.monto || 0);
+                        const isAlreadyAptoShare = e.apto && String(e.apto).trim().toUpperCase() === myApto;
+                        const myUsd = isAlreadyAptoShare ? totalBldg : (totalBldg * factor);
+                        const myBs = myUsd * bcvRate;
+                        receiptBody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-2 font-bold">${e.description || e.concept || 'Gasto'}</td>
+                                <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(e.type || 'ordinaria').toUpperCase()}</span></td>
+                                <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
+                                <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
+                                <td class="p-2 text-right font-semibold">Bs. ${myBs.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    receiptBody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay gastos detallados para este período. Total asignado: $${myTotalUsd.toFixed(2)}</td></tr>`;
+                }
             }
 
+            // 5. Llenar el historial de pagos del propietario
             const historyBody = document.getElementById('owner-history-body');
             if (historyBody) {
                 historyBody.innerHTML = '';
@@ -1842,25 +1855,29 @@
                     return pApto === myApto;
                 });
                 
-                myPayments.forEach(p => {
-                    let usdVal = p.usdEquiv;
-                    if (usdVal === undefined) usdVal = p.usd_equiv;
-                    if (usdVal === undefined) usdVal = p.amount_usd;
-                    if (usdVal === undefined) usdVal = Number(p.amount || 0) / bcvRate;
+                if (myPayments.length === 0) {
+                    historyBody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay pagos reportados.</td></tr>';
+                } else {
+                    myPayments.forEach(p => {
+                        let usdVal = p.usdEquiv;
+                        if (usdVal === undefined) usdVal = p.usd_equiv;
+                        if (usdVal === undefined) usdVal = p.amount_usd;
+                        if (usdVal === undefined) usdVal = Number(p.amount || 0) / bcvRate;
 
-                    const st = p.status || 'Registrado';
-                    const stClass = (st.toLowerCase() === 'aprobado' || st.toLowerCase() === 'aprobada') ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
+                        const st = p.status || 'Registrado';
+                        const stClass = (st.toLowerCase() === 'aprobado' || st.toLowerCase() === 'aprobada') ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
 
-                    historyBody.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-2">${p.date || p.created_at?.split('T')[0] || '-'}</td>
-                            <td class="p-2">${p.concept || 'Pago'}<br><span class="text-[10px] text-slate-400">Ref: ${p.reference || p.ref || 'S/N'}</span></td>
-                            <td class="p-2 text-right font-semibold">Bs. ${Number(p.amount || 0).toFixed(2)}</td>
-                            <td class="p-2 text-right font-bold text-teal-600">$${Number(usdVal || 0).toFixed(2)}</td>
-                            <td class="p-2 text-center"><span class="px-2 py-1 rounded text-[10px] font-bold ${stClass}">${st}</span></td>
-                        </tr>
-                    `;
-                });
+                        historyBody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="p-2">${p.date || p.created_at?.split('T')[0] || '-'}</td>
+                                <td class="p-2">${p.concept || 'Pago'}<br><span class="text-[10px] text-slate-400">Ref: ${p.reference || p.ref || 'S/N'}</span></td>
+                                <td class="p-2 text-right font-semibold">Bs. ${Number(p.amount || 0).toFixed(2)}</td>
+                                <td class="p-2 text-right font-bold text-teal-600">$${Number(usdVal || 0).toFixed(2)}</td>
+                                <td class="p-2 text-center"><span class="px-2 py-1 rounded text-[10px] font-bold ${stClass}">${st}</span></td>
+                            </tr>
+                        `;
+                    });
+                }
             }
         }
 
