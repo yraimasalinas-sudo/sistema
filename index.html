@@ -164,7 +164,6 @@
  
                 <!-- PESTAÑA 1: GASTOS Y GENERACIÓN DE AVISO -->
                 <div id="tab-gastos" class="container mx-auto p-4 max-w-6xl tab-content hidden space-y-6">
-                    <!-- Header de Periodo -->
                     <header class="bg-blue-800 text-white p-6 rounded-lg shadow-md mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
                         <div>
                             <h1 class="text-2xl font-bold">Residencias Aventura Suites</h1>
@@ -177,7 +176,6 @@
                     </header>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <!-- COLUMNA 1: GASTOS REGULARES -->
                         <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-600">
                             <h2 class="text-lg font-bold text-blue-800 mb-4 flex items-center gap-2">
                                 💵 Gastos Regulares del Mes (USD)
@@ -203,7 +201,6 @@
                             </form>
                         </div>
 
-                        <!-- COLUMNA 2: CUOTAS EXTRAORDINARIAS -->
                         <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-purple-600">
                             <h2 class="text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
                                 ⚙️ Cuotas Extraordinarias / Proveedores Especiales
@@ -244,7 +241,6 @@
                         </div>
                     </div>
 
-                    <!-- TABLA DE CONTROL ADM -->
                     <div class="bg-white p-6 rounded-lg shadow-md mb-6">
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-lg font-bold text-gray-700">Resumen y Control de Registros cargados</h2>
@@ -263,14 +259,11 @@
                                         <th class="p-3 text-center">Acción</th>
                                     </tr>
                                 </thead>
-                                <tbody id="expenses-table-body" class="divide-y divide-gray-200 text-sm">
-                                    <!-- Se llena dinámicamente con renderExpenses() -->
-                                </tbody>
+                                <tbody id="expenses-table-body" class="divide-y divide-gray-200 text-sm"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- BOTONES DE ACCIÓN PRINCIPALES -->
                     <div class="flex flex-wrap gap-4 justify-center bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-inner">
                         <button onclick="approveAndCloseNotice()" class="bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg shadow hover:bg-emerald-700 transition flex items-center gap-2 cursor-pointer text-sm">
                             ⚙️ Generar y Actualizar Avisos de Cobro
@@ -418,7 +411,6 @@
                         </button>
                     </div>
 
-                    <!-- Filtros de búsqueda -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 bg-slate-50 p-3 rounded">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1">Filtrar por Mes:</label>
@@ -434,7 +426,6 @@
                         </div>
                     </div>
 
-                    <!-- Tabla de avisos guardados -->
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm">
                             <thead>
@@ -453,8 +444,6 @@
 
                 <!-- PESTAÑA 6: REPORTES DE GESTIÓN Y CUENTAS POR COBRAR -->
                 <div id="tab-reportes" class="tab-content hidden space-y-6">
-                    
-                    <!-- CONTENEDOR DE FILTROS -->
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 no-print">
                         <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                             🔍 Filtro para Reportes de Cuentas por Cobrar
@@ -481,10 +470,7 @@
                         </div>
                     </div>
 
-                    <!-- REPORTE MATRICIAL IMPRIMIBLE -->
                     <div id="printable-report-area" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-                        
-                        <!-- Encabezado Estilo Reporte Profesional -->
                         <div class="border-b pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                             <div>
                                 <h2 class="text-lg font-black text-slate-800 uppercase tracking-wide" id="rep-building-name">Residencias El Parque</h2>
@@ -497,21 +483,15 @@
                             </div>
                         </div>
 
-                        <!-- Tabla Matricial con Scroll Horizontal -->
                         <div class="overflow-x-auto border rounded-xl">
                             <table class="w-full text-left border-collapse whitespace-nowrap">
                                 <thead>
-                                    <tr id="matrix-table-head" class="bg-slate-100 border-b border-slate-200 text-slate-700 uppercase text-[11px] tracking-wider font-bold">
-                                        <!-- Las columnas de meses/conceptos se generan dinámicamente aquí -->
-                                    </tr>
+                                    <tr id="matrix-table-head" class="bg-slate-100 border-b border-slate-200 text-slate-700 uppercase text-[11px] tracking-wider font-bold"></tr>
                                 </thead>
-                                <tbody id="matrix-table-body" class="divide-y divide-slate-200 text-xs">
-                                    <!-- Las filas de apartamentos y montos se llenan dinámicamente aquí -->
-                                </tbody>
+                                <tbody id="matrix-table-body" class="divide-y divide-slate-200 text-xs"></tbody>
                             </table>
                         </div>
 
-                        <!-- Pie de firma para impresión -->
                         <div class="mt-8 pt-6 border-t border-slate-200 hidden print:flex justify-between text-center text-xs text-slate-500">
                             <div class="w-1/3">
                                 <div class="border-b border-slate-400 mb-2 h-8"></div>
@@ -546,6 +526,7 @@
                         </form>
                     </div>
                 </div>
+
             </div>
 
             <!-- ==================== CONTENIDO PROPIETARIOS ==================== -->
@@ -677,19 +658,18 @@
             billingNotices: []
         };
 
-        // Cargar todos los datos desde Supabase
         async function loadStorage() {
             try {
                 console.log("Cargando datos desde Supabase...");
 
                 const [
-                    { data: cloudPayments, error: errPay },
-                    { data: cloudBcv, error: errBcv },
-                    { data: cloudExpenses, error: errExp },
-                    { data: cloudOwners, error: errOwn },
-                    { data: cloudProviders, error: errProv },
-                    { data: cloudBuilding, error: errBldg },
-                    { data: cloudNotices, error: errNotices }
+                    { data: cloudPayments },
+                    { data: cloudBcv },
+                    { data: cloudExpenses },
+                    { data: cloudOwners },
+                    { data: cloudProviders },
+                    { data: cloudBuilding },
+                    { data: cloudNotices }
                 ] = await Promise.all([
                     db.from('payments').select('*').order('id', { ascending: false }),
                     db.from('bcv_history').select('*').order('date', { ascending: false }),
@@ -700,15 +680,6 @@
                     db.from('billing_notices').select('*').order('id', { ascending: false })
                 ]);
 
-                if (errPay) console.warn("Aviso en consulta 'payments':", errPay.message);
-                if (errBcv) console.warn("Aviso en consulta 'bcv_history':", errBcv.message);
-                if (errExp) console.warn("Aviso en consulta 'expenses':", errExp.message);
-                if (errOwn) console.warn("Aviso en consulta 'owners':", errOwn.message);
-                if (errProv) console.warn("Aviso en consulta 'providers':", errProv.message);
-                if (errBldg) console.warn("Aviso en consulta 'building_config':", errBldg.message);
-                if (errNotices) console.warn("Aviso en consulta 'billing_notices':", errNotices.message);
-
-                // 1. TASA BCV
                 if (cloudBcv && cloudBcv.length > 0) {
                     state.bcvHistory = cloudBcv.map(b => ({
                         id: b.id,
@@ -716,11 +687,9 @@
                         rate: parseFloat(b.rate || 0),
                         origin: b.origin || 'BCV'
                     }));
-                    const latestRate = parseFloat(cloudBcv[0].rate || 36.50);
-                    state.building.bcv = latestRate;
+                    state.building.bcv = parseFloat(cloudBcv[0].rate || 36.50);
                 }
 
-                // 2. PAGOS
                 if (cloudPayments) {
                     state.payments = cloudPayments.map(p => ({
                         id: p.id,
@@ -737,7 +706,6 @@
                     }));
                 }
 
-                // 3. GASTOS
                 if (cloudExpenses) {
                     state.expenses = cloudExpenses.map(e => ({
                         id: e.id,
@@ -753,7 +721,6 @@
                     }));
                 }
 
-                // 4. PROPIETARIOS (Sincronizado con owner_name)
                 if (cloudOwners && cloudOwners.length > 0) {
                     state.owners = cloudOwners.map(o => ({
                         apto: o.apto,
@@ -763,7 +730,6 @@
                     }));
                 }
 
-                // 5. PROVEEDORES (Sincronizado con service_type de la tabla)
                 if (cloudProviders) {
                     state.providers = cloudProviders.map(pr => ({
                         id: pr.id,
@@ -773,7 +739,6 @@
                     }));
                 }
 
-                // 6. CONFIGURACIÓN DEL EDIFICIO
                 if (cloudBuilding && cloudBuilding.length > 0) {
                     const bldg = cloudBuilding[0];
                     state.building.name = bldg.name || state.building.name;
@@ -781,12 +746,9 @@
                     state.building.address = bldg.address || state.building.address;
                 }
 
-                // 7. AVISOS DE COBRO
                 if (cloudNotices) {
                     state.billingNotices = cloudNotices;
                 }
-
-                console.log("Datos sincronizados desde la nube:", state);
             } catch (e) {
                 console.error("Error al cargar datos desde la nube:", e);
             }
@@ -799,7 +761,6 @@
             }
         }
 
-        // ==================== TASA BCV ====================
         function updateBcvUI() {
             const rate = parseFloat(state.building.bcv) || 1;
             const bcvDisplay = document.getElementById('current-bcv-display');
@@ -874,7 +835,6 @@
             });
         }
 
-        // ==================== POBLAR PROVEEDORES EN SELECTS ====================
         function populateProviderSelects() {
             const selectRegular = document.getElementById('provRegular');
             const selectExtra = document.getElementById('provExtra');
@@ -887,7 +847,6 @@
             if (selectExtra) selectExtra.innerHTML = optionsHtml;
         }
 
-        // ==================== AUTENTICACIÓN ====================
         function handleLogin(e) {
             e.preventDefault();
             const u = document.getElementById('username').value.trim();
@@ -938,9 +897,7 @@
 
         function switchTab(evt, tabId) {
             const contents = document.querySelectorAll('.tab-content');
-            contents.forEach(el => {
-                el.classList.add('hidden');
-            });
+            contents.forEach(el => el.classList.add('hidden'));
 
             const buttons = document.querySelectorAll('.tab-btn');
             buttons.forEach(btn => {
@@ -949,11 +906,7 @@
             });
 
             const target = document.getElementById(tabId) || document.getElementById('tab-' + tabId);
-            if (target) {
-                target.classList.remove('hidden');
-            } else {
-                console.error(`No se encontró el contenedor para la pestaña: ${tabId}`);
-            }
+            if (target) target.classList.remove('hidden');
 
             if (evt && evt.currentTarget) {
                 evt.currentTarget.classList.remove('bg-white', 'text-slate-600', 'hover:bg-slate-100');
@@ -961,6 +914,9 @@
             }
             if (tabId === 'notices-history' || tabId === 'tab-notices-history') {
                 renderHistoryNotices();
+            }
+            if (tabId === 'reportes' || tabId === 'tab-reportes') {
+                generateMatrixReport();
             }
         }
 
@@ -985,7 +941,6 @@
             populateSelects();
         }
 
-        // ==================== GASTOS Y COBROS ====================
         function syncPeriodToForms(periodVal) {
             console.log("Período activo cambiado a:", periodVal);
         }
@@ -993,18 +948,13 @@
         function toggleTasaCambio(moneda) {
             const contenedorTasa = document.getElementById('contenedorTasa');
             if (!contenedorTasa) return;
-            if (moneda === 'EUR') {
-                contenedorTasa.classList.remove('hidden');
-            } else {
-                contenedorTasa.classList.add('hidden');
-            }
+            if (moneda === 'EUR') contenedorTasa.classList.remove('hidden');
+            else contenedorTasa.classList.add('hidden');
         }
 
         function getSelectedPeriod() {
             const input = document.getElementById('periodoInput');
-            if (input && input.value) {
-                return input.value;
-            }
+            if (input && input.value) return input.value;
             return new Date().toISOString().slice(0, 7);
         }
 
@@ -1016,20 +966,13 @@
             const rawAmount = parseFloat(document.getElementById('montoRegular')?.value) || 0;
 
             const payload = {
-                period,
-                provider,
-                description,
+                period, provider, description,
                 amount: Number(rawAmount.toFixed(2)),
-                type: 'ordinaria',
-                apto: 'TODOS',
-                status: 'pending'
+                type: 'ordinaria', apto: 'TODOS', status: 'pending'
             };
 
             const { error } = await db.from('expenses').insert([payload]);
-            if (error) {
-                alert('Error al guardar gasto regular: ' + error.message);
-                return;
-            }
+            if (error) { alert('Error al guardar gasto regular: ' + error.message); return; }
 
             document.getElementById('formGastoRegular')?.reset();
             await loadStorage();
@@ -1051,30 +994,19 @@
 
             if (moneda === 'EUR') {
                 const tasaEuro = parseFloat(document.getElementById('tasaCambio')?.value) || 0;
-                if (tasaEuro <= 0) {
-                    alert('Por favor ingresa una tasa de cambio válida para el Euro.');
-                    return;
-                }
-                const montoBs = rawAmount * tasaEuro;
-                finalUsd = montoBs / bcvRateForPeriod;
+                if (tasaEuro <= 0) { alert('Por favor ingresa una tasa de cambio válida para el Euro.'); return; }
+                finalUsd = (rawAmount * tasaEuro) / bcvRateForPeriod;
                 descFinal += ` (€${rawAmount.toFixed(2)})`;
             }
 
             const payload = {
-                period,
-                provider,
-                description: descFinal,
+                period, provider, description: descFinal,
                 amount: Number(finalUsd.toFixed(2)),
-                type: 'extraordinaria',
-                apto: 'TODOS',
-                status: 'pending'
+                type: 'extraordinaria', apto: 'TODOS', status: 'pending'
             };
 
             const { error } = await db.from('expenses').insert([payload]);
-            if (error) {
-                alert('Error al guardar cuota extraordinaria: ' + error.message);
-                return;
-            }
+            if (error) { alert('Error al guardar cuota extraordinaria: ' + error.message); return; }
 
             document.getElementById('formGastoExtra')?.reset();
             const contenedorTasa = document.getElementById('contenedorTasa');
@@ -1125,191 +1057,92 @@
         async function deleteExpense(id) {
             if (!confirm('¿Seguro que deseas eliminar este registro?')) return;
             const { error } = await db.from('expenses').delete().eq('id', id);
-            if (error) {
-                alert('Error eliminando gasto: ' + error.message);
-                return;
-            }
+            if (error) { alert('Error eliminando gasto: ' + error.message); return; }
             await loadStorage();
         }
 
         async function approveAndCloseNotice() {
             const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
-
-            if (pendingExpenses.length === 0) {
-                alert("⚠️ No hay gastos pendientes registrados para aprobar.");
-                return;
-            }
+            if (pendingExpenses.length === 0) { alert("⚠️ No hay gastos pendientes registrados para aprobar."); return; }
 
             const period = pendingExpenses[0].period || getSelectedPeriod();
             const totalUSD = pendingExpenses.reduce((acc, e) => acc + Number(e.amount || e.amount_usd || 0), 0);
 
-            // BÚSQUEDA DE TASA HISTÓRICA SEGURA Y DIRECTA
             let bcvRate = Number(state.building?.bcv || 0);
             try {
-                const { data, error } = await db
-                    .from('bcv_history')
-                    .select('rate, date')
-                    .order('date', { ascending: true });
-
+                const { data, error } = await db.from('bcv_history').select('rate, date').order('date', { ascending: true });
                 if (!error && data && data.length > 0) {
                     const matchRate = data.find(item => item.date && item.date.startsWith(period));
-                    if (matchRate) {
-                        bcvRate = Number(matchRate.rate);
-                        console.log(`Tasa histórica encontrada para ${period}: ${bcvRate} (${matchRate.date})`);
-                    } else {
-                        bcvRate = Number(data[0].rate);
-                        console.warn(`No hay tasa exacta para ${period}, usando la más cercana: ${bcvRate}`);
-                    }
+                    bcvRate = matchRate ? Number(matchRate.rate) : Number(data[0].rate);
                 }
-            } catch (err) {
-                console.warn("Error consultando la tasa histórica:", err);
-            }
+            } catch (err) { console.warn("Error consultando tasa histórica:", err); }
 
-            const confirmEmit = confirm(
-                `¿Deseas APROBAR el aviso de cobro de ${period}?\n\n` +
-                `• Total Gastos: $${totalUSD.toFixed(2)}\n` +
-                `• Cantidad de registros: ${pendingExpenses.length}\n` +
-                `• Tasa BCV Histórica: ${bcvRate} Bs.\n\n` +
-                `Al aprobar, este aviso se guardará en el Histórico y los gastos quedarán cerrados.`
-            );
+            if (!confirm(`¿Deseas APROBAR el aviso de cobro de ${period} por $${totalUSD.toFixed(2)} a tasa ${bcvRate} Bs.?`)) return;
 
-            if (!confirmEmit) return;
-
-            try {
-                const noticeData = {
-                    period: period,
-                    type: 'all',
-                    total_amount_usd: totalUSD,
-                    bcv_rate: bcvRate,
-                    details: {
-                        expenses: pendingExpenses,
-                        owners: (state.owners || []).map(o => {
-                            const alicuotaVal = Number(o.alicuota || 0);
-                            const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
-                            return {
-                                apto: o.apto,
-                                owner: o.owner,
-                                alicuota: alicuotaVal,
-                                usd: totalUSD * factor,
-                                bs: (totalUSD * factor) * bcvRate
-                            };
-                        })
-                    }
-                };
-
-                const { error: noticeErr } = await db.from('billing_notices').insert([noticeData]);
-                if (noticeErr) {
-                    alert("Error al emitir el aviso: " + noticeErr.message);
-                    return;
+            const noticeData = {
+                period, type: 'all',
+                total_amount_usd: totalUSD,
+                bcv_rate: bcvRate,
+                details: {
+                    expenses: pendingExpenses,
+                    owners: (state.owners || []).map(o => {
+                        const alicuotaVal = Number(o.alicuota || 0);
+                        const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+                        return { apto: o.apto, owner: o.owner, alicuota: alicuotaVal, usd: totalUSD * factor, bs: (totalUSD * factor) * bcvRate };
+                    })
                 }
+            };
 
-                const expenseIds = pendingExpenses.map(e => e.id);
-                await db.from('expenses').update({ status: 'billed' }).in('id', expenseIds);
+            const { error: noticeErr } = await db.from('billing_notices').insert([noticeData]);
+            if (noticeErr) { alert("Error al emitir el aviso: " + noticeErr.message); return; }
 
-                alert(`¡Aviso del periodo ${period} APROBADO Y EMITIDO exitosamente con la tasa de ${bcvRate} Bs.!`);
-                await loadStorage();
+            const expenseIds = pendingExpenses.map(e => e.id);
+            await db.from('expenses').update({ status: 'billed' }).in('id', expenseIds);
 
-            } catch (err) {
-                console.error("Error procesando cierre de aviso:", err);
-                alert("Ocurrió un error inesperado al aprobar el aviso.");
-            }
+            alert(`¡Aviso del periodo ${period} APROBADO Y EMITIDO exitosamente!`);
+            await loadStorage();
         }
 
         async function copyWhatsAppSummary() {
             const period = getSelectedPeriod();
-
             let expensesList = (state.expenses || []).filter(e => e.period === period && e.status !== 'billed');
             let ownersList = state.owners || [];
             let totalUSD = 0;
             let bcvRate = Number(state.building?.bcv || 0);
 
             let notice = (state.billingNotices || []).find(n => n.period === period);
-
             if (notice) {
                 let details = notice.details;
-                if (typeof details === 'string') {
-                    try { details = JSON.parse(details); } catch (e) { details = {}; }
-                }
+                if (typeof details === 'string') { try { details = JSON.parse(details); } catch (e) { details = {}; } }
                 expensesList = details.expenses || expensesList;
                 ownersList = details.owners || ownersList;
                 totalUSD = Number(notice.total_amount_usd || 0);
                 bcvRate = Number(notice.bcv_rate || bcvRate);
             } else {
                 totalUSD = expensesList.reduce((acc, e) => acc + Number(e.amount || e.amount_usd || 0), 0);
-                
-                try {
-                    const { data, error } = await db
-                        .from('bcv_history')
-                        .select('rate, date')
-                        .order('date', { ascending: true });
-
-                    if (!error && data && data.length > 0) {
-                        const matchRate = data.find(item => item.date && item.date.startsWith(period));
-                        if (matchRate) {
-                            bcvRate = Number(matchRate.rate);
-                        } else {
-                            bcvRate = Number(data[0].rate);
-                        }
-                    }
-                } catch (err) {
-                    console.warn("No se pudo obtener la tasa histórica para el resumen:", err);
-                }
             }
 
-            if (expensesList.length === 0) {
-                alert("⚠️ No hay gastos registrados o emitidos para este período para generar el resumen.");
-                return;
-            }
+            if (expensesList.length === 0) { alert("⚠️ No hay gastos registrados para este período."); return; }
 
-            const buildingName = state.building?.name || 'Residencias Aventura Suites';
-
-            let mensaje = `*${buildingName}*\n`;
-            mensaje += `*RESUMEN DE GASTOS Y COBRANZA - ${period}*\n`;
-            if (bcvRate > 0) {
-                mensaje += `*Tasa BCV:* Bs. ${bcvRate.toFixed(4)}\n`;
-            }
-            mensaje += `----------------------------------------\n\n`;
-            mensaje += `*DESGLOSE DE GASTOS DEL MES:*\n`;
-
-            expensesList.forEach(e => {
-                const amt = Number(e.amount || e.amount_usd || 0);
-                mensaje += `- ${e.description}: $${amt.toFixed(2)}\n`;
-            });
-
-            mensaje += `\n*TOTAL GASTOS COMUNES:* *\$${totalUSD.toFixed(2)}*\n`;
-            mensaje += `----------------------------------------\n\n`;
-            mensaje += `*ALÍCUOTAS Y MONTOS A PAGAR POR APTO:*\n`;
+            let mensaje = `*${state.building?.name || 'Condominio'}*\n*RESUMEN DE GASTOS - ${period}*\n*Tasa BCV:* Bs. ${bcvRate.toFixed(4)}\n----------------------------------------\n\n*DESGLOSE:*\n`;
+            expensesList.forEach(e => { mensaje += `- ${e.description}: $${Number(e.amount || 0).toFixed(2)}\n`; });
+            mensaje += `\n*TOTAL:* *\$${totalUSD.toFixed(2)}*\n----------------------------------------\n\n*APORTES POR APTO:*\n`;
 
             ownersList.forEach(o => {
-                const alicuotaVal = Number(o.alicuota || 0);
-                const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+                const factor = o.alicuota > 1 ? o.alicuota / 100 : o.alicuota;
                 const montoApto = o.usd !== undefined ? Number(o.usd) : (totalUSD * factor);
-                const alicuotaPorcentaje = alicuotaVal > 1 ? alicuotaVal : (alicuotaVal * 100);
-
-                mensaje += `*Apt ${o.apto}* (${alicuotaPorcentaje.toFixed(1)}%): *\$${montoApto.toFixed(2)}*\n`;
+                mensaje += `*Apt ${o.apto}*: *\$${montoApto.toFixed(2)}*\n`;
             });
 
-            mensaje += `\n----------------------------------------\n`;
-            mensaje += `*Nota:* Por favor reportar su pago a la brevedad posible en la plataforma. ¡Gracias!`;
-
-            const encodedMessage = encodeURIComponent(mensaje);
-            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
-
-            window.open(whatsappUrl, '_blank');
+            window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
 
-        // ==================== PAGOS Y CONCILIACIÓN ====================
         function getBcvRateForDate(targetDate) {
-            if (!state.bcvHistory || state.bcvHistory.length === 0) {
-                return Number(state.building.bcv) || 1;
-            }
+            if (!state.bcvHistory || state.bcvHistory.length === 0) return Number(state.building.bcv) || 1;
             const exact = state.bcvHistory.find(h => h.date === targetDate);
             if (exact && exact.rate) return Number(exact.rate);
 
-            const pastRates = state.bcvHistory
-                .filter(h => h.date <= targetDate && h.rate)
-                .sort((a, b) => new Date(b.date) - new Date(a.date));
-
+            const pastRates = state.bcvHistory.filter(h => h.date <= targetDate && h.rate).sort((a, b) => new Date(b.date) - new Date(a.date));
             if (pastRates.length > 0) return Number(pastRates[0].rate);
             return Number(state.building.bcv) || 1;
         }
@@ -1329,24 +1162,15 @@
             const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
 
             const payload = {
-                apto,
-                concept,
-                type,
-                method,
-                amount,
+                apto, concept, type, method, amount,
                 amount_usd: Number(usdEquiv.toFixed(2)),
                 usd_equiv: Number(usdEquiv.toFixed(2)),
                 bcv_rate_used: isBs ? bcvRateUsed : null,
-                ref,
-                status: 'Aprobado',
-                date: payDate
+                ref, status: 'Aprobado', date: payDate
             };
 
             const { error } = await db.from('payments').insert([payload]);
-            if (error) {
-                alert('Error al registrar pago: ' + error.message);
-                return;
-            }
+            if (error) { alert('Error al registrar pago: ' + error.message); return; }
 
             document.getElementById('admin-pay-form').reset();
             await loadStorage();
@@ -1367,32 +1191,24 @@
             const bcvRateUsed = getBcvRateForDate(payDate);
             const usdEquiv = isBs ? (amount / bcvRateUsed) : amount;
             const type = concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria';
-            const methodStr = isBs ? 'Bs - Transferencia/Pago Movil' : 'USD - Efectivo/Zelle';
+            const methodStr = isBs ? 'Bs - Pago Móvil' : 'USD - Efectivo/Zelle';
 
             const payload = {
                 apto: currentUser.apto,
-                concept,
-                type,
-                method: methodStr,
-                amount,
+                concept, type, method: methodStr, amount,
                 amount_usd: Number(usdEquiv.toFixed(2)),
                 usd_equiv: Number(usdEquiv.toFixed(2)),
                 bcv_rate_used: isBs ? bcvRateUsed : null,
-                ref,
-                status: 'Pendiente',
-                date: payDate
+                ref, status: 'Pendiente', date: payDate
             };
 
             const { error } = await db.from('payments').insert([payload]);
-            if (error) {
-                alert('Error enviando el pago: ' + error.message);
-                return;
-            }
+            if (error) { alert('Error enviando el pago: ' + error.message); return; }
 
             document.getElementById('owner-pay-modal').classList.add('hidden');
             e.target.reset();
             await loadStorage();
-            alert('¡Pago reportado exitosamente! Queda pendiente por confirmación.');
+            alert('¡Pago reportado exitosamente!');
         }
 
         async function approvePayment(id) {
@@ -1412,7 +1228,6 @@
             const body = document.getElementById('payments-pending-body');
             if (!body) return;
             body.innerHTML = '';
-
             const payments = state.payments || [];
 
             if (payments.length === 0) {
@@ -1422,71 +1237,49 @@
 
             payments.forEach(p => {
                 const isBs = p.method && p.method.includes('Bs');
-                const montoOriginalText = isBs ? `Bs. ${Number(p.amount || 0).toFixed(2)}` : `$${Number(p.amount || 0).toFixed(2)}`;
-                const refText = p.ref || p.reference || 'S/N';
-                const statusVal = p.status || 'Pendiente';
-
                 body.innerHTML += `
                     <tr class="border-b hover:bg-slate-50">
                         <td class="p-2 font-bold">${p.apto || '-'}</td>
                         <td class="p-2">${p.date || '-'}</td>
-                        <td class="p-2">${p.method || 'Pago'}<br><span class="text-[10px] text-slate-400">Ref: ${refText}</span></td>
-                        <td class="p-2 text-right font-semibold">${montoOriginalText}</td>
+                        <td class="p-2">${p.method || 'Pago'}<br><span class="text-[10px] text-slate-400">Ref: ${p.ref || 'S/N'}</span></td>
+                        <td class="p-2 text-right font-semibold">${isBs ? 'Bs. ' : '$'}${Number(p.amount || 0).toFixed(2)}</td>
                         <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv || p.amount || 0).toFixed(2)}</td>
                         <td class="p-2 text-center space-x-1">
-                            ${statusVal === 'Pendiente' ? `
-                                <button onclick="approvePayment(${p.id})" class="px-2 py-1 bg-emerald-500 text-white rounded text-[10px] hover:bg-emerald-600">Aprobar</button>
-                            ` : `<span class="text-emerald-600 font-bold text-[10px]">✓ Aprobado</span>`}
-                            <button onclick="deletePayment(${p.id})" class="px-2 py-1 bg-rose-500 text-white rounded text-[10px] hover:bg-rose-600">Eliminar</button>
+                            ${p.status === 'Pendiente' ? `<button onclick="approvePayment(${p.id})" class="px-2 py-1 bg-emerald-500 text-white rounded text-[10px]">Aprobar</button>` : `<span class="text-emerald-600 font-bold text-[10px]">✓ Aprobado</span>`}
+                            <button onclick="deletePayment(${p.id})" class="px-2 py-1 bg-rose-500 text-white rounded text-[10px]">Eliminar</button>
                         </td>
                     </tr>
                 `;
             });
         }
 
-        // ==================== PROPIETARIOS Y PROVEEDORES ====================
         function renderOwnersTable() {
             const body = document.getElementById('owners-table-body');
             if (!body) return;
             body.innerHTML = '';
 
-            const sortedOwners = [...(state.owners || [])].sort((a, b) => {
-                return (a.apto || '').localeCompare(b.apto || '', undefined, {
-                    numeric: true,
-                    sensitivity: 'base'
-                });
-            });
-
-            sortedOwners.forEach((o) => {
+            ([...(state.owners || [])]).sort((a, b) => (a.apto || '').localeCompare(b.apto || '', undefined, { numeric: true, sensitivity: 'base' })).forEach(o => {
                 body.innerHTML += `
                     <tr class="border-b">
                         <td class="p-2 font-bold">${o.apto}</td>
-                        <td class="p-2">
-                            <input type="text" value="${o.owner}" onchange="updateOwnerName('${o.apto}', this.value)" class="p-1 border rounded w-full">
-                        </td>
+                        <td class="p-2"><input type="text" value="${o.owner}" onchange="updateOwnerName('${o.apto}', this.value)" class="p-1 border rounded w-full"></td>
                         <td class="p-2 font-semibold">${o.alicuota}%</td>
                         <td class="p-2 font-mono text-slate-500">${o.pass}</td>
-                        <td class="p-2 space-x-1">
-                            <button onclick="resetPassword('${o.apto}')" class="px-2 py-1 bg-amber-500 text-white text-[10px] rounded hover:bg-amber-600">Resetear Clave</button>
-                        </td>
+                        <td class="p-2"><button onclick="resetPassword('${o.apto}')" class="px-2 py-1 bg-amber-500 text-white text-[10px] rounded">Resetear Clave</button></td>
                     </tr>
                 `;
             });
         }
 
         async function updateOwnerName(apto, newName) {
-            const { error } = await db.from('owners').update({ owner_name: newName }).eq('apto', apto);
-            if (error) alert('Error actualizando propietario: ' + error.message);
-            else await loadStorage();
+            await db.from('owners').update({ owner_name: newName }).eq('apto', apto);
+            await loadStorage();
         }
 
         async function resetPassword(apto) {
-            const { error } = await db.from('owners').update({ pass: '1234' }).eq('apto', apto);
-            if (error) alert('Error reseteando clave: ' + error.message);
-            else {
-                alert(`Clave del apto ${apto} reseteada a 1234`);
-                await loadStorage();
-            }
+            await db.from('owners').update({ pass: '1234' }).eq('apto', apto);
+            alert(`Clave del apto ${apto} reseteada a 1234`);
+            await loadStorage();
         }
 
         async function addProvider(e) {
@@ -1495,11 +1288,7 @@
             const service = document.getElementById('prov-service').value;
             const phone = document.getElementById('prov-phone').value;
 
-            const { error } = await db.from('providers').insert([{ name, service_type: service, phone }]);
-            if (error) {
-                alert('Error guardando proveedor: ' + error.message);
-                return;
-            }
+            await db.from('providers').insert([{ name, service_type: service, phone }]);
             e.target.reset();
             await loadStorage();
         }
@@ -1509,65 +1298,31 @@
             if (!body) return;
             body.innerHTML = '';
             state.providers.forEach(p => {
-                body.innerHTML += `
-                    <tr class="border-b">
-                        <td class="p-2 font-bold">${p.name}</td>
-                        <td class="p-2">${p.service}</td>
-                        <td class="p-2">${p.phone || 'N/A'}</td>
-                    </tr>
-                `;
+                body.innerHTML += `<tr class="border-b"><td class="p-2 font-bold">${p.name}</td><td class="p-2">${p.service}</td><td class="p-2">${p.phone || 'N/A'}</td></tr>`;
             });
         }
 
-        // ==================== HISTÓRICO DE AVISOS ====================
         async function saveCurrentNotice() {
             const pendingExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
-
-            if (pendingExpenses.length === 0) {
-                alert("⚠️ No hay gastos pendientes para archivar.");
-                return;
-            }
+            if (pendingExpenses.length === 0) { alert("⚠️ No hay gastos pendientes."); return; }
 
             const period = pendingExpenses[0].period || getSelectedPeriod();
             const totalUSD = pendingExpenses.reduce((acc, e) => acc + Number(e.amount || 0), 0);
             const bcvRate = Number(state.building?.bcv || 0);
 
-            const confirmSave = confirm(
-                `¿Deseas archivar el aviso de cobro del periodo ${period}?\n\n` +
-                `• Total Gastos: $${totalUSD.toFixed(2)}\n` +
-                `• Registros incluidos: ${pendingExpenses.length}\n` +
-                `• Tasa BCV de referencia: Bs. ${bcvRate.toFixed(2)}`
-            );
-
-            if (!confirmSave) return;
-
             const noticeData = {
-                period: period,
-                type: 'all',
-                total_amount_usd: totalUSD,
-                bcv_rate: bcvRate,
+                period, type: 'all', total_amount_usd: totalUSD, bcv_rate: bcvRate,
                 details: {
                     expenses: pendingExpenses,
                     owners: (state.owners || []).map(o => {
-                        const alicuotaVal = Number(o.alicuota || 0);
-                        const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
-                        return {
-                            apto: o.apto,
-                            owner: o.owner,
-                            alicuota: alicuotaVal,
-                            usd: totalUSD * factor
-                        };
+                        const factor = o.alicuota > 1 ? o.alicuota / 100 : o.alicuota;
+                        return { apto: o.apto, owner: o.owner, alicuota: o.alicuota, usd: totalUSD * factor };
                     })
                 }
             };
 
-            const { error } = await db.from('billing_notices').insert([noticeData]);
-            if (error) {
-                alert("Error al archivar el aviso en Supabase: " + error.message);
-                return;
-            }
-
-            alert(`¡Aviso del periodo ${period} archivado en el histórico exitosamente!`);
+            await db.from('billing_notices').insert([noticeData]);
+            alert(`¡Aviso del periodo ${period} archivado exitosamente!`);
             await loadStorage();
         }
 
@@ -1578,14 +1333,13 @@
 
             const periodFilter = document.getElementById('hist-filter-period')?.value;
             const typeFilter = document.getElementById('hist-filter-type')?.value;
-
             let filtered = state.billingNotices || [];
 
             if (periodFilter) filtered = filtered.filter(n => n.period === periodFilter);
             if (typeFilter && typeFilter !== 'all') filtered = filtered.filter(n => n.type === typeFilter);
 
             if (filtered.length === 0) {
-                body.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay avisos guardados con estos criterios.</td></tr>`;
+                body.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No hay avisos guardados.</td></tr>`;
                 return;
             }
 
@@ -1596,9 +1350,7 @@
                         <td class="p-2"><span class="px-2 py-0.5 rounded text-xs bg-slate-100">${(n.type || 'ALL').toUpperCase()}</span></td>
                         <td class="p-2 text-right font-bold text-teal-600">$${Number(n.total_amount_usd || 0).toFixed(2)}</td>
                         <td class="p-2 text-right">Bs. ${Number(n.bcv_rate || 0).toFixed(2)}</td>
-                        <td class="p-2 text-center">
-                            <button onclick="viewNoticeDetail(${n.id})" class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">👁️ Ver Detalle</button>
-                        </td>
+                        <td class="p-2 text-center"><button onclick="viewNoticeDetail(${n.id})" class="px-2 py-1 bg-blue-500 text-white text-xs rounded">Ver Detalle</button></td>
                     </tr>
                 `;
             });
@@ -1609,100 +1361,13 @@
             if (!notice) return;
 
             let details = notice.details;
-            if (typeof details === 'string') {
-                try { details = JSON.parse(details); } catch (e) { details = {}; }
-            }
-
-            const expenses = details.expenses || [];
-            const owners = details.owners || [];
-            const bcvRate = Number(notice.bcv_rate || 0);
+            if (typeof details === 'string') { try { details = JSON.parse(details); } catch (e) { details = {}; } }
 
             const ventanaDetalle = window.open('', '_blank', 'width=850,height=700');
-
-            let gastosHtml = '';
-            expenses.forEach(e => {
-                gastosHtml += `
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${e.description || 'Gasto'}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;"><span style="background:#f1f5f9; padding: 2px 6px; border-radius:4px; font-size:11px;">${(e.type || 'ordinaria').toUpperCase()}</span></td>
-                        <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right; font-weight: bold;">$${Number(e.amount || 0).toFixed(2)}</td>
-                    </tr>
-                `;
-            });
-
-            let propietariosHtml = '';
-            owners.forEach(o => {
-                propietariosHtml += `
-                    <tr>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold;">${o.apto}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">${o.owner || '-'}</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: center;">${Number(o.alicuota || 0).toFixed(1)}%</td>
-                        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold; color: #0d9488;">$${Number(o.usd || 0).toFixed(2)}</td>
-                    </tr>
-                `;
-            });
-
-            ventanaDetalle.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Aviso Histórico - Período ${notice.period}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; color: #333; margin: 25px; }
-                        h2, h3 { color: #0f172a; margin-bottom: 5px; }
-                        .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px; }
-                        .info-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 20px; border-radius: 6px; display: flex; justify-content: space-between; }
-                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                        th { background: #f1f5f9; border-bottom: 2px solid #cbd5e1; padding: 8px; text-align: left; font-size: 12px; color: #334155; }
-                        td { font-size: 12px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h2>${state.building?.name || 'Residencias'}</h2>
-                        <p style="margin:2px 0; font-size: 13px; color: #64748b;">AVISO DE COBRO HISTÓRICO - PERÍODO: <strong>${notice.period}</strong></p>
-                    </div>
-
-                    <div class="info-box">
-                        <div><strong>Tasa BCV Referencial del Mes:</strong> Bs. ${bcvRate.toFixed(2)}</div>
-                        <div><strong>Total General Emitido:</strong> $${Number(notice.total_amount_usd || 0).toFixed(2)}</div>
-                    </div>
-
-                    <h3>📌 Desglose de Gastos y Cuotas Registradas</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Descripción / Concepto</th>
-                                <th style="text-align: center;">Tipo</th>
-                                <th style="text-align: right;">Monto ($ USD)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${gastosHtml || '<tr><td colspan="3" style="text-align:center; color:#94a3b8; padding:10px;">No hay gastos registrados.</td></tr>'}
-                        </tbody>
-                    </table>
-
-                    <h3>🏠 Distribución por Apartamentos y Alícuotas (En Dólares)</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="text-align: center;">Apto</th>
-                                <th>Propietario</th>
-                                <th style="text-align: center;">Alícuota</th>
-                                <th style="text-align: right;">A Pagar ($ USD)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${propietariosHtml}
-                        </tbody>
-                    </table>
-                </body>
-                </html>
-            `);
+            ventanaDetalle.document.write(`<html><body><h2>Aviso Histórico - ${notice.period}</h2><pre>${JSON.stringify(details, null, 2)}</pre></body></html>`);
             ventanaDetalle.document.close();
         }
 
-        // ==================== VISTA DE PROPIETARIOS ====================
         function renderOwnerData() {
             if (!currentUser || currentUser.role !== 'owner') return;
 
@@ -1720,9 +1385,7 @@
             if (state.billingNotices && state.billingNotices.length > 0) {
                 const lastNotice = state.billingNotices[state.billingNotices.length - 1];
                 let details = lastNotice.details;
-                if (typeof details === 'string') {
-                    try { details = JSON.parse(details); } catch (e) { details = {}; }
-                }
+                if (typeof details === 'string') { try { details = JSON.parse(details); } catch (e) { details = {}; } }
                 activeExpenses = details.expenses || [];
             } else {
                 activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
@@ -1730,175 +1393,19 @@
 
             let myTotalUsd = 0;
             const factor = myOwnerObj.alicuota > 1 ? myOwnerObj.alicuota / 100 : myOwnerObj.alicuota;
-
-            activeExpenses.forEach(e => {
-                const amt = Number(e.amount || e.amount_usd || 0);
-                myTotalUsd += amt * factor;
-            });
+            activeExpenses.forEach(e => { myTotalUsd += Number(e.amount || 0) * factor; });
 
             const myApprovedPayments = (state.payments || []).filter(p => p.apto === myApto && p.status === 'Aprobado');
             const totalPaidUsd = myApprovedPayments.reduce((acc, p) => acc + Number(p.usdEquiv || p.amount || 0), 0);
 
             const netBalanceUsd = Math.max(0, myTotalUsd - totalPaidUsd);
-            const netBalanceBs = netBalanceUsd * bcvRate;
-
             document.getElementById('owner-dash-balance').innerText = `$${netBalanceUsd.toFixed(2)}`;
-            document.getElementById('owner-dash-balance-bs').innerText = `Bs. ${netBalanceBs.toFixed(2)}`;
-
-            const receiptBody = document.getElementById('owner-receipt-body');
-            if (receiptBody) {
-                receiptBody.innerHTML = '';
-                activeExpenses.forEach(e => {
-                    const totalBldg = Number(e.amount || 0);
-                    const myUsd = totalBldg * factor;
-                    const myBs = myUsd * bcvRate;
-                    receiptBody.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-2 font-bold">${e.description || 'Gasto'}</td>
-                            <td class="p-2"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(e.type || 'ordinaria').toUpperCase()}</span></td>
-                            <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
-                            <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
-                            <td class="p-2 text-right font-semibold">Bs. ${myBs.toFixed(2)}</td>
-                        </tr>
-                    `;
-                });
-            }
-
-            const historyBody = document.getElementById('owner-history-body');
-            if (historyBody) {
-                historyBody.innerHTML = '';
-                const myPayments = (state.payments || []).filter(p => p.apto === myApto);
-                myPayments.forEach(p => {
-                    historyBody.innerHTML += `
-                        <tr class="border-b">
-                            <td class="p-2">${p.date || '-'}</td>
-                            <td class="p-2">${p.concept || 'Pago'}<br><span class="text-[10px] text-slate-400">Ref: ${p.reference || p.ref || 'S/N'}</span></td>
-                            <td class="p-2 text-right font-semibold">$${Number(p.amount || 0).toFixed(2)}</td>
-                            <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv || p.amount || 0).toFixed(2)}</td>
-                            <td class="p-2 text-center"><span class="px-2 py-1 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">${p.status || 'Registrado'}</span></td>
-                        </tr>
-                    `;
-                });
-            }
+            document.getElementById('owner-dash-balance-bs').innerText = `Bs. ${(netBalanceUsd * bcvRate).toFixed(2)}`;
         }
 
         function imprimirReciboPropietario() {
             if (!currentUser || currentUser.role !== 'owner') return;
-
-            const myApto = String(currentUser.apto || '').trim();
-            const myOwnerObj = state.owners.find(o => String(o.apto || '').trim() === myApto) || currentUser;
-            const alicuotaVal = Number(myOwnerObj.alicuota || 0);
-            const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
-
-            const bcvRate = Number(state.building?.bcv || 1);
-
-            let activeExpenses = [];
-            let periodStr = 'Actual';
-            if (state.billingNotices && state.billingNotices.length > 0) {
-                const lastNotice = state.billingNotices[state.billingNotices.length - 1];
-                periodStr = lastNotice.period || 'Actual';
-                let details = lastNotice.details;
-                if (typeof details === 'string') {
-                    try { details = JSON.parse(details); } catch (e) { details = {}; }
-                }
-                activeExpenses = details.expenses || [];
-            } else {
-                activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
-            }
-
-            let totalPagarUsd = 0;
-            let filasGastosHtml = '';
-
-            activeExpenses.forEach(e => {
-                const montoTotalEdificio = Number(e.amount || 0);
-                const montoAlicuotaUsd = montoTotalEdificio * factor;
-                const montoAlicuotaBs = montoAlicuotaUsd * bcvRate;
-                totalPagarUsd += montoAlicuotaUsd;
-
-                filasGastosHtml += `
-                    <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #cbd5e1;">${e.description || 'Gasto'}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: center;"><span style="background:#f1f5f9; padding: 2px 6px; border-radius:4px; font-size:11px;">${(e.type || 'ordinaria').toUpperCase()}</span></td>
-                        <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right;">$${montoTotalEdificio.toFixed(2)}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right; font-weight: bold; color: #0d9488;">$${montoAlicuotaUsd.toFixed(2)}</td>
-                        <td style="padding: 8px; border-bottom: 1px solid #cbd5e1; text-align: right;">Bs. ${montoAlicuotaBs.toFixed(2)}</td>
-                    </tr>
-                `;
-            });
-
-            const totalPagarBs = totalPagarUsd * bcvRate;
-
-            const ventanaImpresion = window.open('', '_blank', 'width=850,height=750');
-            ventanaImpresion.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Recibo de Cobro - Apto ${myApto}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; color: #1e293b; margin: 30px; }
-                        .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px; }
-                        .building-name { font-size: 20px; font-weight: bold; color: #0f172a; margin: 0; }
-                        .building-rif { font-size: 12px; color: #64748b; margin: 2px 0; }
-                        .info-grid { display: flex; justify-content: space-between; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; }
-                        .info-grid div { line-height: 1.5; }
-                        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                        th { background: #f1f5f9; border-bottom: 2px solid #cbd5e1; padding: 8px; text-align: left; font-size: 12px; color: #334155; }
-                        td { font-size: 12px; }
-                        .totals-box { text-align: right; margin-top: 15px; border-top: 2px solid #0f172a; padding-top: 10px; }
-                        .totals-box p { margin: 4px 0; font-size: 14px; }
-                        @media print {
-                            body { margin: 10px; }
-                            button { display: none; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <p class="building-name">${state.building?.name || 'Residencias El Parque'}</p>
-                        <p class="building-rif">RIF: ${state.building?.rif || 'J-00000000-0'} | ${state.building?.address || ''}</p>
-                        <p style="margin: 5px 0 0 0; font-size: 14px; font-weight: bold; color: #0284c7;">AVISO DE COBRO - PERÍODO: ${periodStr}</p>
-                    </div>
-
-                    <div class="info-grid">
-                        <div>
-                            <strong>Apartamento:</strong> ${myApto}<br>
-                            <strong>Propietario:</strong> ${myOwnerObj.owner || '-'}<br>
-                            <strong>Alícuota:</strong> ${alicuotaVal}%
-                        </div>
-                        <div style="text-align: right;">
-                            <strong>Tasa BCV Oficial:</strong> Bs. ${bcvRate.toFixed(2)}<br>
-                            <strong>Fecha de Emisión:</strong> ${new Date().toLocaleDateString()}
-                        </div>
-                    </div>
-
-                    <h3>📋 Desglose de Gastos y Cuotas del Período</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Concepto / Descripción</th>
-                                <th style="text-align: center;">Tipo</th>
-                                <th style="text-align: right;">Total Edificio ($)</th>
-                                <th style="text-align: right;">Su Alícuota ($)</th>
-                                <th style="text-align: right;">Su Alícuota (Bs.)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${filasGastosHtml || '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 15px;">No hay gastos registrados para este período.</td></tr>'}
-                        </tbody>
-                    </table>
-
-                    <div class="totals-box">
-                        <p><strong>Total a Pagar en Dólares:</strong> <span style="color: #0d9488; font-size: 16px;">$${totalPagarUsd.toFixed(2)}</span></p>
-                        <p><strong>Total Equivalente en Bolívares:</strong> Bs. ${totalPagarBs.toFixed(2)}</p>
-                    </div>
-
-                    <div style="text-align: center; margin-top: 40px;">
-                        <button onclick="window.print()" style="background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 14px; cursor: pointer;">🖨️ Imprimir Recibo Formal</button>
-                    </div>
-                </body>
-                </html>
-            `);
-            ventanaImpresion.document.close();
+            window.print();
         }
 
         // ==================== REPORTE MATRICIAL DE CUENTAS POR COBRAR ====================
@@ -1913,16 +1420,15 @@
             const fromVal = document.getElementById('rep-period-from') ? document.getElementById('rep-period-from').value : '';
             const toVal = document.getElementById('rep-period-to') ? (document.getElementById('rep-period-to').value || fromVal) : fromVal;
 
-            // Actualizar datos del edificio en el membrete
             const buildingName = (state.building && state.building.name) ? state.building.name : 'Residencias El Parque';
             const buildingRif = (state.building && state.building.rif) ? state.building.rif : 'J-29819798-6';
-    
+            
             const nameEl = document.getElementById('rep-building-name');
             if (nameEl) nameEl.innerText = buildingName;
-    
+            
             const rifEl = document.getElementById('rep-building-rif');
             if (rifEl) rifEl.innerText = 'RIF: ' + buildingRif;
-    
+            
             const dateEl = document.getElementById('rep-emission-date');
             if (dateEl) dateEl.innerText = new Date().toLocaleDateString('es-VE') + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
@@ -1933,8 +1439,7 @@
 
             const fromNum = periodToNumber(fromVal);
             const toNum = periodToNumber(toVal);
-    
-            // 1. Obtener y filtrar todos los avisos de cobro (ordinarios y extraordinarios) en el rango
+
             const notices = (state.billingNotices || []).filter(function(n) {
                 if (!fromNum && !toNum) return true;
                 const nNum = periodToNumber(n.period);
@@ -1944,20 +1449,16 @@
                 return true;
             });
 
-            // Extraer todos los períodos únicos
             let periodsSet = new Set();
             notices.forEach(function(n) { if (n.period) periodsSet.add(n.period); });
-    
-            // Si hay gastos pendientes actuales que no se han cerrado en un aviso, incluirlos también
+            
             (state.expenses || []).filter(function(e) { return e.status !== 'billed'; }).forEach(function(e) {
                 if (e.period) periodsSet.add(e.period);
             });
 
-            // Orden cronológico ascendente para restar pagos antiguos primero, y descendente para la tabla
             let periodsListAsc = Array.from(periodsSet).sort();
             let periodsListDesc = [...periodsListAsc].reverse();
 
-            // 2. Construir el Encabezado de la Tabla Dinámica (Estilo Matriz)
             const thead = document.getElementById('matrix-table-head');
             if (thead) {
                 let headHtml = '<th class="p-3 text-center">Nro</th>' +
@@ -1970,9 +1471,7 @@
                 thead.innerHTML = headHtml;
             }
 
-            // 3. Mapear asignaciones por apartamento y por período
             let aptoPeriodDebt = {};
-
             notices.forEach(function(notice) {
                 const p = notice.period;
                 let details = notice.details;
@@ -1983,20 +1482,18 @@
                 ownersList.forEach(function(o) {
                     const cleanApto = String(o.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
                     const amt = Number(o.usd || o.monto || o.amount || 0);
-            
+                    
                     if (!aptoPeriodDebt[cleanApto]) aptoPeriodDebt[cleanApto] = {};
                     aptoPeriodDebt[cleanApto][p] = (aptoPeriodDebt[cleanApto][p] || 0) + amt;
                 });
             });
 
-            // Pagos aprobados globales
             const approvedPayments = (state.payments || []).filter(function(p) {
                 const st = String(p.status || '').toLowerCase();
                 return st === 'aprobado' || st === 'aprobada';
             });
 
-            // 4. Renderizar las filas de la tabla por cada apartamento con resta acumulativa por antigüedad
-            const tbody = document.getElementById('matrix-table-body');
+            const tbody = document.getElementById('matrix-table-head') ? document.getElementById('matrix-table-body') : null;
             if (tbody) {
                 tbody.innerHTML = '';
                 const owners = state.owners || [];
@@ -2007,20 +1504,21 @@
                 }
 
                 owners.forEach(function(o, index) {
-                    const rawApto = String(o.apto || '').trim();
-                    const cleanApto = rawApto.toUpperCase().replace(/^APTO\s*/i, '');
-            
-                    // Sumar los pagos aprobados totales de este apartamento
+                    const cleanApto = String(o.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
+                    
                     const aptPayments = approvedPayments.filter(function(p) {
                         const pApto = String(p.apto || p.apartment || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
                         return pApto === cleanApto;
                     });
 
                     let totalPagadoUsd = aptPayments.reduce(function(sum, p) {
-                        return sum + Number(p.usdEquiv !== undefined ? p.usdEquiv : (p.usd_equiv !== undefined ? p.usd_equiv : (p.amount_usd !== undefined ? p.amount_usd : (p.amount || 0))));
+                        let amt = p.usdEquiv;
+                        if (amt === undefined) amt = p.usd_equiv;
+                        if (amt === undefined) amt = p.amount_usd;
+                        if (amt === undefined) amt = p.amount;
+                        return sum + Number(amt || 0);
                     }, 0);
 
-                    // Distribuir el pago cronológicamente desde los períodos más antiguos a los más nuevos
                     let remainingPayment = totalPagadoUsd;
                     let periodBalances = {};
 
@@ -2029,10 +1527,10 @@
                         if (assigned > 0) {
                             if (remainingPayment >= assigned) {
                                 remainingPayment -= assigned;
-                                periodBalances[p] = 0; // Cubierto por completo
+                                periodBalances[p] = 0;
                             } else {
                                 periodBalances[p] = assigned - remainingPayment;
-                                remainingPayment = 0; // Se agotó el saldo del pago
+                                remainingPayment = 0;
                             }
                         } else {
                             periodBalances[p] = 0;
@@ -2046,7 +1544,7 @@
                     periodsListDesc.forEach(function(p) {
                         const saldoPeriodo = periodBalances[p] || 0;
                         const assigned = (aptoPeriodDebt[cleanApto] && aptoPeriodDebt[cleanApto][p]) ? aptoPeriodDebt[cleanApto][p] : 0;
-                
+                        
                         totalAptoDebt += saldoPeriodo;
 
                         if (saldoPeriodo > 0.01) {
@@ -2070,22 +1568,17 @@
             }
         }
 
-        // Mantener compatibilidad con funciones previas
         function generateReports() {
             generateMatrixReport();
         }
+
         async function saveBuildingConfig(e) {
             e.preventDefault();
             const name = document.getElementById('cfg-name').value;
             const rif = document.getElementById('cfg-rif').value;
             const address = document.getElementById('cfg-address').value;
 
-            const { error } = await db.from('building_config').upsert([{ id: 1, name, rif, address }]);
-            if (error) {
-                alert('Error al guardar la configuración: ' + error.message);
-                return;
-            }
-
+            await db.from('building_config').upsert([{ id: 1, name, rif, address }]);
             await loadStorage();
             alert('¡Configuración actualizada con éxito!');
         }
