@@ -171,8 +171,8 @@
                             <p class="text-blue-200">Panel de Control Financiero y Avisos de Cobro</p>
                         </div>
                         <div class="flex items-center gap-2 bg-blue-900 p-2 rounded">
-                            <label for="periodoInput" class="font-semibold text-sm">Periodo (MM/AAAA):</label>
-                            <input type="month" id="periodoInput" onchange="syncPeriodToForms(this.value)" class="bg-white text-gray-800 px-2 py-1 rounded w-36 text-center font-bold text-sm">
+                            <label for="periodoInput" class="font-semibold text-sm">Fecha de Emisión / Cobro:</label>
+                            <input type="date" id="periodoInput" onchange="syncPeriodToForms(this.value)" class="bg-white text-gray-800 px-2 py-1 rounded font-bold text-sm"> 
                         </div>
                     </header>
 
@@ -209,6 +209,10 @@
                                 ⚙️ Cuotas Extraordinarias / Proveedores Especiales
                             </h2>
                             <form id="formGastoExtra" onsubmit="addExtraExpense(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Fecha del Gasto / Factura</label>
+                                    <input type="date" id="fechaExtra" required class="mt-1 block w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-purple-500 focus:border-purple-500 text-sm font-semibold">
+                                </div>
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700">Proveedor</label>
@@ -227,7 +231,7 @@
                                 <div id="contenedorTasa" class="hidden bg-purple-50 p-2 rounded border border-purple-200">
                                     <label class="block text-xs font-semibold text-purple-700">Tasa de Cambio del Euro (Bs. por €)</label>
                                     <input type="number" id="tasaCambio" step="0.0001" placeholder="Ej: 92.50" class="mt-1 block w-full p-1 border border-purple-300 rounded text-sm text-center font-bold">
-                                    <p class="text-[11px] text-purple-600 mt-1">* Se convertirá automáticamente a USD usando la tasa BCV del periodo.</p>
+                                    <p class="text-[11px] text-purple-600 mt-1">* Se convertirá automáticamente a USD usando la tasa BCV de la fecha indicada.</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Descripción del Trabajo / Cuota</label>
@@ -242,7 +246,6 @@
                                 </button>
                             </form>
                         </div>
-                    </div>
 
                     <!-- TABLA DE CONTROL ADM -->
                     <div class="bg-white p-6 rounded-lg shadow-md mb-6">
