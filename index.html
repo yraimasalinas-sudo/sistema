@@ -1737,7 +1737,7 @@
             ventanaDetalle.document.close();
         }
 
-        // ==================== VISTA DE PROPIETARIOS DEFINITIVA ====================
+        // ==================== VISTA DE PROPIETARIOS ADAPTADA A SUPABASE ====================
         function renderOwnerData() {
             if (!currentUser || currentUser.role !== 'owner') return;
 
@@ -1745,14 +1745,17 @@
             const rawApto = currentUser.apto || '1A';
             const myAptoClean = normalizeApto(rawApto);
 
-            // Asignar datos básicos a la interfaz
+            // Buscar al propietario en la tabla 'owners' usando 'owner_name'
+            const myOwnerObj = (state.owners || []).find(o => normalizeApto(o.apto) === myAptoClean) || currentUser;
+
+            // 1. Rellenar datos en la interfaz
             const aptoEl = document.getElementById('owner-dash-apto');
             if (aptoEl) aptoEl.innerText = rawApto;
 
             const nameEl = document.getElementById('owner-dash-name');
-            if (nameEl) nameEl.innerText = currentUser.owner || currentUser.nombre || 'Gibson Garcia';
+            if (nameEl) nameEl.innerText = myOwnerObj.owner_name || myOwnerObj.owner || currentUser.owner_name || 'Propietario';
 
-            const alicuotaVal = Number(currentUser.alicuota || 6);
+            const alicuotaVal = Number(myOwnerObj.alicuota || currentUser.alicuota || 6);
             const alicuotaEl = document.getElementById('owner-dash-alicuota');
             if (alicuotaEl) alicuotaEl.innerText = `${alicuotaVal}%`;
 
@@ -1762,7 +1765,7 @@
 
             const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
 
-            // Obtener los gastos activos o del último aviso
+            // 2. Obtener gastos activos o del último aviso de cobro
             let activeExpenses = [];
             if (state.billingNotices && state.billingNotices.length > 0) {
                 const lastNotice = state.billingNotices[state.billingNotices.length - 1];
@@ -1770,18 +1773,17 @@
                 if (typeof details === 'string') {
                     try { details = JSON.parse(details); } catch (e) { details = {}; }
                 }
-                activeExpenses = details.expenses || details.items || details.items_gastos || [];
+                activeExpenses = details.expenses || details.items || [];
             }
 
             if (!activeExpenses || activeExpenses.length === 0) {
                 activeExpenses = (state.expenses || []).filter(e => e.status !== 'billed');
             }
-
-            // Si aún no hay gastos en memoria, tomamos los de la tabla expenses directamente
             if (!activeExpenses || activeExpenses.length === 0) {
                 activeExpenses = state.expenses || [];
             }
 
+            // Calcular el total que le corresponde pagar al apartamento
             let myTotalUsd = 0;
             activeExpenses.forEach(e => {
                 const totalBldg = Number(e.amount || e.amount_usd || e.monto || 0);
@@ -1791,7 +1793,7 @@
                 myTotalUsd += myShare;
             });
 
-            // Pagos aprobados del propietario
+            // 3. Filtrar pagos aprobados del propietario
             const myApprovedPayments = (state.payments || []).filter(p => {
                 const pAptoClean = normalizeApto(p.apto || p.apartment);
                 const pStatus = String(p.status || '').toLowerCase();
@@ -1806,7 +1808,7 @@
                 return acc + Number(amt || 0);
             }, 0);
 
-            // Saldo pendiente
+            // 4. Saldo neto pendiente final
             const netBalanceUsd = Math.max(0, myTotalUsd - totalPaidUsd);
             const netBalanceBs = netBalanceUsd * bcvRate;
 
@@ -1816,7 +1818,7 @@
             const balanceBsEl = document.getElementById('owner-dash-balance-bs');
             if (balanceBsEl) balanceBsEl.innerText = `Monto a pagar en Bolívares: Bs. ${netBalanceBs.toFixed(2)}`;
 
-            // Renderizar tabla del recibo
+            // 5. Renderizar tabla del recibo de cobro
             const receiptBody = document.getElementById('owner-receipt-body');
             if (receiptBody) {
                 receiptBody.innerHTML = '';
@@ -1843,7 +1845,7 @@
                 }
             }
 
-            // Renderizar historial de pagos
+            // 6. Renderizar historial de pagos del propietario
             const historyBody = document.getElementById('owner-history-body');
             if (historyBody) {
                 historyBody.innerHTML = '';
