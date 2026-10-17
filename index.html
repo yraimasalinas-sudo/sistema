@@ -1873,6 +1873,9 @@
             const alicuotaVal = Number(myOwnerObj.alicuota || 6);
             const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
 
+            // Obtener la tasa BCV guardada en el aviso
+            const bcvRate = Number(notice.bcv_rate || details.bcv_rate || state.building?.bcv || 0);
+
             const expensesList = details.expenses || details.items || details.items_gastos || [];
 
             let htmlRows = '';
@@ -1905,7 +1908,7 @@
                 <body class="p-6 bg-white text-slate-800">
                     <div class="max-w-xl mx-auto border p-6 rounded-lg shadow-sm">
                         <div class="text-center border-b pb-4 mb-4">
-                            <h1 class="text-xl font-bold text-slate-900">${state.building?.name || 'Residencias Aventura Suites'}</h1>
+                            <h1 class="text-xl font-bold text-slate-900">${state.building?.name || 'Residencias El Parque'}</h1>
                             <p class="text-xs text-slate-500 font-semibold">AVISO DE COBRO HISTÓRICO - PERÍODO: ${notice.period}</p>
                         </div>
                         
@@ -1913,6 +1916,7 @@
                             <div><strong>Apartamento:</strong> ${rawApto}</div>
                             <div><strong>Propietario:</strong> ${myOwnerObj.owner_name || myOwnerObj.owner || 'Propietario'}</div>
                             <div><strong>Alícuota:</strong> ${alicuotaVal}%</div>
+                            <div><strong>Tasa BCV del Mes:</strong> Bs. ${bcvRate ? bcvRate.toFixed(2) : '-'}</div>
                         </div>
 
                         <h3 class="font-bold text-sm mb-2 text-slate-700">📌 Desglose de Gastos</h3>
@@ -1944,6 +1948,7 @@
             `);
             windowPrint.document.close();
         }
+
         // ==================== REPORTE MATRICIAL Y DE GESTIÓN ====================
         function periodToNumber(pStr) {
             if (!pStr) return 0;
