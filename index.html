@@ -1873,9 +1873,7 @@
             const alicuotaVal = Number(myOwnerObj.alicuota || 6);
             const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
 
-            // Obtener la tasa BCV guardada en el aviso
             const bcvRate = Number(notice.bcv_rate || details.bcv_rate || state.building?.bcv || 0);
-
             const expensesList = details.expenses || details.items || details.items_gastos || [];
 
             let htmlRows = '';
@@ -1897,7 +1895,6 @@
                 `;
             });
 
-            // Ventana limpia del Recibo
             const windowPrint = window.open('', '_blank', 'width=750,height=650');
             windowPrint.document.write(`
                 <html>
@@ -1948,7 +1945,6 @@
             `);
             windowPrint.document.close();
         }
-
         // ==================== REPORTE MATRICIAL Y DE GESTIÓN ====================
         function periodToNumber(pStr) {
             if (!pStr) return 0;
