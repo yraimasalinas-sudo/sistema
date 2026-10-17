@@ -1856,7 +1856,7 @@
             }
         }
 
-        // ==================== RECIBO DETALLADO (SOLO EN USD $) ====================
+// ==================== RECIBO DETALLADO (SOLO EN USD $) ====================
         function verDetalleAvisoPropietario(noticeId) {
             const notice = (state.billingNotices || []).find(n => String(n.id) === String(noticeId));
             if (!notice) return alert("No se encontró el aviso seleccionado.");
@@ -1886,11 +1886,11 @@
                 totalMyShareUsd += myUsd;
 
                 htmlRows += `
-                    <tr class="border-b text-xs">
-                        <td class="p-2 text-left font-semibold text-slate-800">${exp.description || exp.concept || 'Gasto'}</td>
-                        <td class="p-2 text-center"><span class="px-2 py-0.5 bg-slate-100 rounded text-[10px]">${(exp.type || 'ORDINARIA').toUpperCase()}</span></td>
-                        <td class="p-2 text-right">$${totalBldg.toFixed(2)}</td>
-                        <td class="p-2 text-right font-bold text-teal-600">$${myUsd.toFixed(2)}</td>
+                    <tr style="border-bottom: 1px solid #e2e8f0; font-size: 12px;">
+                        <td style="padding: 8px; text-align: left; font-weight: 600; color: #1e293b;">${exp.description || exp.concept || 'Gasto'}</td>
+                        <td style="padding: 8px; text-align: center;"><span style="padding: 2px 6px; background: #f1f5f9; border-radius: 4px; font-size: 10px;">${(exp.type || 'ORDINARIA').toUpperCase()}</span></td>
+                        <td style="padding: 8px; text-align: right;">$${totalBldg.toFixed(2)}</td>
+                        <td style="padding: 8px; text-align: right; font-weight: bold; color: #0d9488;">$${myUsd.toFixed(2)}</td>
                     </tr>
                 `;
             });
@@ -1900,30 +1900,41 @@
                 <html>
                 <head>
                     <title>Recibo de Cobro - Apt ${rawApto}</title>
-                    <script src="https://cdn.tailwindcss.com"></script>
+                    <style>
+                        body { font-family: 'Poppins', Arial, sans-serif; padding: 25px; color: #1e293b; background: #fff; }
+                        .container { max-width: 600px; margin: 0 auto; border: 1px solid #cbd5e1; padding: 24px; border-radius: 8px; }
+                        .header { text-align: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 16px; margin-bottom: 16px; }
+                        .grid { display: grid; grid-template-columns: 1fr 1fr; background: #f8fafc; padding: 12px; border-radius: 6px; font-size: 12px; gap: 8px; margin-bottom: 16px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+                        th { background: #f1f5f9; padding: 8px; font-size: 11px; text-transform: uppercase; color: #475569; border-bottom: 1px solid #cbd5e1; text-align: left; }
+                        .total-row { border-top: 2px solid #cbd5e1; padding-top: 12px; display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; }
+                        .btn { margin-top: 20px; text-align: center; }
+                        .btn button { background: #0d9488; color: white; border: none; padding: 8px 16px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+                        @media print { .no-print { display: none; } }
+                    </style>
                 </head>
-                <body class="p-6 bg-white text-slate-800">
-                    <div class="max-w-xl mx-auto border p-6 rounded-lg shadow-sm">
-                        <div class="text-center border-b pb-4 mb-4">
-                            <h1 class="text-xl font-bold text-slate-900">${state.building?.name || 'Residencias El Parque'}</h1>
-                            <p class="text-xs text-slate-500 font-semibold">AVISO DE COBRO HISTÓRICO - PERÍODO: ${notice.period}</p>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h2 style="margin: 0; font-size: 18px; color: #0f172a;">${state.building?.name || 'Residencias El Parque'}</h2>
+                            <p style="margin: 4px 0 0; font-size: 11px; color: #64748b; font-weight: bold;">AVISO DE COBRO HISTÓRICO - PERÍODO: ${notice.period}</p>
                         </div>
                         
-                        <div class="grid grid-cols-2 text-xs bg-slate-50 p-3 rounded mb-4 gap-2">
+                        <div class="grid">
                             <div><strong>Apartamento:</strong> ${rawApto}</div>
                             <div><strong>Propietario:</strong> ${myOwnerObj.owner_name || myOwnerObj.owner || 'Propietario'}</div>
                             <div><strong>Alícuota:</strong> ${alicuotaVal}%</div>
                             <div><strong>Tasa BCV del Mes:</strong> Bs. ${bcvRate ? bcvRate.toFixed(2) : '-'}</div>
                         </div>
 
-                        <h3 class="font-bold text-sm mb-2 text-slate-700">📌 Desglose de Gastos</h3>
-                        <table class="w-full text-left border-collapse mb-4">
+                        <h3 style="font-size: 13px; margin-bottom: 8px; color: #334155;">📌 Desglose de Gastos</h3>
+                        <table>
                             <thead>
-                                <tr class="bg-slate-100 text-[11px] text-slate-600 uppercase border-b">
-                                    <th class="p-2">Concepto</th>
-                                    <th class="p-2 text-center">Tipo</th>
-                                    <th class="p-2 text-right">Total Edificio ($)</th>
-                                    <th class="p-2 text-right">Su Cuota ($)</th>
+                                <tr>
+                                    <th>Concepto</th>
+                                    <th style="text-align: center;">Tipo</th>
+                                    <th style="text-align: right;">Total Edificio ($)</th>
+                                    <th style="text-align: right;">Su Cuota ($)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1931,13 +1942,13 @@
                             </tbody>
                         </table>
 
-                        <div class="border-t pt-3 flex justify-between items-center text-sm">
-                            <span class="font-bold">TOTAL A PAGAR:</span>
-                            <span class="font-extrabold text-teal-600 text-lg">$${totalMyShareUsd.toFixed(2)}</span>
+                        <div class="total-row">
+                            <span>TOTAL A PAGAR:</span>
+                            <span style="color: #0d9488; font-size: 18px;">$${totalMyShareUsd.toFixed(2)}</span>
                         </div>
 
-                        <div class="mt-6 text-center no-print">
-                            <button onclick="window.print()" class="px-4 py-2 bg-teal-600 text-white font-bold rounded text-xs shadow hover:bg-teal-700">🖨️ Imprimir Recibo</button>
+                        <div class="btn no-print">
+                            <button onclick="window.print()">🖨️ Imprimir Recibo</button>
                         </div>
                     </div>
                 </body>
@@ -1957,7 +1968,7 @@
             const fromVal = document.getElementById('rep-period-from') ? document.getElementById('rep-period-from').value : '';
             const toVal = document.getElementById('rep-period-to') ? (document.getElementById('rep-period-to').value || fromVal) : fromVal;
 
-            const buildingName = (state.building && state.building.name) ? state.building.name : 'Residencias Aventura Suites';
+            const buildingName = (state.building && state.building.name) ? state.building.name : 'Residencias El Parque';
             const buildingRif = (state.building && state.building.rif) ? state.building.rif : 'J-29819798-6';
             
             const nameEl = document.getElementById('rep-building-name');
@@ -2181,6 +2192,7 @@
         function generateCustomRangeReport() {
             generateMatrixReport();
         }
+
         async function saveBuildingConfig(e) {
             e.preventDefault();
             const name = document.getElementById('cfg-name').value;
@@ -2195,11 +2207,11 @@
 
             await loadStorage();
             alert('¡Configuración actualizada con éxito!');
-        } // <-- Esta llave cierra saveBuildingConfig
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             loadStorage();
-        }); 
+        });
     </script>
 </body>
 </html>
