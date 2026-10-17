@@ -329,7 +329,14 @@
                         </div>
 
                         <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 class="font-bold text-slate-800 mb-4 text-sm">⏳ Reportes de Pago por Conciliar</h3>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                    ⏳ Reportes de Pago por Conciliar
+                                </h3>
+                                <button onclick="imprimirReportePagos()" class="bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs px-3 py-1.5 rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+                                    🖨️ Imprimir Reporte de Pagos
+                                </button>
+                            </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-xs">
                                     <thead>
@@ -1333,6 +1340,105 @@
             window.open(whatsappUrl, '_blank');
         }
 
+        function imprimirReportePagos() {
+            const payments = state.payments || [];
+            if (payments.length === 0) {
+                alert("No hay registros de pago para imprimir.");
+                return;
+            }
+
+            const buildingName = (state.building && state.building.name) ? state.building.name : 'Residencias El Parque';
+            const buildingRif = (state.building && state.building.rif) ? state.building.rif : 'J-29819798-6';
+
+            let rowsHtml = '';
+            let totalBs = 0;
+            let totalUsd = 0;
+
+            payments.forEach((p, index) => {
+                const apto = p.apto || p.apartment || '-';
+                const fecha = p.date || p.fecha || '-';
+                const metodo = p.method || p.metodo || 'Bs - Transferencia/Pago Móvil';
+                const ref = p.reference || p.ref || '-';
+                
+                const montoBs = Number(p.amount || p.monto || 0);
+                let equivUsd = p.usdEquiv ?? p.usd_equiv ?? p.amount_usd ?? (montoBs / (state.building?.bcv || 1));
+                equivUsd = Number(equivUsd || 0);
+
+                totalBs += montoBs;
+                totalUsd += equivUsd;
+
+                const estado = (p.status || 'Aprobado').toUpperCase();
+
+                rowsHtml += `
+                    <tr style="border-bottom: 1px solid #e2e8f0; font-size: 11px;">
+                        <td style="padding: 6px; text-align: center;">${index + 1}</td>
+                        <td style="padding: 6px; font-weight: bold; text-align: center;">${apto}</td>
+                        <td style="padding: 6px; text-align: center;">${fecha}</td>
+                        <td style="padding: 6px;">${metodo} <br><small style="color:#64748b;">Ref: ${ref}</small></td>
+                        <td style="padding: 6px; text-align: right; font-weight: 500;">Bs. ${montoBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td style="padding: 6px; text-align: right; font-weight: bold; color: #0d9488;">$${equivUsd.toFixed(2)}</td>
+                        <td style="padding: 6px; text-align: center;"><span style="padding: 2px 6px; background: #dcfce7; color: #166534; border-radius: 4px; font-size: 9px; font-weight: bold;">${estado}</span></td>
+                    </tr>
+                `;
+            });
+
+            const printWindow = window.open('', '_blank', 'width=800,height=700');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Reporte de Conciliación de Pagos - ${buildingName}</title>
+                    <style>
+                        body { font-family: 'Poppins', Arial, sans-serif; padding: 20px; color: #0f172a; background: #fff; }
+                        .header { text-align: center; border-bottom: 2px solid #cbd5e1; padding-bottom: 12px; margin-bottom: 16px; }
+                        .title { font-size: 16px; font-weight: bold; margin: 0; color: #0f172a; }
+                        .subtitle { font-size: 11px; color: #64748b; margin-top: 4px; font-weight: 600; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+                        th { background: #f1f5f9; padding: 8px; font-size: 10px; text-transform: uppercase; color: #334155; border-bottom: 2px solid #cbd5e1; text-align: left; }
+                        .total-row { background: #f8fafc; font-weight: bold; font-size: 12px; border-top: 2px solid #cbd5e1; }
+                        .btn-print { margin-top: 20px; text-align: center; }
+                        .btn-print button { background: #0f172a; color: white; border: none; padding: 8px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 12px; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h2 class="title">${buildingName}</h2>
+                        <p class="subtitle">RIF: ${buildingRif} | REPORTE DETALLADO DE CONCILIACIÓN DE PAGOS</p>
+                        <p style="font-size: 10px; color: #94a3b8; margin-top: 2px;">Fecha de emisión: ${new Date().toLocaleDateString('es-VE')} ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="text-align: center;">Nro</th>
+                                <th style="text-align: center;">Apto</th>
+                                <th style="text-align: center;">Fecha</th>
+                                <th>Método / Ref</th>
+                                <th style="text-align: right;">Monto (Bs.)</th>
+                                <th style="text-align: right;">Equiv. ($)</th>
+                                <th style="text-align: center;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                            <tr class="total-row">
+                                <td colspan="4" style="padding: 8px; text-align: right;">TOTAL GENERAL CONCILIADO:</td>
+                                <td style="padding: 8px; text-align: right; color: #0f172a;">Bs. ${totalBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                                <td style="padding: 8px; text-align: right; color: #0d9488;">$${totalUsd.toFixed(2)}</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="btn-print no-print">
+                        <button onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
         // ==================== PAGOS Y CONCILIACIÓN ====================
         function getBcvRateForDate(targetDate) {
             if (!state.bcvHistory || state.bcvHistory.length === 0) {
@@ -1467,7 +1573,7 @@
                         <td class="p-2">${p.date || '-'}</td>
                         <td class="p-2">${p.method || 'Pago'}<br><span class="text-[10px] text-slate-400">Ref: ${refText}</span></td>
                         <td class="p-2 text-right font-semibold">${montoOriginalText}</td>
-                        <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv || p.amount || 0).toFixed(2)}</td>
+                        <td class="p-2 text-right font-bold text-teal-600">$${Number(p.usdEquiv || p.amount_usd || p.amount || 0).toFixed(2)}</td>
                         <td class="p-2 text-center space-x-1">
                             ${statusVal === 'Pendiente' ? `
                                 <button onclick="approvePayment(${p.id})" class="px-2 py-1 bg-emerald-500 text-white rounded text-[10px] hover:bg-emerald-600">Aprobar</button>
@@ -1478,7 +1584,6 @@
                 `;
             });
         }
-
         // ==================== PROPIETARIOS Y PROVEEDORES ====================
         function renderOwnersTable() {
             const body = document.getElementById('owners-table-body');
