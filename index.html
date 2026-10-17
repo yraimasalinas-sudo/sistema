@@ -1968,6 +1968,10 @@
             const fromNum = periodToNumber(fromVal);
             const toNum = periodToNumber(toVal);
 
+            let periodsSet = new Set();
+            let aptoPeriodDebt = {};
+
+            // 1. Procesar Avisos de Cobro Guardados en Supabase
             const notices = (state.billingNotices || []).filter(function(n) {
                 if (!fromNum && !toNum) return true;
                 const nNum = periodToNumber(n.period);
@@ -1977,16 +1981,54 @@
                 return true;
             });
 
-            let periodsSet = new Set();
-            notices.forEach(function(n) { if (n.period) periodsSet.add(n.period); });
-            
+            notices.forEach(function(notice) {
+                const p = notice.period;
+                if (p) periodsSet.add(p);
+
+                let details = notice.details;
+                if (typeof details === 'string') {
+                    try { details = JSON.parse(details); } catch (e) { details = {}; }
+                }
+
+                // Soportar cualquier variante de estructura guardada (owners, alicuotas, items)
+                const ownersList = details.owners || details.alicuotas || details.items || [];
+                
+                ownersList.forEach(function(o) {
+                    const cleanApto = String(o.apto || o.apartment || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
+                    const amt = Number(o.usd || o.monto || o.amount || o.monto_usd || 0);
+                    
+                    if (cleanApto) {
+                        if (!aptoPeriodDebt[cleanApto]) aptoPeriodDebt[cleanApto] = {};
+                        aptoPeriodDebt[cleanApto][p] = (aptoPeriodDebt[cleanApto][p] || 0) + amt;
+                    }
+                });
+            });
+
+            // 2. Procesar Gastos Activos no cerrados (Expenses pendientes)
             (state.expenses || []).filter(function(e) { return e.status !== 'billed'; }).forEach(function(e) {
-                if (e.period) periodsSet.add(e.period);
+                const p = e.period || 'Actual';
+                periodsSet.add(p);
+                const totalExpUsd = Number(e.amount || e.amount_usd || 0);
+
+                (state.owners || []).forEach(function(o) {
+                    const cleanApto = String(o.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
+                    const alicuotaVal = Number(o.alicuota || 0);
+                    const factor = alicuotaVal > 1 ? alicuotaVal / 100 : alicuotaVal;
+                    const amtApto = totalExpUsd * factor;
+
+                    if (cleanApto && amtApto > 0) {
+                        if (!aptoPeriodDebt[cleanApto]) aptoPeriodDebt[cleanApto] = {};
+                        if (!aptoPeriodDebt[cleanApto][p]) {
+                            aptoPeriodDebt[cleanApto][p] = amtApto;
+                        }
+                    }
+                });
             });
 
             let periodsListAsc = Array.from(periodsSet).sort();
             let periodsListDesc = [...periodsListAsc].reverse();
 
+            // 3. Construir la Cabecera de la Tabla
             const thead = document.getElementById('matrix-table-head');
             if (thead) {
                 let headHtml = '<th class="p-3 text-center">Nro</th>' +
@@ -1999,29 +2041,13 @@
                 thead.innerHTML = headHtml;
             }
 
-            let aptoPeriodDebt = {};
-            notices.forEach(function(notice) {
-                const p = notice.period;
-                let details = notice.details;
-                if (typeof details === 'string') {
-                    try { details = JSON.parse(details); } catch (e) { details = {}; }
-                }
-                const ownersList = details.owners || details.alicuotas || [];
-                ownersList.forEach(function(o) {
-                    const cleanApto = String(o.apto || '').trim().toUpperCase().replace(/^APTO\s*/i, '');
-                    const amt = Number(o.usd || o.monto || o.amount || 0);
-                    
-                    if (!aptoPeriodDebt[cleanApto]) aptoPeriodDebt[cleanApto] = {};
-                    aptoPeriodDebt[cleanApto][p] = (aptoPeriodDebt[cleanApto][p] || 0) + amt;
-                });
-            });
-
             const approvedPayments = (state.payments || []).filter(function(p) {
                 const st = String(p.status || '').toLowerCase();
                 return st === 'aprobado' || st === 'aprobada';
             });
 
-            const tbody = document.getElementById('matrix-table-head') ? document.getElementById('matrix-table-body') : null;
+            // 4. Renderizar Filas por Apartamento con resta de pagos antiguos a nuevos
+            const tbody = document.getElementById('matrix-table-body');
             if (tbody) {
                 tbody.innerHTML = '';
                 const owners = state.owners || [];
@@ -2095,7 +2121,6 @@
                 });
             }
         }
-
         function generateReports() {
             generateMatrixReport();
         }
