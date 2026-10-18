@@ -1216,22 +1216,28 @@
             const period = pendingExpenses[0].period || getSelectedPeriod();
             const totalUSD = pendingExpenses.reduce((acc, e) => acc + Number(e.amount || e.amount_usd || 0), 0);
 
-            // BÚSQUEDA DE TASA HISTÓRICA SEGURA Y DIRECTA
+            // BÚSQUEDA DE TASA HISTÓRICA EXACTA BASADA EN LA FECHA DEL GASTO
             let bcvRate = Number(state.building?.bcv || 0);
             try {
-                const { data, error } = await db
-                    .from('bcv_history')
-                    .select('rate, date')
-                    .order('date', { ascending: true });
+                // Tomar la fecha exacta del gasto si existe (ej. 2026-09-16)
+                const expenseDate = pendingExpenses[0].date;
+                
+                if (expenseDate && typeof getBcvRateForDate === 'function') {
+                    bcvRate = getBcvRateForDate(expenseDate);
+                } else {
+                    const { data, error } = await db
+                        .from('bcv_history')
+                        .select('rate, date')
+                        .order('date', { ascending: true });
 
-                if (!error && data && data.length > 0) {
-                    const matchRate = data.find(item => item.date && item.date.startsWith(period));
-                    if (matchRate) {
-                        bcvRate = Number(matchRate.rate);
-                        console.log(`Tasa histórica encontrada para ${period}: ${bcvRate} (${matchRate.date})`);
-                    } else {
-                        bcvRate = Number(data[0].rate);
-                        console.warn(`No hay tasa exacta para ${period}, usando la más cercana: ${bcvRate}`);
+                    if (!error && data && data.length > 0) {
+                        const matchRate = data.find(item => item.date && item.date === expenseDate);
+                        if (matchRate) {
+                            bcvRate = Number(matchRate.rate);
+                        } else {
+                            const monthMatch = data.find(item => item.date && item.date.startsWith(period));
+                            bcvRate = monthMatch ? Number(monthMatch.rate) : Number(data[0].rate);
+                        }
                     }
                 }
             } catch (err) {
@@ -1287,7 +1293,6 @@
                 alert("Ocurrió un error inesperado al aprobar el aviso.");
             }
         }
-
         async function copyWhatsAppSummary() {
             const period = getSelectedPeriod();
 
