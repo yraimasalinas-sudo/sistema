@@ -2145,14 +2145,18 @@
             // 2. Procesar Gastos Activos (Expenses)
             (state.expenses || []).filter(function(e) {
                 if (e.status === 'billed') return false;
+                // Determinar el período real basado en el período guardado o en la fecha del gasto
+                const actualPeriod = e.period || (e.date ? e.date.slice(0, 7) : '2026-10');
+                const eNum = periodToNumber(actualPeriod);
+
                 if (!fromNum && !toNum) return true;
-                const eNum = periodToNumber(e.period);
                 if (fromNum && toNum) return eNum >= fromNum && eNum <= toNum;
                 if (fromNum) return eNum >= fromNum;
                 if (toNum) return eNum <= toNum;
                 return true;
             }).forEach(function(e) {
-                const p = e.period || '2026-10';
+                // Extraer el mes correctamente de la fecha o del periodo registrado
+                const p = e.period || (e.date ? e.date.slice(0, 7) : '2026-10');
                 periodsSet.add(p);
                 const totalExpUsd = Number(e.amount || 0);
                 const targetApto = String(e.apto || '').trim().toUpperCase();
