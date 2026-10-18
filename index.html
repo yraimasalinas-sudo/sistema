@@ -918,6 +918,22 @@
                 `;
             });
         }
+        function getBcvRateForDate(dateStr) {
+            if (!dateStr || !state.bcvHistory || state.bcvHistory.length === 0) {
+                // Si no hay historial, recurre a la tasa actual del edificio
+                return parseFloat(state.building?.bcv) || 36.50;
+            }
+            
+            // Buscar si existe una tasa registrada exactamente para esa fecha
+            const exactMatch = state.bcvHistory.find(item => item.date === dateStr);
+            if (exactMatch) {
+                return parseFloat(exactMatch.rate);
+            }
+
+            // Si no está el día exacto, busca la más cercana anterior o usa la general
+            const fallbackRate = parseFloat(state.building?.bcv) || 36.50;
+            return fallbackRate;
+        }
 
         // ==================== POBLAR PROVEEDORES EN SELECTS ====================
         function populateProviderSelects() {
@@ -1083,22 +1099,19 @@
         async function addExtraExpense(e) {
             if (e) e.preventDefault();
 
-            // 1. Obtener la fecha exacta del gasto ingresada en el formulario
             const fechaExtraInput = document.getElementById('fechaExtra')?.value;
             if (!fechaExtraInput) {
-                alert('Por favor selecciona la fecha del gasto o factura.');
+                alert('Por favor selecciona la fecha del gasto.');
                 return;
             }
 
-            // 2. Extraer el período real (YYYY-MM) directamente de la fecha (Ej: "2026-09")
             const period = fechaExtraInput.slice(0, 7);
-
             const provider = document.getElementById('provExtra')?.value.trim() || '';
             const moneda = document.getElementById('monedaExtra')?.value || 'USD';
             const description = document.getElementById('descExtra')?.value.trim() || '';
             const rawAmount = parseFloat(document.getElementById('montoExtra')?.value) || 0;
 
-            // 3. Buscar la tasa BCV usando la fecha real del gasto
+            // AQUÍ LLAMA A LA FUNCIÓN EXACTA QUE ACABAMOS DE CREAR:
             const bcvRateForPeriod = getBcvRateForDate(fechaExtraInput);
 
             let finalUsd = rawAmount;
@@ -1113,11 +1126,14 @@
                 const montoBs = rawAmount * tasaEuro;
                 finalUsd = montoBs / bcvRateForPeriod;
                 descFinal += ` (€${rawAmount.toFixed(2)})`;
+            } else if (moneda === 'BS') {
+                // Si llegaras a registrar en Bolívares directamente
+                finalUsd = rawAmount / bcvRateForPeriod;
             }
 
             const payload = {
-                period, // <-- Ahora guardará "2026-09" en lugar de "2026-10"
-                date: fechaExtraInput, // Guardamos la fecha exacta del gasto
+                period,
+                date: fechaExtraInput,
                 provider,
                 description: descFinal,
                 amount: Number(finalUsd.toFixed(2)),
@@ -1137,6 +1153,7 @@
             if (contenedorTasa) contenedorTasa.classList.add('hidden');
 
             await loadStorage();
+            alert(`Cuota guardada con éxito usando la tasa BCV del ${fechaExtraInput}: Bs. ${bcvRateForPeriod}`);
         }
 
         function renderExpenses() {
