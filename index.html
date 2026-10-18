@@ -1082,14 +1082,24 @@
 
         async function addExtraExpense(e) {
             if (e) e.preventDefault();
-            const period = getSelectedPeriod();
+
+            // 1. Obtener la fecha exacta del gasto ingresada en el formulario
+            const fechaExtraInput = document.getElementById('fechaExtra')?.value;
+            if (!fechaExtraInput) {
+                alert('Por favor selecciona la fecha del gasto o factura.');
+                return;
+            }
+
+            // 2. Extraer el período real (YYYY-MM) directamente de la fecha (Ej: "2026-09")
+            const period = fechaExtraInput.slice(0, 7);
+
             const provider = document.getElementById('provExtra')?.value.trim() || '';
             const moneda = document.getElementById('monedaExtra')?.value || 'USD';
             const description = document.getElementById('descExtra')?.value.trim() || '';
             const rawAmount = parseFloat(document.getElementById('montoExtra')?.value) || 0;
 
-            const targetDate = period ? `${period}-01` : new Date().toISOString().split('T')[0];
-            const bcvRateForPeriod = getBcvRateForDate(targetDate);
+            // 3. Buscar la tasa BCV usando la fecha real del gasto
+            const bcvRateForPeriod = getBcvRateForDate(fechaExtraInput);
 
             let finalUsd = rawAmount;
             let descFinal = description;
@@ -1106,7 +1116,8 @@
             }
 
             const payload = {
-                period,
+                period, // <-- Ahora guardará "2026-09" en lugar de "2026-10"
+                date: fechaExtraInput, // Guardamos la fecha exacta del gasto
                 provider,
                 description: descFinal,
                 amount: Number(finalUsd.toFixed(2)),
