@@ -2076,7 +2076,7 @@
             const fromVal = document.getElementById('rep-period-from') ? document.getElementById('rep-period-from').value : '';
             const toVal = document.getElementById('rep-period-to') ? (document.getElementById('rep-period-to').value || fromVal) : fromVal;
 
-            const buildingName = (state.building && state.building.name) ? state.building.name : 'Residencias El Parque';
+            const buildingName = (state.building && state.building.name) ? state.building.name : 'Residencias Aventura Suites';
             const buildingRif = (state.building && state.building.rif) ? state.building.rif : 'J-29819798-6';
             
             const nameEl = document.getElementById('rep-building-name');
@@ -2220,7 +2220,13 @@
 
             if (tbody) {
                 tbody.innerHTML = '';
-                const owners = state.owners || [];
+                
+                // Ordenar los apartamentos de forma natural y lógica
+                const owners = [...(state.owners || [])].sort((a, b) => {
+                    const aptA = String(a.apto || '').trim();
+                    const aptB = String(b.apto || '').trim();
+                    return aptA.localeCompare(aptB, undefined, { numeric: true, sensitivity: 'base' });
+                });
 
                 if (owners.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="10" class="p-4 text-center text-slate-400">No hay apartamentos registrados.</td></tr>';
