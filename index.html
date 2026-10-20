@@ -301,8 +301,6 @@
                                     <label class="text-xs text-slate-600">Concepto de Pago</label>
                                     <select id="pay-concept" class="w-full p-2.5 rounded-lg border text-sm">
                                         <option value="Cuota Ordinaria Mensual">Cuota Ordinaria Mensual</option>
-                                        <option value="Cuota Extraordinaria">Cuota Extraordinaria</option>
-                                        <option value="Pago Total (Ordinaria + Extraordinaria)">Pago Total (Ordinaria + Extraordinaria)</option>
                                     </select>
                                 </div>
                                 <div>
@@ -1495,7 +1493,7 @@
             e.preventDefault();
             const apto = document.getElementById('pay-apto').value;
             const concept = document.getElementById('pay-concept').value;
-            const type = concept.toLowerCase().includes('extra') ? 'extraordinaria' : 'ordinaria';
+            const type =  'ordinaria';
             const method = document.getElementById('pay-method').value;
             const amount = parseFloat(document.getElementById('pay-amount').value) || 0;
             const ref = document.getElementById('pay-ref').value;
