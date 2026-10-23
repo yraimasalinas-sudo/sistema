@@ -2101,9 +2101,8 @@
 
                         if (cleanApto && amtApto > 0) {
                             if (!aptoPeriodDebt[cleanApto]) aptoPeriodDebt[cleanApto] = {};
-                            if (!aptoPeriodDebt[cleanApto][p]) {
-                                aptoPeriodDebt[cleanApto][p] = amtApto;
-                            }
+                            // CORRECCIÓN: Sumar ambos montos (gasto regular + cuota extraordinaria)
+                            aptoPeriodDebt[cleanApto][p] = (aptoPeriodDebt[cleanApto][p] || 0) + amtApto;
                         }
                     });
                 } else {
