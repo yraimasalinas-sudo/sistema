@@ -2058,11 +2058,12 @@
             let periodsSet = new Set();
             let aptoPeriodDebt = {};
 
-            // 1. Procesar Avisos de Cobro (Billing Notices de Supabase)
+            // 1. Procesar Avisos de Cobro (Normalizando el período a YYYY-MM)
             const notices = state.billingNotices || [];
 
             notices.forEach(function(notice) {
-                const p = notice.period ? notice.period.slice(0, 7) : notice.period;
+                const rawP = notice.period || '';
+                const p = rawP.length > 7 ? rawP.slice(0, 7) : rawP; // Normaliza fechas a YYYY-MM
                 if (p) periodsSet.add(p);
 
                 let details = notice.details;
@@ -2083,11 +2084,12 @@
                 });
             });
 
-            // 2. Procesar Gastos Activos (Expenses)
+            // 2. Procesar Gastos Activos / Pendientes (Normalizando también a YYYY-MM)
             (state.expenses || []).filter(function(e) {
                 return e.status !== 'billed';
             }).forEach(function(e) {
-                const p = e.period ? e.period.slice(0, 7) : (e.date ? e.date.slice(0, 7) : '2026-10');
+                const rawP = e.period || (e.date ? e.date : '2026-10');
+                const p = rawP.length > 7 ? rawP.slice(0, 7) : rawP;
                 periodsSet.add(p);
                 const totalExpUsd = Number(e.amount || 0);
                 const targetApto = String(e.apto || '').trim().toUpperCase();
@@ -2101,7 +2103,6 @@
 
                         if (cleanApto && amtApto > 0) {
                             if (!aptoPeriodDebt[cleanApto]) aptoPeriodDebt[cleanApto] = {};
-                            // CORRECCIÓN: Sumar ambos montos (gasto regular + cuota extraordinaria)
                             aptoPeriodDebt[cleanApto][p] = (aptoPeriodDebt[cleanApto][p] || 0) + amtApto;
                         }
                     });
