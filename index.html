@@ -1936,7 +1936,7 @@
             }
         }
 
-// ==================== RECIBO DETALLADO (SOLO EN USD $) ====================
+        // ==================== RECIBO DETALLADO (SOLO EN USD $) ====================
         function verDetalleAvisoPropietario(noticeId) {
             const notice = (state.billingNotices || []).find(n => String(n.id) === String(noticeId));
             if (!notice) return alert("No se encontró el aviso seleccionado.");
@@ -2036,7 +2036,7 @@
             `);
             windowPrint.document.close();
         }
-        // ==================== REPORTE MATRICIAL Y DE GESTIÓN ====================
+// ==================== REPORTE MATRICIAL Y DE GESTIÓN ====================
         function generateMatrixReport() {
             const buildingName = (state.building && state.building.name) ? state.building.name : 'Residencias Aventura Suites';
             const buildingRif = (state.building && state.building.rif) ? state.building.rif : 'J-29819798-6';
@@ -2058,12 +2058,11 @@
             let periodsSet = new Set();
             let aptoPeriodDebt = {};
 
-            // 1. Procesar Avisos de Cobro (Normalizando el período a YYYY-MM)
+            // 1. Procesar Avisos de Cobro (Usando la fecha/periodo exacto)
             const notices = state.billingNotices || [];
 
             notices.forEach(function(notice) {
-                const rawP = notice.period || '';
-                const p = rawP.length > 7 ? rawP.slice(0, 7) : rawP; // Normaliza fechas a YYYY-MM
+                const p = notice.period ? String(notice.period).trim() : '';
                 if (p) periodsSet.add(p);
 
                 let details = notice.details;
@@ -2084,13 +2083,12 @@
                 });
             });
 
-            // 2. Procesar Gastos Activos / Pendientes (Normalizando también a YYYY-MM)
+            // 2. Procesar Gastos Activos / Pendientes (Usando la fecha o periodo exacto)
             (state.expenses || []).filter(function(e) {
                 return e.status !== 'billed';
             }).forEach(function(e) {
-                const rawP = e.period || (e.date ? e.date : '2026-10');
-                const p = rawP.length > 7 ? rawP.slice(0, 7) : rawP;
-                periodsSet.add(p);
+                const p = e.period ? String(e.period).trim() : (e.date ? String(e.date).trim() : '2026-10');
+                if (p) periodsSet.add(p);
                 const totalExpUsd = Number(e.amount || 0);
                 const targetApto = String(e.apto || '').trim().toUpperCase();
                 
@@ -2116,7 +2114,8 @@
                 periodsSet.add('2026-10');
             }
 
-            let periodsListAsc = Array.from(periodsSet).sort();
+            // Filtrar valores vacíos o nulos para eliminar columnas extrañas como '0'
+            let periodsListAsc = Array.from(periodsSet).filter(p => p && p !== '0').sort();
             let periodsListDesc = [...periodsListAsc].reverse();
 
             let thead = document.getElementById('matrix-table-head');
