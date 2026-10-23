@@ -533,27 +533,6 @@
                             </div>
                         </div>
 
-                        <!-- Historial de Proveedores y Servicios -->
-                        <div class="space-y-3 pt-4 border-t border-slate-100">
-                            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                                📑 Historial de Proveedores y Servicios
-                            </h3>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase text-[11px] tracking-wider font-bold">
-                                            <th class="p-3">Proveedor</th>
-                                            <th class="p-3">Servicio</th>
-                                            <th class="p-3 text-right">Teléfono / Contacto</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="report-providers-body" class="divide-y divide-slate-200">
-                                        <!-- Proveedores generados dinámicamente -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
                         <!-- Pie del Reporte / Firmas para Impresión -->
                         <div class="mt-12 pt-6 border-t border-slate-200 hidden print:flex justify-between text-center text-xs text-slate-500">
                             <div class="w-1/3">
@@ -2094,17 +2073,7 @@
             windowPrint.document.close();
         }
         // ==================== REPORTE MATRICIAL Y DE GESTIÓN ====================
-        function periodToNumber(pStr) {
-            if (!pStr) return 0;
-            const clean = String(pStr).replace(/[^0-9]/g, '');
-            if (clean.length === 6) return Number(clean);
-            return 0;
-        }
-
         function generateMatrixReport() {
-            const fromVal = document.getElementById('rep-period-from') ? document.getElementById('rep-period-from').value : '';
-            const toVal = document.getElementById('rep-period-to') ? (document.getElementById('rep-period-to').value || fromVal) : fromVal;
-
             const buildingName = (state.building && state.building.name) ? state.building.name : 'Residencias Aventura Suites';
             const buildingRif = (state.building && state.building.rif) ? state.building.rif : 'J-29819798-6';
             
@@ -2119,27 +2088,17 @@
 
             const rangeLabel = document.getElementById('rep-range-label');
             if (rangeLabel) {
-                rangeLabel.innerText = (fromVal && toVal) ? ((fromVal === toVal) ? ('Período: ' + fromVal) : ('Rango: ' + fromVal + ' al ' + toVal)) : 'Período: Histórico Completo';
+                rangeLabel.innerText = 'Período: Histórico Completo';
             }
-
-            const fromNum = periodToNumber(fromVal);
-            const toNum = periodToNumber(toVal);
 
             let periodsSet = new Set();
             let aptoPeriodDebt = {};
 
             // 1. Procesar Avisos de Cobro (Billing Notices de Supabase)
-            const notices = (state.billingNotices || []).filter(function(n) {
-                if (!fromNum && !toNum) return true;
-                const nNum = periodToNumber(n.period);
-                if (fromNum && toNum) return nNum >= fromNum && nNum <= toNum;
-                if (fromNum) return nNum >= fromNum;
-                if (toNum) return nNum <= toNum;
-                return true;
-            });
+            const notices = state.billingNotices || [];
 
             notices.forEach(function(notice) {
-                const p = notice.period;
+                const p = notice.period ? notice.period.slice(0, 7) : notice.period;
                 if (p) periodsSet.add(p);
 
                 let details = notice.details;
@@ -2162,19 +2121,9 @@
 
             // 2. Procesar Gastos Activos (Expenses)
             (state.expenses || []).filter(function(e) {
-                if (e.status === 'billed') return false;
-                // Determinar el período real basado en el período guardado o en la fecha del gasto
-                const actualPeriod = e.period || (e.date ? e.date.slice(0, 7) : '2026-10');
-                const eNum = periodToNumber(actualPeriod);
-
-                if (!fromNum && !toNum) return true;
-                if (fromNum && toNum) return eNum >= fromNum && eNum <= toNum;
-                if (fromNum) return eNum >= fromNum;
-                if (toNum) return eNum <= toNum;
-                return true;
+                return e.status !== 'billed';
             }).forEach(function(e) {
-                // Extraer el mes correctamente de la fecha o del periodo registrado
-                const p = e.period || (e.date ? e.date.slice(0, 7) : '2026-10');
+                const p = e.period ? e.period.slice(0, 7) : (e.date ? e.date.slice(0, 7) : '2026-10');
                 periodsSet.add(p);
                 const totalExpUsd = Number(e.amount || 0);
                 const targetApto = String(e.apto || '').trim().toUpperCase();
@@ -2206,31 +2155,8 @@
             let periodsListAsc = Array.from(periodsSet).sort();
             let periodsListDesc = [...periodsListAsc].reverse();
 
-            // 3. Ubicar o crear la tabla en el DOM
             let thead = document.getElementById('matrix-table-head');
             let tbody = document.getElementById('matrix-table-body');
-
-            if (!thead || !tbody) {
-                const reportContainer = document.getElementById('tab-reportes') || document.getElementById('reportes') || document.body;
-                let targetTable = reportContainer.querySelector('table');
-                
-                if (!targetTable) {
-                    const container = reportContainer.querySelector('.space-y-6') || reportContainer;
-                    const divWrapper = document.createElement('div');
-                    divWrapper.className = 'overflow-x-auto bg-white rounded-2xl shadow-sm border border-slate-200 mt-4';
-                    divWrapper.innerHTML = '<table class="w-full text-left border-collapse"><thead id="matrix-table-head" class="bg-slate-100 text-slate-700 text-xs uppercase font-semibold"></thead><tbody id="matrix-table-body" class="text-sm divide-y divide-slate-100"></tbody></table>';
-                    container.appendChild(divWrapper);
-                } else {
-                    if (!targetTable.querySelector('thead')) {
-                        targetTable.innerHTML = '<thead id="matrix-table-head" class="bg-slate-100 text-slate-700 text-xs uppercase font-semibold"></thead><tbody id="matrix-table-body" class="text-sm divide-y divide-slate-100"></tbody>';
-                    } else {
-                        targetTable.querySelector('thead').id = 'matrix-table-head';
-                        if (targetTable.querySelector('tbody')) targetTable.querySelector('tbody').id = 'matrix-table-body';
-                    }
-                }
-                thead = document.getElementById('matrix-table-head');
-                tbody = document.getElementById('matrix-table-body');
-            }
 
             if (thead) {
                 let headHtml = '<tr class="bg-slate-100 text-slate-700">' +
@@ -2254,7 +2180,6 @@
             if (tbody) {
                 tbody.innerHTML = '';
                 
-                // Ordenar los apartamentos de forma natural y lógica
                 const owners = [...(state.owners || [])].sort((a, b) => {
                     const aptA = String(a.apto || '').trim();
                     const aptB = String(b.apto || '').trim();
@@ -2285,7 +2210,6 @@
                     let remainingPayment = totalPagadoUsd;
                     let periodBalances = {};
 
-                    // Distribuir dinero del mes más antiguo al más reciente
                     periodsListAsc.forEach(function(p) {
                         const assigned = (aptoPeriodDebt[cleanApto] && aptoPeriodDebt[cleanApto][p]) ? aptoPeriodDebt[cleanApto][p] : 0;
                         if (assigned > 0) {
@@ -2343,10 +2267,6 @@
         }
 
         function generateReports() {
-            generateMatrixReport();
-        }
-
-        function generateCustomRangeReport() {
             generateMatrixReport();
         }
 
